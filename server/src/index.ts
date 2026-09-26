@@ -1,0 +1,632 @@
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { initialGovernmentUpdates } from './data/seedData.js';
+import { CivicJourney, GovernmentUpdate, ProcedureStep } from './types.js';
+import { parseCitizenGoal } from './services/civic/goalParser.js';
+import { findRelevantProcedures } from './services/civic/procedureMapper.js';
+import { buildRoadmap, answerContextualQuestion } from './services/civic/roadmapBuilder.js';
+import { procedureKnowledgeBase } from './services/civic/procedureKnowledgeBase.js';
+import { 
+  getNextAction, 
+  getDocumentSummary, 
+  computeRoadmapDiff, 
+  computeDocumentPriorities 
+} from './services/civic/adaptiveEngine.js';
+import { answerCopilotQuery } from './services/civic/copilotService.js';
+import { demoScenarios } from './services/civic/demoScenarios.js';
+import { runSourceVerificationPipeline } from './services/civic/sourceFetcher.js';
+import { initDatabase } from './db/database.js';
+import { 
+  registerUser, 
+  loginUser, 
+  saveUserJourney, 
+  getUserJourney, 
+  seedDefaultUser 
+} from './services/authService.js';
+import { 
+  authMiddleware, 
+  optionalAuthMiddleware, 
+  AuthenticatedRequest 
+} from './middleware/authMiddleware.js';
+
+dotenv.config();
+
+// Initialize SQLite database schema and seed default citizen
+initDatabase();
+seedDefaultUser();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json());
+
+// In-memory demo state store - initialize with primary hackathon demo
+let currentJourney: CivicJourney | null = null;
+let updates: GovernmentUpdate[] = JSON.parse(JSON.stringify(initialGovernmentUpdates));
+
+// Initialize default journey dynamically (Bakery in Mumbai demo)
+async function initDefault() {
+  const goal = await parseCitizenGoal('I want to start a small bakery in Mumbai.', {
+    locationOverride: 'Mumbai, Maharashtra',
+    context: 'Small / home-based bakery'
+  });
+  const procedures = findRelevantProcedures(goal);
+  currentJourney = buildRoadmap(goal, procedures);
+}
+initDefault();
+
+// 1. Health check endpoint (Phase 1 Requirement)
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    service: 'DishaSaathi API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    scenario: 'Municipal Bureaucracy Path Visualizer (PSWB02)'
+  });
+});
+
+// ============================================================
+// AUTHENTICATION & PERSISTENT ACCOUNTS (SQLite DB)
+// ============================================================
+
+app.post('/api/auth/register', (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
+  }
+  try {
+    const { user, token } = registerUser(name, email, password);
+    res.json({ success: true, user, token });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message || 'Registration failed' });
+  }
+});
+
+app.post('/api/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ success: false, error: 'Email and password are required' });
+  }
+  try {
+    const { user, token, savedJourney } = loginUser(email, password);
+    res.json({ success: true, user, token, journey: savedJourney });
+  } catch (err: any) {
+    res.status(401).json({ success: false, error: err.message || 'Invalid credentials' });
+  }
+});
+
+app.get('/api/auth/me', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, error: 'Not authenticated' });
+  }
+  const journey = getUserJourney(req.user.id);
+  res.json({ success: true, user: req.user, journey });
+});
+
+// Journey DB sync endpoints for logged-in citizens
+app.post('/api/user/journey', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  const { journey } = req.body;
+  if (!journey) return res.status(400).json({ success: false, error: 'Journey data required' });
+  saveUserJourney(req.user.id, journey);
+  res.json({ success: true, message: 'Journey saved to SQLite database' });
+});
+
+app.get('/api/user/journey', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  const journey = getUserJourney(req.user.id);
+  res.json({ success: true, journey });
+});
+
+// 2. Get active civic journey
+app.get('/api/journey/current', async (req: Request, res: Response) => {
+  if (!currentJourney) {
+    await initDefault();
+  }
+  res.json({
+    success: true,
+    journey: currentJourney
+  });
+});
+
+// 3. Dynamic Natural Language Task Interpretation & Procedure Synthesis (Phase 3 Core Pipeline)
+app.post('/api/journey/interpret', async (req: Request, res: Response) => {
+  const { goal, city, state, additionalContext } = req.body;
+  const userGoal = (goal || '').trim();
+  const locationOverride = city ? `${city}${state ? `, ${state}` : ''}` : undefined;
+
+  try {
+    // 1. Goal Understanding -> Structured Goal
+    const structuredGoal = await parseCitizenGoal(userGoal, {
+      locationOverride,
+      context: additionalContext
+    });
+
+    // 2. Procedure Mapping -> Relevant Candidate Procedures
+    const procedures = findRelevantProcedures(structuredGoal);
+
+    // 3. Dependency Resolution & Topological Ordering -> Roadmap
+    const dynamicJourney = buildRoadmap(structuredGoal, procedures);
+    currentJourney = dynamicJourney;
+
+    res.json({
+      success: true,
+      structuredGoal,
+      interpreted: {
+        goal: userGoal,
+        task: dynamicJourney.title,
+        location: dynamicJourney.location,
+        category: dynamicJourney.category,
+        intent: structuredGoal.intent,
+        domain: structuredGoal.domain,
+        activity: structuredGoal.activity,
+        confidence: structuredGoal.confidence,
+        sourceCount: dynamicJourney.steps.length,
+        dependenciesMapped: dynamicJourney.steps.reduce((acc, s) => acc + s.prerequisites.length, 0),
+        clarificationNeeded: structuredGoal.clarificationNeeded || false
+      },
+      journey: currentJourney
+    });
+  } catch (err: any) {
+    console.error('Error generating procedure:', err);
+    res.status(500).json({ success: false, error: 'Failed to generate civic roadmap' });
+  }
+});
+
+// 3b. Grounded "Ask DishaSaathi" Contextual AI Assistant (Phase 3 & 4 Requirement)
+const handleAskAssistant = async (req: Request, res: Response) => {
+  try {
+    const { question, journey } = req.body;
+    const stepId = req.body.stepId || req.body.focusStepId;
+    if (!question) {
+      return res.status(400).json({ success: false, error: 'Question is required' });
+    }
+    const activeJourney = journey || currentJourney;
+    if (!activeJourney) {
+      return res.status(404).json({ success: false, error: 'No active roadmap found' });
+    }
+
+    const response = await answerContextualQuestion(question, stepId, activeJourney);
+    res.json({
+      success: true,
+      ...response
+    });
+  } catch (err: any) {
+    console.error('Error in Ask DishaSaathi:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process question',
+      answer: "I couldn't verify this requirement from an authoritative source yet."
+    });
+  }
+};
+
+app.post('/api/journey/ask', handleAskAssistant);
+app.post('/api/assistant/ask', handleAskAssistant);
+
+// ============================================================
+// IMPACT METRICS — Landing Page Hero Stats
+// Derived from the canonical procedure knowledge base
+// ============================================================
+
+// Helper: estimate in-person visits needed for a procedure without DishaSaathi
+function estimateInPersonVisits(proc: { applicationMode: string; estimatedTime: string; dependsOn: string[] }): number {
+  // Offline = 3 visits minimum (inquiry, submission, pickup)
+  // Hybrid = 2 visits (submission + pickup / inspection)
+  // Online-only = 1 visit (citizens still have to go once for verification/OTP in India)
+  if (proc.applicationMode === 'Offline') return 3;
+  if (proc.applicationMode === 'Hybrid') return 2;
+  return 1;
+}
+
+app.get('/api/metrics/impact', (_req: Request, res: Response) => {
+
+  const totalProcedures = procedureKnowledgeBase.length;
+  const totalInPersonVisitsWithout = procedureKnowledgeBase.reduce(
+    (sum, p) => sum + estimateInPersonVisits(p), 0
+  );
+  // With DishaSaathi: user only needs 1 guided session per procedure (digital guided flow)
+  const totalInPersonVisitsWith = totalProcedures; // 1 per procedure for digital uploads / e-sign
+  const visitsSaved = totalInPersonVisitsWithout - totalInPersonVisitsWith;
+
+  // Estimate hours saved: each in-person visit = avg 3.5 hrs (commute + queue + wait + return)
+  const hoursPerVisit = 3.5;
+  const hoursSaved = Math.round(visitsSaved * hoursPerVisit);
+
+  // Max total cost if all KB fees are paid (upper range)
+  const verifiedCount = procedureKnowledgeBase.filter(p => p.verificationStatus === 'VERIFIED').length;
+
+  res.json({
+    success: true,
+    metrics: {
+      totalProcedures,
+      totalInPersonVisitsWithout,
+      visitsSaved,
+      hoursSaved,
+      verifiedProcedures: verifiedCount,
+      domainsCount: [...new Set(procedureKnowledgeBase.map(p => p.domain))].length,
+      jurisdictionsCount: [...new Set(procedureKnowledgeBase.map(p => p.jurisdiction.city || p.jurisdiction.state || p.jurisdiction.country))].length
+    }
+  });
+});
+
+// 4. Update step status with dependency/block enforcement
+const handleUpdateStepStatus = (req: Request, res: Response) => {
+  if (!currentJourney) {
+    return res.status(404).json({ success: false, error: 'No active journey' });
+  }
+
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const stepIndex = currentJourney.steps.findIndex(s => s.id === id);
+  if (stepIndex === -1) {
+    return res.status(404).json({ success: false, error: 'Step not found' });
+  }
+
+  const step = currentJourney.steps[stepIndex];
+
+  // If attempting to mark complete, check prerequisites
+  if (status === 'Completed') {
+    const uncompletedPrereqs = step.prerequisites.filter(prereqId => {
+      const p = currentJourney?.steps.find(s => s.id === prereqId);
+      return p && p.status !== 'Completed';
+    });
+
+    if (uncompletedPrereqs.length > 0) {
+      const prereqTitles = uncompletedPrereqs.map(pId => {
+        const p = currentJourney?.steps.find(s => s.id === pId);
+        return p ? p.title : pId;
+      });
+
+      return res.status(400).json({
+        success: false,
+        blocked: true,
+        message: `Prerequisite steps must be completed first: ${prereqTitles.join(', ')}`,
+        uncompletedPrerequisites: uncompletedPrereqs
+      });
+    }
+  }
+
+  step.status = status;
+
+  // Recalculate stats
+  const completedCount = currentJourney.steps.filter(s => s.status === 'Completed').length;
+  currentJourney.completedSteps = completedCount;
+
+  // Sync to SQLite database if citizen is logged in
+  if ((req as AuthenticatedRequest).user && currentJourney) {
+    saveUserJourney((req as AuthenticatedRequest).user!.id, currentJourney);
+  }
+
+  res.json({
+    success: true,
+    step,
+    journey: currentJourney
+  });
+};
+
+app.patch('/api/journey/steps/:id/status', optionalAuthMiddleware, handleUpdateStepStatus);
+app.post('/api/journey/steps/:id/status', optionalAuthMiddleware, handleUpdateStepStatus);
+
+// 4b. Update document status ("I have this document" checklist tracking)
+app.patch('/api/journey/steps/:stepId/documents/:docId/status', optionalAuthMiddleware, (req: Request, res: Response) => {
+  if (!currentJourney) {
+    return res.status(404).json({ success: false, error: 'No active journey' });
+  }
+
+  const { stepId, docId } = req.params;
+  const { status } = req.body;
+
+  const step = currentJourney.steps.find((s) => s.id === stepId);
+  if (!step) {
+    return res.status(404).json({ success: false, error: 'Step not found' });
+  }
+
+  const doc = step.documents.find((d) => d.id === docId);
+  if (!doc) {
+    return res.status(404).json({ success: false, error: 'Document not found' });
+  }
+
+  doc.status = status;
+
+  // Recalculate document readiness metrics
+  let totalDocs = 0;
+  let readyDocs = 0;
+  let mandatoryPending = 0;
+
+  for (const s of currentJourney.steps) {
+    for (const d of s.documents) {
+      totalDocs++;
+      if (d.status === 'READY' || d.status === 'UPLOADED') {
+        readyDocs++;
+      } else if (d.isMandatory) {
+        mandatoryPending++;
+      }
+    }
+  }
+
+  currentJourney.totalDocuments = totalDocs;
+  currentJourney.readyDocuments = readyDocs;
+  currentJourney.pendingDocuments = mandatoryPending;
+
+  // Sync to SQLite database if citizen is logged in
+  if ((req as AuthenticatedRequest).user && currentJourney) {
+    saveUserJourney((req as AuthenticatedRequest).user!.id, currentJourney);
+  }
+
+  res.json({
+    success: true,
+    document: doc,
+    journey: currentJourney
+  });
+});
+
+// 5. Government updates endpoint
+app.get('/api/updates', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    updates
+  });
+});
+
+// 6. Trigger Change Detection & apply to roadmap
+app.post('/api/updates/:id/apply', (req: Request, res: Response) => {
+  if (!currentJourney) {
+    return res.status(404).json({ success: false, error: 'No active journey' });
+  }
+
+  const { id } = req.params;
+  const update = updates.find(u => u.id === id);
+
+  if (!update) {
+    return res.status(404).json({ success: false, error: 'Update not found' });
+  }
+
+  // Find step or attach to active step
+  const targetStep = currentJourney.steps.find(s => s.id === update.serviceId) || currentJourney.steps[0];
+  if (targetStep) {
+    targetStep.hasUpdate = true;
+    targetStep.updateDetails = {
+      date: update.date,
+      summary: update.title,
+      addedRequirement: update.newValue
+    };
+    targetStep.documents.push({
+      id: `doc-update-${Date.now()}`,
+      name: update.newValue || 'Updated Statutory Document Requirement',
+      description: `Amended requirement as per notification on ${update.date}`,
+      isMandatory: true,
+      sourceUrl: update.sourceUrl
+    });
+    currentJourney.pendingDocuments += 1;
+  }
+  update.reviewStatus = 'Approved';
+
+  res.json({
+    success: true,
+    message: 'Government requirement change applied to visual roadmap',
+    affectedStep: targetStep?.id,
+    journey: currentJourney,
+    update
+  });
+});
+
+// 7. Admin Review Endpoint
+app.post('/api/updates/:id/review', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { action } = req.body;
+
+  const update = updates.find(u => u.id === id);
+  if (!update) {
+    return res.status(404).json({ success: false, error: 'Update not found' });
+  }
+
+  update.reviewStatus = action === 'Approve' ? 'Approved' : 'Rejected';
+
+  res.json({
+    success: true,
+    message: `Update ${id} marked as ${update.reviewStatus}`,
+    update
+  });
+});
+
+// 7b. Live Source Verification Pipeline (Crawl FSSAI, GSTN, BMC)
+app.post('/api/admin/verify-sources', async (req: Request, res: Response) => {
+  try {
+    const pipelineResult = await runSourceVerificationPipeline(updates);
+    updates = pipelineResult.updatedList;
+    res.json({
+      success: true,
+      message: `Verified ${pipelineResult.verifiedCount} official sources. ${pipelineResult.newMismatchesDetected} new updates flagged for review.`,
+      verifiedCount: pipelineResult.verifiedCount,
+      newMismatchesDetected: pipelineResult.newMismatchesDetected,
+      results: pipelineResult.results,
+      updates
+    });
+  } catch (err: any) {
+    console.error('Error in source verification pipeline:', err);
+    res.status(500).json({ success: false, error: 'Source verification encountered an error' });
+  }
+});
+
+// 8. Reset journey
+app.post('/api/journey/reset', async (req: Request, res: Response) => {
+  await initDefault();
+  updates = JSON.parse(JSON.stringify(initialGovernmentUpdates));
+  res.json({
+    success: true,
+    message: 'Journey reset to fresh state',
+    journey: currentJourney
+  });
+});
+
+// ============================================================
+// PHASE 5: ADAPTIVE COPILOT, REFINEMENT, & DEMO SCENARIOS
+// ============================================================
+
+// 9. Adaptive Action Engine: Next Best Action, Document Priorities & Health
+app.get('/api/journey/adaptive-action', (req: Request, res: Response) => {
+  if (!currentJourney) {
+    return res.status(404).json({ success: false, error: 'No active roadmap' });
+  }
+  const recommendation = getNextAction(currentJourney);
+  const documentSummary = getDocumentSummary(currentJourney);
+  res.json({
+    success: true,
+    recommendation,
+    documentSummary
+  });
+});
+
+// 10. Goal Refinement & Non-destructive Roadmap Diff (Section 24, 25, 26)
+app.post('/api/journey/refine', async (req: Request, res: Response) => {
+  if (!currentJourney) {
+    return res.status(404).json({ success: false, error: 'No active roadmap' });
+  }
+
+  const { goal, city, state, additionalContext } = req.body;
+  const targetQuery = goal || currentJourney.query;
+  const targetLocation = city && state ? `${city}, ${state}` : currentJourney.location;
+
+  const parsedGoal = await parseCitizenGoal(targetQuery, {
+    locationOverride: targetLocation,
+    context: additionalContext
+  });
+
+  const candidateProcs = findRelevantProcedures(parsedGoal);
+  const newRoadmap = buildRoadmap(parsedGoal, candidateProcs);
+  const { diff, adaptedJourney } = computeRoadmapDiff(currentJourney, newRoadmap);
+
+  currentJourney = adaptedJourney;
+
+  res.json({
+    success: true,
+    journey: currentJourney,
+    diff,
+    recommendation: getNextAction(currentJourney)
+  });
+});
+
+// 11. Roadmap Re-Check against Knowledge Base (Section 21)
+app.post('/api/journey/recheck', (req: Request, res: Response) => {
+  if (!currentJourney) {
+    return res.status(404).json({ success: false, error: 'No active roadmap' });
+  }
+
+  currentJourney = computeDocumentPriorities(currentJourney);
+  const recommendation = getNextAction(currentJourney);
+  const documentSummary = getDocumentSummary(currentJourney);
+
+  res.json({
+    success: true,
+    message: 'Re-checked against the current DishaSaathi knowledge base.',
+    journey: currentJourney,
+    recommendation,
+    documentSummary
+  });
+});
+
+// 12. Contextual Civic Copilot Message with Evidence (Section 1–6)
+app.post('/api/copilot/message', async (req: Request, res: Response) => {
+  try {
+    const { question, focusStepId, journey } = req.body;
+    const activeJourney = journey || currentJourney;
+    if (!activeJourney) {
+      return res.status(404).json({ success: false, error: 'No active roadmap found' });
+    }
+
+    const response = await answerCopilotQuery({
+      question,
+      focusStepId,
+      journey: activeJourney
+    });
+
+    res.json({
+      success: true,
+      ...response
+    });
+  } catch (err: any) {
+    console.error('Error in Copilot query:', err);
+    res.status(500).json({
+      success: false,
+      answer: "I couldn't verify this requirement from an authoritative source right now.",
+      uncertaintyNotice: "Service connectivity notice: operating in offline fallback mode."
+    });
+  }
+});
+
+// 13. Demo Mode Scenarios (Section 27, 28, 29)
+app.get('/api/demo/scenarios', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    scenarios: demoScenarios
+  });
+});
+
+app.post('/api/demo/load/:scenarioId', async (req: Request, res: Response) => {
+  const { scenarioId } = req.params;
+  const scenario = demoScenarios.find((s) => s.id === scenarioId);
+  if (!scenario) {
+    return res.status(404).json({ success: false, error: 'Scenario not found' });
+  }
+
+  const goal = await parseCitizenGoal(scenario.goal, {
+    locationOverride: `${scenario.city}, ${scenario.state}`,
+    context: scenario.additionalContext
+  });
+
+  const procs = findRelevantProcedures(goal);
+  currentJourney = computeDocumentPriorities(buildRoadmap(goal, procs));
+
+  res.json({
+    success: true,
+    journey: currentJourney,
+    scenario,
+    recommendation: getNextAction(currentJourney)
+  });
+});
+
+// Production Static Client Serving & SPA Fallback
+const rootDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
+const candidateDistPaths = [
+  path.resolve(rootDir, '../../client/dist'),
+  path.resolve(rootDir, '../client/dist'),
+  path.resolve(process.cwd(), '../client/dist'),
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(process.cwd(), 'dist')
+];
+const clientDistPath = candidateDistPaths.find((p) => fs.existsSync(p));
+
+if (clientDistPath) {
+  console.log(`📦 Serving static client bundle from: ${clientDistPath}`);
+  app.use(express.static(clientDistPath));
+  app.get('*', (req: Request, res: Response, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
+const server = app.listen(PORT, () => {
+  console.log(`🚀 DishaSaathi Server running on http://localhost:${PORT}`);
+  console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+});
+
+server.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`⚠️ Port ${PORT} is currently in use.`);
+  } else {
+    console.error('Server error:', err);
+  }
+});
