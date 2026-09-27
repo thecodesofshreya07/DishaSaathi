@@ -77,7 +77,7 @@ export const LandingNavbar: React.FC = () => {
             </div>
 
             {/* Right controls */}
-            <div className="hidden sm:flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2.5">
               {/* Language toggle */}
               <div className="relative">
                 <button onClick={() => setLangDropdownOpen(!langDropdownOpen)}
@@ -99,9 +99,19 @@ export const LandingNavbar: React.FC = () => {
                 )}
               </div>
 
-              <button onClick={() => navigate('/login')}
-                className="px-4 py-2 rounded-full text-xs font-bold text-[#1B4D3E] hover:bg-[#EAF2ED] border border-[#1B4D3E]/30 transition-all cursor-pointer">
-                Sign In
+              {/* Login & Sign Up Buttons */}
+              <button
+                onClick={() => navigate('/login?mode=login')}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#1B4D3E] hover:text-[#0D1F1A] hover:bg-[#EAF2ED] transition-all cursor-pointer"
+              >
+                Log In
+              </button>
+
+              <button
+                onClick={() => navigate('/login?mode=signup')}
+                className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-[#1B4D3E] hover:bg-[#143B2F] shadow-xs hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+              >
+                Sign Up
               </button>
             </div>
 
@@ -124,6 +134,14 @@ export const LandingNavbar: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              <button
+                onClick={() => navigate('/login?mode=login')}
+                className="px-2.5 py-1 rounded-lg text-xs font-bold text-[#1B4D3E] bg-[#EAF2ED]"
+              >
+                Log In
+              </button>
+
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-xl text-[#4A5D54] hover:bg-[#F3F7F5]">
                 {mobileMenuOpen ? <X className="w-6 h-6"/> : <Menu className="w-6 h-6"/>}
@@ -146,12 +164,27 @@ export const LandingNavbar: React.FC = () => {
               </button>
             ))}
             <div className="pt-3 border-t border-[#EDF2EE] flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2 mb-1">
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/login?mode=login'); }}
+                  className="w-full py-2.5 rounded-xl border border-[#1B4D3E]/30 text-[#1B4D3E] text-xs font-bold text-center hover:bg-[#EAF2ED]"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/login?mode=signup'); }}
+                  className="w-full py-2.5 rounded-xl bg-[#1B4D3E] text-white text-xs font-bold text-center shadow-xs hover:bg-[#143B2F]"
+                >
+                  Sign Up
+                </button>
+              </div>
+
               <button onClick={() => { setMobileMenuOpen(false); navigate('/create'); }}
-                className="w-full py-3 rounded-full text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm bg-[#1B4D3E] hover:bg-[#133A2E]">
+                className="w-full py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm bg-[#138808] hover:bg-[#0f6b06]">
                 <span>{t.navCreateRoadmap}</span><ArrowRight className="w-4 h-4"/>
               </button>
               <Link to="/roadmap" onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2 rounded-full text-center text-xs font-bold text-[#4A5D54] bg-[#F3F7F5]">
+                className="w-full py-2 rounded-xl text-center text-xs font-bold text-[#4A5D54] bg-[#F3F7F5]">
                 {t.navViewRoadmap}
               </Link>
             </div>

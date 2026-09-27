@@ -28,23 +28,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const saved = localStorage.getItem('dishasaathi_user');
       if (saved) return JSON.parse(saved);
-      const defaultUser: User = {
-        id: 'usr_shreya_01',
-        name: 'Shreya Mishra',
-        email: 'shreya.mishra@gov.in',
-        role: 'Citizen',
-        aadhaarVerified: true
-      };
-      localStorage.setItem('dishasaathi_user', JSON.stringify(defaultUser));
-      return defaultUser;
+      return null;
     } catch {
-      return {
-        id: 'usr_shreya_01',
-        name: 'Shreya Mishra',
-        email: 'shreya.mishra@gov.in',
-        role: 'Citizen',
-        aadhaarVerified: true
-      };
+      return null;
     }
   });
 

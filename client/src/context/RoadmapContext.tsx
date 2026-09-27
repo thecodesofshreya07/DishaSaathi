@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   CivicJourney, 
   GovernmentUpdate, 
@@ -11,7 +11,7 @@ import {
   DATA_VERSION 
 } from '../types';
 
-import { initialDefaultJourneys } from '../data/defaultJourneys';
+import { useAuth } from './AuthContext';
 
 interface RoadmapContextType {
   intake: GoalIntake;
@@ -71,32 +71,9 @@ function validateStoredJourney(data: any): CivicJourney | null {
   return data as CivicJourney;
 }
 
-function loadInitialJourneys(): CivicJourney[] {
-  try {
-    const raw = localStorage.getItem('dishasaathi_saved_journeys');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const validated = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
-        if (validated.length > 0) return validated;
-      }
-    }
-    // Also check single legacy stored journey
-    const legacySingle = localStorage.getItem('dishasaathi_saved_journey');
-    if (legacySingle) {
-      const parsedSingle = JSON.parse(legacySingle);
-      const validatedSingle = validateStoredJourney(parsedSingle);
-      if (validatedSingle) {
-        return [validatedSingle, ...initialDefaultJourneys.filter((d) => d.id !== validatedSingle.id)];
-      }
-    }
-  } catch (e) {
-    console.warn('Could not load saved journeys from localStorage', e);
-  }
-  return initialDefaultJourneys;
-}
-
 export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, token } = useAuth();
+
   // Load intake from localStorage or sessionStorage or default
   const [intake, setIntake] = useState<GoalIntake>(() => {
     try {
@@ -107,20 +84,28 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
-  // Multiple journeys collection
-  const [journeys, setJourneys] = useState<CivicJourney[]>(loadInitialJourneys);
+  // User-scoped journeys collection
+  const [journeys, setJourneys] = useState<CivicJourney[]>(() => {
+    try {
+      const userKey = user?.id ? `dishasaathi_journeys_${user.id}` : 'dishasaathi_guest_journeys';
+      const raw = localStorage.getItem(userKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load user journeys from local cache', e);
+    }
+    return [];
+  });
 
   // Active Journey ID
-  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(() => {
-    const initialList = loadInitialJourneys();
-    return initialList.length > 0 ? initialList[0].id : null;
-  });
+  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
 
   // Currently active journey
-  const [journey, setJourney] = useState<CivicJourney | null>(() => {
-    const initialList = loadInitialJourneys();
-    return initialList.length > 0 ? initialList[0] : null;
-  });
+  const [journey, setJourney] = useState<CivicJourney | null>(null);
 
   const [updates, setUpdates] = useState<GovernmentUpdate[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -130,12 +115,17 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [adaptiveRecommendation, setAdaptiveRecommendation] = useState<ActionRecommendation | null>(null);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
 
-  // Sync active journey when activeJourneyId changes
+  // Sync active journey when activeJourneyId or journeys changes
   useEffect(() => {
     if (activeJourneyId) {
       const matched = journeys.find((j) => j.id === activeJourneyId);
       if (matched) {
         setJourney(matched);
+      } else if (journeys.length > 0) {
+        setActiveJourneyId(journeys[0].id);
+        setJourney(journeys[0]);
+      } else {
+        setJourney(null);
       }
     } else if (journeys.length > 0) {
       setActiveJourneyId(journeys[0].id);
@@ -145,32 +135,56 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [activeJourneyId, journeys]);
 
-  // Sync journeys to localStorage and Turso DB with JWT
+  // Load user-specific journeys from Database on login / account switch
   useEffect(() => {
-    if (journeys.length > 0) {
+    if (user && token) {
+      // 1. Try immediate cached data for this specific user
       try {
-        localStorage.setItem('dishasaathi_saved_journeys', JSON.stringify(journeys));
-        if (journey) {
-          localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(journey));
+        const cached = localStorage.getItem(`dishasaathi_journeys_${user.id}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+            setJourneys(valid);
+            if (valid.length > 0) {
+              setActiveJourneyId(valid[0].id);
+              setJourney(valid[0]);
+            }
+          }
         }
       } catch (e) {
-        console.warn('Could not save journeys to localStorage', e);
+        console.warn('Local cache read error:', e);
       }
 
-      // Sync to backend DB if authenticated
-      const token = localStorage.getItem('dishasaathi_token');
-      if (token) {
-        fetch('/api/user/journeys', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ journeys })
-        }).catch((err) => console.warn('Cloud DB multi-journey sync error:', err));
-      }
+      // 2. Fetch fresh journeys strictly from DB for this user
+      fetch('/api/user/journeys', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to fetch user journeys from database');
+        })
+        .then((data) => {
+          const loadedJourneys = (data.success && Array.isArray(data.journeys)) ? data.journeys : [];
+          setJourneys(loadedJourneys);
+          localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(loadedJourneys));
+
+          if (loadedJourneys.length > 0) {
+            setActiveJourneyId(loadedJourneys[0].id);
+            setJourney(loadedJourneys[0]);
+          } else {
+            setActiveJourneyId(null);
+            setJourney(null);
+          }
+        })
+        .catch((err) => console.warn('Backend user journeys sync:', err));
+    } else {
+      // User logged out or guest: reset state
+      setJourneys([]);
+      setActiveJourneyId(null);
+      setJourney(null);
     }
-  }, [journeys, journey]);
+  }, [user?.id, token]);
 
   // Select a specific journey
   const selectJourney = (journeyId: string) => {
@@ -195,7 +209,10 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
-    const token = localStorage.getItem('dishasaathi_token');
+    if (user?.id) {
+      localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(updated));
+    }
+
     if (token) {
       try {
         await fetch(`/api/user/journeys/${journeyId}`, {
@@ -207,38 +224,6 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
   };
-
-  // Cloud DB sync on auth / mount
-  useEffect(() => {
-    const token = localStorage.getItem('dishasaathi_token');
-    if (token) {
-      fetch('/api/user/journeys', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then((res) => {
-          if (res.ok) return res.json();
-          throw new Error('Failed to fetch user journeys from cloud');
-        })
-        .then((data) => {
-          if (data.journeys && Array.isArray(data.journeys) && data.journeys.length > 0) {
-            setJourneys(data.journeys);
-            setActiveJourneyId(data.journeys[0].id);
-            setJourney(data.journeys[0]);
-          } else if (journeys.length > 0) {
-            // Seed DB with existing journeys
-            fetch('/api/user/journeys', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-              },
-              body: JSON.stringify({ journeys })
-            });
-          }
-        })
-        .catch((err) => console.warn('Backend user journeys sync:', err));
-    }
-  }, []);
 
   // Sync adaptive recommendation whenever journey changes
   useEffect(() => {
@@ -255,6 +240,23 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [journey]);
 
+  // Sync journeys to DB & local storage when journeys changes
+  useEffect(() => {
+    if (user?.id) {
+      localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(journeys));
+      if (token && journeys.length > 0) {
+        fetch('/api/user/journeys', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ journeys })
+        }).catch((err) => console.warn('Cloud DB multi-journey sync error:', err));
+      }
+    }
+  }, [journeys, user?.id, token]);
+
   // Sync intake to storage
   useEffect(() => {
     try {
@@ -267,40 +269,28 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Sync journey to storage stamped with DATA_VERSION
   useEffect(() => {
-    if (journey) {
+    if (journey && user?.id) {
       try {
         const toSave: CivicJourney = { ...journey, dataVersion: DATA_VERSION };
         sessionStorage.setItem('dishasaathi_journey', JSON.stringify(toSave));
-        localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(toSave));
+        localStorage.setItem(`dishasaathi_journey_${user.id}`, JSON.stringify(toSave));
       } catch (e) {
         console.warn('Could not save journey to storage', e);
       }
     }
-  }, [journey]);
+  }, [journey, user?.id]);
 
-  // Load updates and initial journey on mount
+  // Load updates on mount
   useEffect(() => {
     const fetchInitial = async () => {
       try {
-        const [resUpdates, resJourney] = await Promise.all([
-          fetch('/api/updates'),
-          fetch('/api/journey/current')
-        ]);
-
+        const resUpdates = await fetch('/api/updates');
         if (resUpdates.ok) {
           const dataU = await resUpdates.json();
           if (dataU.updates) setUpdates(dataU.updates);
         }
-
-        if (!journey && resJourney.ok) {
-          const dataJ = await resJourney.json();
-          if (dataJ.journey) {
-            setJourney(dataJ.journey);
-            setActiveJourneyId(dataJ.journey.id);
-          }
-        }
       } catch (err) {
-        console.warn('Backend sync in progress...', err);
+        console.warn('Backend updates sync:', err);
       }
     };
     fetchInitial();

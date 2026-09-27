@@ -96,58 +96,45 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
   const cleanTitle = step.title.replace(/^\d+\.\s*/, '');
 
-  const renderVerificationBadge = (status?: CivicVerificationStatus) => {
-    if (status === 'VERIFIED') {
-      return (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span> Verified Source</span>
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-        <Clock className="w-3.5 h-3.5 text-slate-500" />
-        <span> Needs Verification</span>
-      </span>
-    );
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="px-6 py-5 bg-gradient-to-r from-slate-50 to-slate-100/70 border-b border-slate-200 flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+      {/* Backdrop overlay */}
+      <div className="absolute inset-0" onClick={onClose} />
+
+      {/* Centered Modal Dialog Card (Strictly within viewport, no overflow cutoff) */}
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-[#0D1A16] rounded-3xl shadow-2xl border border-slate-200 dark:border-[#1E3B32] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 z-10">
+        {/* Fixed Header */}
+        <div className="px-6 py-4 bg-slate-50 dark:bg-[#10241E] border-b border-slate-200 dark:border-[#1E3B32] flex items-start justify-between gap-4 shrink-0">
           <div>
-            <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <span className="w-6 h-6 rounded-full bg-[#1B4D3E] text-white text-xs font-bold flex items-center justify-center">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="w-6 h-6 rounded-full bg-[#1B4D3E] dark:bg-[#22C55E] text-white dark:text-[#0D1A16] text-xs font-bold flex items-center justify-center shadow-xs">
                 {step.stepNumber}
               </span>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 {step.category}
               </span>
-              {renderVerificationBadge(step.verificationStatus)}
             </div>
-            <h2 className="text-xl font-extrabold text-slate-900">
+            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white leading-snug">
               {cleanTitle}
             </h2>
-            <p className="text-xs text-slate-600 mt-1 flex items-center gap-1 font-medium">
-              <Building className="w-3.5 h-3.5 text-[#1B4D3E]" />
-              <span>Authority: <strong className="text-slate-900">{step.authority || step.department}</strong></span>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-1 font-medium">
+              <Building className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7]" />
+              <span>Authority: <strong className="text-slate-900 dark:text-white">{step.authority || step.department}</strong></span>
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setShowTransparency(!showTransparency)}
-              className="p-2 rounded-full hover:bg-slate-200/80 text-slate-500 hover:text-slate-800 transition-colors"
+              className="p-2 rounded-xl hover:bg-slate-200/80 dark:hover:bg-[#1E3B32] text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
               title="Why am I seeing this?"
             >
               <Eye className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-slate-200/80 text-slate-500 hover:text-slate-800 transition-colors"
+              className="p-2 rounded-xl hover:bg-slate-200/80 dark:hover:bg-[#1E3B32] text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
+              title="Close"
             >
               <X className="w-5 h-5" />
             </button>
@@ -156,15 +143,15 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
         {/* SECTION 3: "Why Am I Seeing This?" In-Drawer Banner */}
         {showTransparency && (
-          <div className="bg-amber-50/80 border-b border-amber-200 p-4 text-xs text-amber-950 animate-in fade-in duration-150">
+          <div className="bg-amber-50/90 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800/60 p-4 text-xs text-amber-950 dark:text-amber-200 animate-in fade-in duration-150 shrink-0">
             <div className="flex items-start justify-between">
-              <strong className="font-extrabold uppercase tracking-wide text-amber-900 flex items-center gap-1">
+              <strong className="font-extrabold uppercase tracking-wide text-amber-900 dark:text-amber-300 flex items-center gap-1">
                 <Eye className="w-3.5 h-3.5" />
                 Why am I seeing this step?
               </strong>
-              <button onClick={() => setShowTransparency(false)} className="text-amber-800 font-bold"></button>
+              <button onClick={() => setShowTransparency(false)} className="text-amber-800 dark:text-amber-300 font-bold text-xs cursor-pointer">Dismiss</button>
             </div>
-            <div className="mt-2 space-y-1 text-slate-700">
+            <div className="mt-2 space-y-1 text-slate-700 dark:text-slate-300">
               <p>• <strong>Citizen Goal:</strong> "{journey.query}"</p>
               <p>• <strong>Location:</strong> {journey.location}</p>
               <p>• <strong>Reason:</strong> Under regulations governed by {step.authority || step.department}, this procedure is mandatory for {journey.category.toLowerCase()}.</p>
@@ -173,8 +160,8 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
           </div>
         )}
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-6 max-h-[72vh] overflow-y-auto">
+        {/* Modal Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-[#0D1A16]">
           {/* Blocked Warning Banner if prerequisite missing */}
           {isBlocked && (
             <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
@@ -436,11 +423,8 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#1B4D3E] flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>{t.sourceEvidenceTitle || 'Source & Evidence Grounding'}</span>
+                <span>{t.sourceEvidenceTitle || 'Official Government Source'}</span>
               </h3>
-              <span className="text-[10px] text-[#6C8075] font-medium">
-                Last verified: {step.source?.lastVerified || step.source?.lastChecked || 'Recent'}
-              </span>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
@@ -451,9 +435,6 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                 <div className="text-[11px] text-[#4A5D54] mt-0.5">
                   Authority: <strong>{step.source?.authority || step.authority || step.department}</strong>
                 </div>
-              </div>
-              <div>
-                {renderVerificationBadge(step.verificationStatus)}
               </div>
             </div>
 
@@ -497,18 +478,18 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Footer with Actions (Section 10) */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        {/* Modal Footer with Actions (Sticky & Fixed at bottom) */}
+        <div className="px-6 py-3.5 bg-slate-50 dark:bg-[#10241E] border-t border-slate-200 dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-3 shrink-0">
           {onOpenAiAssistant && (
             <button
               onClick={() => {
                 onClose();
                 onOpenAiAssistant(step.id);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-[#1B4D3E] hover:bg-[#EAF2ED] border border-[#CDE3D7] transition-all shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] hover:bg-[#EAF2ED] dark:hover:bg-[#18392F] border border-[#CDE3D7] dark:border-[#1E3B32] transition-all shadow-2xs cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>{t.askDishaSaathi || 'Ask DishaSaathi about this step'}</span>
+              <span>{t.askDishaSaathi || 'Ask DishaSaathi'}</span>
             </button>
           )}
 
@@ -521,7 +502,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                     onUpdateStatus(step.id, 'In Progress');
                     onClose();
                   }}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#EAF2ED] text-[#1B4D3E] hover:bg-[#D4E8DC] border border-[#CDE3D7] transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] hover:bg-[#D4E8DC] dark:hover:bg-[#204a3e] border border-[#CDE3D7] dark:border-[#1F3E33] transition-all cursor-pointer"
                   title="Mark your application as submitted on the official portal"
                 >
                   {t.markSubmitted || 'Mark as Submitted'}
@@ -534,8 +515,8 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                   }}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ${
                     isBlocked
-                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      : 'bg-[#1B4D3E] hover:bg-[#143B2F] text-white hover:scale-[1.02]'
+                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                      : 'bg-[#1B4D3E] hover:bg-[#143B2F] dark:bg-[#22C55E] dark:hover:bg-[#16A34A] text-white dark:text-[#0D1A16] hover:scale-[1.02]'
                   }`}
                 >
                   <CheckCircle2 className="w-4 h-4" />
@@ -548,7 +529,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                   onUpdateStatus(step.id, 'In Progress');
                   onClose();
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 hover:bg-amber-200 transition-all border border-amber-300 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-all border border-amber-300 dark:border-amber-800 cursor-pointer"
               >
                 {t.reopenStep || 'Reopen Step'}
               </button>
@@ -556,7 +537,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1E3B32] transition-colors cursor-pointer"
             >
               {t.closeCard || 'Close'}
             </button>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import {
   ShieldCheck,
   Lock,
@@ -10,15 +10,17 @@ import {
   FileText,
   Building2,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export const AuthPage: React.FC = () => {
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  const isSignupRoute = location.pathname === '/signup' || searchParams.get('mode') === 'signup';
+  const [mode, setMode] = useState<'login' | 'signup'>(isSignupRoute ? 'signup' : 'login');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,40 +30,18 @@ export const AuthPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { login, register, isAuthenticated, user } = useAuth();
+  const { login, register, logout, isAuthenticated, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  // If already authenticated, allow redirecting
-  if (isAuthenticated && user) {
-    return (
-      <div className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl border border-[#D5E3DB] shadow-lg p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-          </div>
-          <h2 className="text-xl font-black text-[#11261F]">You are logged in</h2>
-          <p className="text-xs text-[#4A5D54] mt-1.5">
-            Logged in as <strong>{user.name}</strong> ({user.email})
-          </p>
-          <div className="mt-6 flex flex-col gap-2.5">
-            <button
-              onClick={() => navigate('/roadmap')}
-              className="w-full py-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-            >
-              Go to My Active Journey 
-            </button>
-            <Link
-              to="/"
-              className="w-full py-2.5 rounded-xl bg-[#F2F8F5] text-[#1B4D3E] text-xs font-bold hover:bg-[#E6F0EB] transition-all text-center"
-            >
-              Back to Landing Page
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Synchronize mode if query/path changes
+  React.useEffect(() => {
+    if (location.pathname === '/signup' || searchParams.get('mode') === 'signup') {
+      setMode('signup');
+    } else if (location.pathname === '/login' || searchParams.get('mode') === 'login') {
+      setMode('login');
+    }
+  }, [location.pathname, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +163,35 @@ export const AuthPage: React.FC = () => {
 
           {/* Right Form Column */}
           <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center">
+            {/* Active Session Notification if logged in */}
+            {isAuthenticated && user && (
+              <div className="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-emerald-900 font-medium">
+                    Logged in as <strong>{user.name}</strong> ({user.email})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/roadmap')}
+                    className="px-3 py-1 rounded-lg bg-[#1B4D3E] text-white text-[11px] font-bold hover:bg-[#143B2F] cursor-pointer"
+                  >
+                    Go to Dashboard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-emerald-900 text-[11px] font-bold hover:bg-emerald-100 flex items-center gap-1 cursor-pointer"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Tabs Toggle */}
             <div className="flex bg-[#F1F6F3] p-1 rounded-2xl border border-[#DCE8E0] mb-6">
               <button

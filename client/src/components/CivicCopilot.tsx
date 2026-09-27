@@ -306,15 +306,7 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
               {/* Message text with rich formatting & Markdown rendering */}
               <FormattedMessageText text={m.text} />
 
-              {/* Next Action recommendation badge */}
-              {m.nextActionRecommendation && (
-                <div className="mt-2.5 pt-2 border-t border-emerald-100 bg-emerald-50/70 -mx-3.5 -mb-3.5 p-2.5 rounded-b-2xl flex items-start gap-1.5 text-[11px] text-emerald-900 font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
-                  <span>Next: {m.nextActionRecommendation}</span>
-                </div>
-              )}
-
-              {/* Uncertainty disclosure (Section 22 & 27) */}
+              {/* Uncertainty disclosure (if any) */}
               {m.uncertaintyNotice && (
                 <div className="mt-2 pt-2 border-t border-amber-200 text-amber-900 flex items-start gap-1.5 text-[10px] bg-amber-50/80 -mx-3.5 p-2 rounded-b-xl font-medium">
                   <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
@@ -322,53 +314,6 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
                 </div>
               )}
             </div>
-
-            {/* Compact Evidence Card (Section 6) */}
-            {m.evidence && m.sender === 'assistant' && (
-              <div className="mt-1.5 ml-1 max-w-[88%] bg-white/90 border border-[#D5E3DB] rounded-xl p-2.5 text-[10px] text-[#4A5D54] shadow-2xs">
-                <div className="flex items-center justify-between mb-1 pb-1 border-b border-[#EAF2ED]">
-                  <span className="font-extrabold uppercase tracking-wider text-[#1B4D3E] flex items-center gap-1 text-[9px]">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    Based on verified data
-                  </span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    {m.evidence.verificationStatus}
-                  </span>
-                </div>
-                <p className="truncate font-semibold text-[#11261F]">
-                  {m.evidence.procedureName}
-                </p>
-                <p className="truncate text-[#6C8075]">
-                  Authority: {m.evidence.authority}
-                </p>
-                {m.evidence.sourceUrl && (
-                  <a
-                    href={m.evidence.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-bold text-[#1B4D3E] hover:underline mt-1"
-                  >
-                    <span>{m.evidence.sourceTitle}</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                )}
-              </div>
-            )}
-
-            {/* Suggested Follow-Ups */}
-            {m.suggestedFollowUps && m.suggestedFollowUps.length > 0 && (
-              <div className="mt-2 ml-1 flex flex-wrap gap-1.5 max-w-[90%]">
-                {m.suggestedFollowUps.map((fu) => (
-                  <button
-                    key={fu}
-                    onClick={() => handleSend(fu)}
-                    className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF2ED] text-[#1B4D3E] hover:bg-[#D5E3DB] transition-colors border border-[#CDE3D7] cursor-pointer"
-                  >
-                     {fu}
-                  </button>
-                ))}
-              </div>
-            )}
 
             <span className="text-[9px] text-[#8C9B94] mt-1 px-1">
               {m.timestamp}

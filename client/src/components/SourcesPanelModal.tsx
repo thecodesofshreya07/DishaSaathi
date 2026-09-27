@@ -126,9 +126,6 @@ export const SourcesPanelModal: React.FC<SourcesPanelModalProps> = ({
                       <span>{src.authority}</span>
                     </p>
                   </div>
-                  <div>
-                    {renderBadge(src.verificationStatus)}
-                  </div>
                 </div>
 
                 {/* Steps governed */}
@@ -144,13 +141,8 @@ export const SourcesPanelModal: React.FC<SourcesPanelModalProps> = ({
                   ))}
                 </div>
 
-                {/* Footer with URL link and verified date */}
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs pt-2 border-t border-dashed border-[#E8ECE9]">
-                  <span className="text-[11px] text-[#8C9B94] flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Last verified: {src.lastVerified}
-                  </span>
-
+                {/* Footer with official portal link */}
+                <div className="mt-3 flex flex-wrap items-center justify-end gap-2 text-xs pt-2 border-t border-dashed border-[#E8ECE9]">
                   {src.url ? (
                     <a
                       href={src.url}
@@ -163,7 +155,7 @@ export const SourcesPanelModal: React.FC<SourcesPanelModalProps> = ({
                     </a>
                   ) : (
                     <span className="text-[11px] text-[#8C9B94] italic">
-                      Official application link verification pending
+                      Official portal link
                     </span>
                   )}
                 </div>

@@ -225,28 +225,6 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
       break;
   }
 
-  const renderVerificationBadge = (status?: CivicVerificationStatus) => {
-    if (status === 'VERIFIED') {
-      return (
-        <span
-          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200"
-          title="Verified against authoritative government portals"
-        >
-          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-          <span> Verified source</span>
-        </span>
-      );
-    }
-    return (
-      <span
-        className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
-        title="Official source verification pending"
-      >
-        <Clock className="w-3 h-3 text-slate-500" />
-        <span> Needs verification</span>
-      </span>
-    );
-  };
 
   return (
     <div className="mb-6">
@@ -421,95 +399,6 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
           </div>
         </div>
 
-        {/* SECTION 10 & 11: ADAPTIVE NEXT BEST ACTION CARD */}
-        {nextActionableStep && (
-          <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#EAF4EF] via-[#F2F8F5] to-[#EAF4EF] dark:from-[#132A21] dark:via-[#17352A] dark:to-[#132A21] border-2 border-[#1B4D3E]/30 dark:border-[#34D399]/30 shadow-xs relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3.5 flex-1">
-                <div className="w-10 h-10 rounded-2xl bg-[#1B4D3E] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
-                  <Sparkles className="w-5 h-5 text-amber-300" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#1B4D3E] text-white flex items-center gap-1.5 shadow-2xs">
-                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                      {t.yourNextStep || 'YOUR NEXT STEP'}
-                    </span>
-                    {adaptiveRecommendation?.primaryAction.isParallelAlternative && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                         Parallel Action Available
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="text-base sm:text-lg font-black text-[#11261F] dark:text-white leading-snug">
-                    Step {adaptiveRecommendation?.primaryAction.stepNumber || nextActionableStep.stepNumber}: {(adaptiveRecommendation?.primaryAction.title || nextActionableStep.title).replace(/^\d+\.\s*/, '')}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-[#3C4F46] mt-1 leading-relaxed">
-                    {adaptiveRecommendation?.primaryAction.description || (
-                      nextActionableStep.documents.filter((d) => d.status !== 'READY').length > 0
-                        ? `Prepare the required documents for ${nextActionableStep.authority || 'this procedure'}.`
-                        : `All documents ready! You can now proceed to apply on the official portal with ${nextActionableStep.authority}.`
-                    )}
-                  </p>
-
-                  {/* Why this matters callout */}
-                  <div className="mt-2.5 p-2.5 rounded-xl bg-white/80 border border-[#CDE3D7] text-xs text-[#2A5C4B]">
-                    <strong className="font-extrabold text-[#11261F] block mb-0.5">{t.whyThisMatters || 'Why this matters:'}</strong>
-                    <span>
-                      {adaptiveRecommendation?.primaryAction.reason ||
-                        'These documents and statutory clearances are prerequisites before subsequent licensing stages can be sanctioned.'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  const targetStepId = adaptiveRecommendation?.primaryAction.stepId || nextActionableStep.id;
-                  const stepToOpen = steps.find((s) => s.id === targetStepId) || nextActionableStep;
-                  onSelectStep(stepToOpen);
-                }}
-                className="w-full sm:w-auto px-5 py-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer hover:scale-102 active:scale-98"
-              >
-                <span>{adaptiveRecommendation?.primaryAction.ctaText || t.viewRequirements || 'View Requirements'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Parallel Action Opportunities (Section 12) */}
-            {adaptiveRecommendation && adaptiveRecommendation.parallelActions.length > 0 && (
-              <div className="mt-3.5 pt-3 border-t border-[#CDE3D7] flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-bold text-[#1B4D3E] flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-[#1B4D3E]" />
-                  Can also complete in parallel:
-                </span>
-                {adaptiveRecommendation.parallelActions.map((pa) => (
-                  <button
-                    key={pa.stepId}
-                    onClick={() => {
-                      const found = steps.find((s) => s.id === pa.stepId);
-                      if (found) onSelectStep(found);
-                    }}
-                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F2F8F5] text-[11px] font-semibold text-[#11261F] border border-[#CDE3D7] hover:border-[#1B4D3E] transition-all shadow-2xs cursor-pointer flex items-center gap-1"
-                  >
-                    <span>Step {pa.stepNumber}: {pa.title.replace(/^\d+\.\s*/, '')}</span>
-                    <span className="text-[10px] text-[#1B4D3E] font-bold"></span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Blockers alert (Section 13) */}
-            {adaptiveRecommendation && adaptiveRecommendation.blockedActions.length > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-dashed border-[#CDE3D7] text-[11px] text-[#6C8075] flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span>
-                  {adaptiveRecommendation.blockedActions.length} future step{adaptiveRecommendation.blockedActions.length > 1 ? 's are' : ' is'} blocked awaiting prerequisites.
-                </span>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* SECTION 17: LIGHTWEIGHT ROADMAP FILTERS */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#EDF2EE]">
@@ -623,7 +512,6 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#6C8075] dark:text-[#9FB7AC]">
                           Step {step.stepNumber} • {step.category}
                         </span>
-                        {renderVerificationBadge(step.verificationStatus)}
                       </div>
                       <h4 className="text-sm sm:text-base font-extrabold text-[#11261F] dark:text-white leading-snug mt-0.5">
                         {cleanTitle}
@@ -776,10 +664,6 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                 <div>
                   <span className="font-bold text-slate-900 block">Official Source:</span>
                   <span>{transparencyStep.source?.department || transparencyStep.authority} ({transparencyStep.source?.domain || 'gov.in'})</span>
-                </div>
-                <div>
-                  <span className="font-bold text-slate-900 block">Verification Status:</span>
-                  <span className="inline-block mt-0.5">{renderVerificationBadge(transparencyStep.verificationStatus)}</span>
                 </div>
               </div>
             </div>

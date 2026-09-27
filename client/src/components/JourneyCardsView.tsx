@@ -190,11 +190,6 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
           const percentage = Math.min(100, Math.round((completed / total) * 100));
           const isDone = completed === total && total > 0;
 
-          // Find current/next step
-          const currentStep = item.steps?.find((s) => s.status === 'In Progress') ||
-            item.steps?.find((s) => s.status === 'Pending') ||
-            item.steps?.[0];
-
           return (
             <div
               key={item.id}
@@ -264,7 +259,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
                 </div>
 
                 {/* Documents & Milestones Summary */}
-                <div className="grid grid-cols-2 gap-2 py-2 px-3 rounded-xl bg-gray-50 dark:bg-[#12231E] border border-gray-100 dark:border-[#1E3B32] text-xs text-gray-600 dark:text-gray-300 mb-3">
+                <div className="grid grid-cols-2 gap-2 py-2 px-3 rounded-xl bg-gray-50 dark:bg-[#12231E] border border-gray-100 dark:border-[#1E3B32] text-xs text-gray-600 dark:text-gray-300 mb-4">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#22C55E]" />
                     <span>{completed}/{total} Steps</span>
@@ -274,16 +269,6 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
                     <span>{item.readyDocuments || 0} Docs Ready</span>
                   </div>
                 </div>
-
-                {/* Current / Next Action Snippet */}
-                {currentStep && (
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400 border-l-2 border-[#1B4D3E] dark:border-[#22C55E] pl-2.5 py-0.5 line-clamp-1 mb-3">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">
-                      {currentStep.status === 'Completed' ? 'Last Step: ' : 'Next: '}
-                    </span>
-                    {currentStep.title}
-                  </div>
-                )}
               </div>
 
               {/* Bottom Action Footer */}
@@ -294,7 +279,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
                 </span>
 
                 <div className="flex items-center gap-2">
-                  {onDeleteJourney && journeys.length > 1 && (
+                  {onDeleteJourney && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

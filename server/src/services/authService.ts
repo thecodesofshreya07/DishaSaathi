@@ -60,23 +60,11 @@ export async function loginUser(email: string, password: string): Promise<{ user
   const user: AuthUser = { id: row.id, name: row.name, email: row.email };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
-  // Hydrate saved journey if present
-  let savedJourney: CivicJourney | undefined;
-  const journeyResult = await dbClient.execute({
-    sql: 'SELECT journey_data FROM user_journeys WHERE user_id = ?',
-    args: [row.id]
-  });
+  // Hydrate saved journeys if present
+  const userJourneys = await getUserJourneys(row.id);
+  const primaryJourney = userJourneys.length > 0 ? userJourneys[0] : undefined;
 
-  if (journeyResult.rows.length > 0) {
-    const rawData = journeyResult.rows[0].journey_data as string;
-    try {
-      savedJourney = JSON.parse(rawData);
-    } catch (e) {
-      console.error('Failed to parse saved journey for user', row.id);
-    }
-  }
-
-  return { user, token, savedJourney, savedJourneys: savedJourney ? [savedJourney] : [] };
+  return { user, token, savedJourney: primaryJourney, savedJourneys: userJourneys };
 }
 
 export async function getUserJourneys(userId: string): Promise<CivicJourney[]> {
