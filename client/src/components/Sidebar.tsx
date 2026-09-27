@@ -12,7 +12,8 @@ import {
   Layers,
   MapPin,
   History,
-  QrCode
+  QrCode,
+  Scale
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -38,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ? [
         { id: 'home', label: t.sidebarHome || 'Home', icon: Home },
         { id: 'explore', label: t.sidebarExplore || 'Explore', icon: Compass },
+        { id: 'compare', label: 'Compare Options', icon: Scale },
         { id: 'ward-map', label: 'Ward Map', icon: MapPin },
         { id: 'evolution', label: 'Evolution Replay', icon: History },
         { id: 'services', label: t.sidebarServices || 'Services', icon: Search },
@@ -48,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'home', label: t.sidebarHome || 'Home', icon: Home },
         { id: 'journeys', label: t.sidebarJourneys || 'My Journeys', icon: Compass },
         { id: 'explore', label: t.sidebarExplore || 'Explore', icon: Layers },
+        { id: 'compare', label: 'Compare Options', icon: Scale },
         { id: 'ward-map', label: 'Ward Map', icon: MapPin },
         { id: 'evolution', label: 'Evolution Replay', icon: History },
         { id: 'services', label: t.sidebarServices || 'Services', icon: Search },

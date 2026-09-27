@@ -158,7 +158,7 @@ export const RoadmapPage: React.FC = () => {
     }
   };
 
-  // Handle Step status change (Item 9: closes card on submit)
+  // Handle Step status change
   const handleUpdateStepStatus = async (
     stepId: string,
     status: StepStatus
@@ -168,8 +168,8 @@ export const RoadmapPage: React.FC = () => {
       setBlockedStepError(result.message || 'Prerequisite procedure steps must be completed first.');
       return;
     }
-    // Item 9: Close the card after doing submitted
-    setSelectedStep(null);
+    // Keep live selectedStep in sync with active journey
+    setSelectedStep((prev) => (prev && prev.id === stepId ? { ...prev, status } : prev));
   };
 
   // Apply change to roadmap
@@ -256,6 +256,10 @@ export const RoadmapPage: React.FC = () => {
         <Sidebar
           activeTab={activeTab}
           onTabChange={(tab) => {
+            if (tab === 'compare') {
+              setIsCompareOpen(true);
+              return;
+            }
             setActiveTab(tab);
             if (tab === 'updates') {
               markAllUpdatesAsRead();
@@ -432,6 +436,7 @@ export const RoadmapPage: React.FC = () => {
                         setAiFocusStepId(stepId);
                         setIsCopilotOpen(true);
                       }}
+                      onUpdateStatus={handleUpdateStepStatus}
                       selectedStepId={selectedStep?.id}
                       onQuickSearch={handleSearch}
                     />
@@ -524,7 +529,7 @@ export const RoadmapPage: React.FC = () => {
       {/* A. Step Detail Modal with "Why do I need this?" and Source Evidence */}
       {selectedStep && (
         <StepDetailModal
-          step={selectedStep}
+          step={activeJourney.steps.find((s) => s.id === selectedStep.id) || selectedStep}
           journey={activeJourney}
           onClose={() => setSelectedStep(null)}
           onUpdateStatus={handleUpdateStepStatus}

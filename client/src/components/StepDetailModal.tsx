@@ -13,7 +13,8 @@ import {
   Sparkles,
   Check,
   Eye,
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { ProcedureStep, CivicJourney, CivicDocument, CivicDocumentStatus, CivicDocumentCategory } from '../types';
 import { useLanguage } from '../context/LanguageContext';
@@ -54,12 +55,20 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
     stepId: string;
     docId: string;
   } | null>(null);
+  const [showPrereqWarning, setShowPrereqWarning] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   if (!step) return null;
 
-  // Find prerequisite steps
-  const prereqSteps = (step.prerequisites || []).map((pId) =>
-    journey.steps.find((s) => s.id === pId)
+  // Find prerequisite steps (checking prerequisites & dependsOn)
+  const allPrereqIds = Array.from(new Set([...(step.prerequisites || []), ...(step.dependsOn || [])]));
+  const prereqSteps = allPrereqIds.map((pId) =>
+    journey.steps.find((s) =>
+      s.id === pId ||
+      s.id === `step-${pId}` ||
+      String(s.stepNumber) === String(pId) ||
+      pId === `step-${s.stepNumber}`
+    )
   ).filter(Boolean) as ProcedureStep[];
 
   const incompletePrereqs = prereqSteps.filter((s) => s.status !== 'Completed');
@@ -505,6 +514,51 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
           </div>
         </div>
 
+        {/* Prerequisite warning banner when clicked while blocked */}
+        {showPrereqWarning && isBlocked && (
+          <div className="mx-6 mb-2 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2 animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-100">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Prerequisite Statutory Steps Required</span>
+            </div>
+            <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+              This procedure requires completing prior dependencies first: <strong>{incompletePrereqs.map((p) => p.title.replace(/^\d+\.\s*/, '')).join(', ')}</strong>.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={async () => {
+                  setIsUpdating(true);
+                  try {
+                    for (const prereq of incompletePrereqs) {
+                      await onUpdateStatus(prereq.id, 'Completed');
+                    }
+                    await onUpdateStatus(step.id, 'Completed');
+                    setShowPrereqWarning(false);
+                    onClose();
+                  } catch (err) {
+                    console.error('Error completing prerequisites:', err);
+                  } finally {
+                    setIsUpdating(false);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{isUpdating ? 'Completing...' : 'Complete Prerequisites & Finish Step'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPrereqWarning(false)}
+                className="px-2.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-semibold text-xs cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Modal Footer with Actions (Sticky & Fixed at bottom) */}
         <div className="px-6 py-3.5 bg-slate-50 dark:bg-[#10241E] border-t border-slate-200 dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-3 shrink-0">
           {onOpenAiAssistant && (
@@ -523,30 +577,51 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
           <div className="flex items-center gap-2 ml-auto">
             {step.status !== 'Completed' ? (
               <button
-                disabled={isBlocked}
-                onClick={() => {
-                  onUpdateStatus(step.id, 'Completed');
-                  onClose();
+                type="button"
+                disabled={isUpdating}
+                onClick={async () => {
+                  if (isBlocked) {
+                    setShowPrereqWarning(true);
+                    return;
+                  }
+                  setIsUpdating(true);
+                  try {
+                    await onUpdateStatus(step.id, 'Completed');
+                    onClose();
+                  } catch (err) {
+                    console.error('Error marking completed:', err);
+                  } finally {
+                    setIsUpdating(false);
+                  }
                 }}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ${
                   isBlocked
-                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white hover:scale-[1.02]'
                     : 'bg-[#1B4D3E] hover:bg-[#143B2F] dark:bg-[#22C55E] dark:hover:bg-[#16A34A] text-white dark:text-[#0D1A16] hover:scale-[1.02]'
                 }`}
-                title={isBlocked ? 'Complete prerequisite steps first' : 'Mark this statutory step as completed'}
+                title={isBlocked ? 'Prerequisites pending - click to resolve' : 'Mark this statutory step as completed'}
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{t.markCompleted || 'Mark as Completed'}</span>
+                <span>{isUpdating ? 'Updating...' : (t.markCompleted || 'Mark as Completed')}</span>
               </button>
             ) : (
               <button
-                onClick={() => {
-                  onUpdateStatus(step.id, 'In Progress');
-                  onClose();
+                type="button"
+                disabled={isUpdating}
+                onClick={async () => {
+                  setIsUpdating(true);
+                  try {
+                    await onUpdateStatus(step.id, 'In Progress');
+                    onClose();
+                  } catch (err) {
+                    console.error('Error reopening step:', err);
+                  } finally {
+                    setIsUpdating(false);
+                  }
                 }}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-all border border-amber-300 dark:border-amber-800 cursor-pointer"
               >
-                {t.reopenStep || 'Reopen Step'}
+                {isUpdating ? 'Updating...' : (t.reopenStep || 'Reopen Step')}
               </button>
             )}
 

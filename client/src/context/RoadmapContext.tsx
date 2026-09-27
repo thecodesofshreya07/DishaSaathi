@@ -105,6 +105,41 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return initialDefaultJourneys.length > 0 ? initialDefaultJourneys[0] : null;
   });
 
+  const handleSetJourney: React.Dispatch<React.SetStateAction<CivicJourney | null>> = (action) => {
+    setJourney((prev) => {
+      const newJourney = typeof action === 'function' ? (action as (prevState: CivicJourney | null) => CivicJourney | null)(prev) : action;
+      if (newJourney) {
+        setActiveJourneyId(newJourney.id);
+        setJourneys((prevList) => {
+          const exists = prevList.some((j) => j.id === newJourney.id);
+          const nextList = exists
+            ? prevList.map((j) => (j.id === newJourney.id ? newJourney : j))
+            : [newJourney, ...prevList];
+          try {
+            const userKey = user?.id ? `dishasaathi_journeys_${user.id}` : 'dishasaathi_guest_journeys';
+            localStorage.setItem(userKey, JSON.stringify(nextList));
+            localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(newJourney));
+          } catch (e) {
+            console.warn('Cache write error:', e);
+          }
+          return nextList;
+        });
+
+        if (user && token) {
+          fetch('/api/user/journey', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ journey: newJourney })
+          }).catch((err) => console.warn('Background journey sync error:', err));
+        }
+      }
+      return newJourney;
+    });
+  };
+
   const [updates, setUpdates] = useState<GovernmentUpdate[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [activeStageIndex, setActiveStageIndex] = useState<number>(0);
@@ -436,13 +471,25 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (status === 'Completed') {
       const prereqs = step.prerequisites || step.dependsOn || [];
       const uncompletedPrereqs = prereqs.filter((prereqId) => {
-        const p = journey.steps.find((s) => s.id === prereqId);
+        const p = journey.steps.find(
+          (s) =>
+            s.id === prereqId ||
+            s.id === `step-${prereqId}` ||
+            String(s.stepNumber) === String(prereqId) ||
+            prereqId === `step-${s.stepNumber}`
+        );
         return p && p.status !== 'Completed';
       });
 
       if (uncompletedPrereqs.length > 0) {
         const prereqTitles = uncompletedPrereqs.map((prereqId) => {
-          const p = journey.steps.find((s) => s.id === prereqId);
+          const p = journey.steps.find(
+            (s) =>
+              s.id === prereqId ||
+              s.id === `step-${prereqId}` ||
+              String(s.stepNumber) === String(prereqId) ||
+              prereqId === `step-${s.stepNumber}`
+          );
           return p ? p.title.replace(/^\d+\.\s*/, '') : prereqId;
         });
 
@@ -465,15 +512,19 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setJourney(updatedJourney);
-    setJourneys((prev) => prev.map((j) => (j.id === updatedJourney.id ? updatedJourney : j)));
+    setActiveJourneyId(updatedJourney.id);
+    setJourneys((prev) => {
+      const exists = prev.some((j) => j.id === updatedJourney.id);
+      return exists ? prev.map((j) => (j.id === updatedJourney.id ? updatedJourney : j)) : [updatedJourney, ...prev];
+    });
 
     try {
       localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(updatedJourney));
-      if (user?.id) {
-        const userKey = `dishasaathi_journeys_${user.id}`;
-        const currentList = journeys.map((j) => (j.id === updatedJourney.id ? updatedJourney : j));
-        localStorage.setItem(userKey, JSON.stringify(currentList));
-      }
+      const userKey = user?.id ? `dishasaathi_journeys_${user.id}` : 'dishasaathi_guest_journeys';
+      const currentList = journeys.map((j) => (j.id === updatedJourney.id ? updatedJourney : j));
+      const exists = currentList.some((j) => j.id === updatedJourney.id);
+      const listToSave = exists ? currentList : [updatedJourney, ...currentList];
+      localStorage.setItem(userKey, JSON.stringify(listToSave));
     } catch (e) {
       console.warn('Storage sync error:', e);
     }
@@ -652,7 +703,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIntake,
         updateIntakeField,
         journey,
-        setJourney,
+        setJourney: handleSetJourney,
         journeys,
         setJourneys,
         activeJourneyId,
