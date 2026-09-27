@@ -113,18 +113,24 @@
 
 /* Custom scrollbar for clean dashboard look */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1B4D3E;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #10B981;
+  background: #94A3B8;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1E3B32;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2D584B;
 }
 
 /* React Flow styling custom overrides */

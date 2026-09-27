@@ -28,6 +28,7 @@ import { AiAssistantModal } from '../components/AiAssistantModal';
 import { SourceExcerptModal } from '../components/SourceExcerptModal';
 import { SlaEscalationModal } from '../components/SlaEscalationModal';
 import { EmailRoadmapModal } from '../components/EmailRoadmapModal';
+import { CivicOnboardingTour } from '../components/CivicOnboardingTour';
 import { CivicCopilot } from '../components/CivicCopilot';
 import { WardLocatorView } from '../components/WardLocatorView';
 import { EvolutionTimelineView } from '../components/EvolutionTimelineView';
@@ -345,48 +346,62 @@ export const RoadmapPage: React.FC = () => {
                 />
               ) : (
                 <div className="space-y-6 animate-in fade-in duration-200">
-                  {/* Top Navigation Bar: Back to All Journeys */}
-                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E8ECE9] dark:border-[#1E3B32] rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-                    <div className="flex items-center gap-3">
+                  {/* Top Navigation Bar: Back to All Journeys & Action Toolbar */}
+                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E2EAE5] dark:border-[#1E3B32] rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 shadow-2xs">
+                    
+                    {/* Left: Journey Info */}
+                    <div className="flex items-center gap-3 min-w-0">
                       <button
                         onClick={() => setJourneyViewMode('cards')}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-[#18392F] hover:bg-[#E6F0EB] dark:hover:bg-[#22C55E]/20 text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0F5F2] hover:bg-[#E2EBE5] dark:bg-[#142A22] dark:hover:bg-[#1A382D] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all shrink-0 cursor-pointer"
+                        title="Back to all saved journeys"
                       >
                         <ArrowLeft className="w-3.5 h-3.5" />
-                        <span>All Journeys</span>
+                        <span className="hidden sm:inline">All Journeys</span>
                       </button>
 
-                      <div className="h-4 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block" />
+                      <div className="h-5 w-px bg-[#E2EAE5] dark:bg-[#1E3B32] shrink-0" />
 
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h2 className="text-base font-bold text-[#11261F] dark:text-white line-clamp-1">
-                            {activeJourney.title}
-                          </h2>
-                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#E6F0EB] text-[#1B4D3E] dark:bg-[#18392F] dark:text-[#6EE7B7]">
+                      <div className="min-w-0">
+                        <h2 className="text-base sm:text-lg font-extrabold text-[#11261F] dark:text-white tracking-tight truncate">
+                          {activeJourney.title}
+                        </h2>
+                        <div className="flex items-center gap-2 flex-wrap mt-1 text-[11px]">
+                          <span className="font-bold px-2.5 py-0.5 rounded-full bg-[#EBF5EF] text-[#1B4D3E] dark:bg-[#17382D] dark:text-[#6EE7B7]">
                             {activeJourney.totalSteps > 0
-                              ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete`
+                              ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete (${activeJourney.completedSteps || 0}/${activeJourney.totalSteps || 0})`
                               : 'In Progress'}
                           </span>
-                          <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                            Total Fees: {calculateTotalJourneyCost(activeJourney.steps).label}
+                          <span className="font-semibold px-2.5 py-0.5 rounded-full bg-[#FAF7F0] text-[#784D13] dark:bg-[#211B10] dark:text-amber-300 border border-[#EADFC7] dark:border-[#382E1E]">
+                            Fees: {calculateTotalJourneyCost(activeJourney.steps).label}
+                          </span>
+                          <span className="text-[#65786E] dark:text-[#9FB7AC]">
+                            • {activeJourney.location || 'Municipal Guidance'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                          {activeJourney.location || 'Municipal Guidance'} • {activeJourney.completedSteps || 0} of {activeJourney.totalSteps || 0} steps completed
-                        </p>
                       </div>
                     </div>
 
-                    {/* Action buttons: Simulator, Email Roadmap & SLA Escalation */}
-                    <div className="flex items-center gap-2 flex-wrap">
+                    {/* Right: Clean, Unified Action Toolbar */}
+                    <div className="flex items-center gap-2 flex-wrap shrink-0 w-full lg:w-auto justify-start lg:justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-[#EEF3F0] dark:border-[#1A332B]">
+                      <button
+                        type="button"
+                        onClick={() => setIsCompareOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
+                        title="Compare statutory routes and procedures side-by-side"
+                      >
+                        <Layers className="w-3.5 h-3.5 shrink-0" />
+                        <span>Compare Options</span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setIsSimulatorOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer hover:scale-102 active:scale-98"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
+                        title="Check consequences of skipping or omitting any step"
                       >
                         <Scale className="w-3.5 h-3.5 shrink-0" />
-                        <span>Check What Happens If You Skip a Step</span>
+                        <span>What If I Skip a Step?</span>
                       </button>
 
                       <button
@@ -400,23 +415,24 @@ export const RoadmapPage: React.FC = () => {
                             setIsSlaModalOpen(true);
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF6EE] dark:bg-[#151E19] dark:hover:bg-[#201D14] border border-[#E0D8C5] dark:border-[#38301B] text-[#784D13] dark:text-amber-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
                         title="Application taking too long? Generate a formal legal complaint letter."
                       >
-                        <Clock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-                        <span>Stuck? SLA Escalation</span>
+                        <Clock className="w-3.5 h-3.5 shrink-0 text-[#8C5819]" />
+                        <span>SLA Escalation</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setIsEmailModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer"
-                        title="Send this complete civic roadmap to your email address via Brevo"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F0F5FA] dark:bg-[#101E22] dark:hover:bg-[#142A30] border border-[#CAD8E2] dark:border-[#1E3B48] text-[#1E5276] dark:text-sky-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
+                        title="Send this complete civic roadmap to your email address"
                       >
-                        <Mail className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                        <span>Email Roadmap</span>
+                        <Mail className="w-3.5 h-3.5 shrink-0 text-[#1E5276]" />
+                        <span>Email</span>
                       </button>
                     </div>
+
                   </div>
 
                   {/* MOST IMPORTANT: FLOWCHART WITH ONLY SMALL STEPS */}
@@ -701,6 +717,19 @@ export const RoadmapPage: React.FC = () => {
           journey={activeJourney}
         />
       )}
+
+      {/* K. Item 73: Side-by-Side Compare Procedures Tool */}
+      {isCompareOpen && (
+        <CompareProceduresModal
+          isOpen={isCompareOpen}
+          onClose={() => setIsCompareOpen(false)}
+          activeJourney={activeJourney}
+          onSwitchJourney={(newJourney) => setJourney(newJourney)}
+        />
+      )}
+
+      {/* L. First-Time User Guided Orientation Tour with Skip option */}
+      <CivicOnboardingTour />
     </div>
   );
 };
