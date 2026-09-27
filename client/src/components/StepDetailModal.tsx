@@ -12,13 +12,17 @@ import {
   Zap,
   Sparkles,
   Check,
-  Eye
+  Eye,
+  Clock
 } from 'lucide-react';
 import { ProcedureStep, CivicJourney, CivicDocument, CivicDocumentStatus, CivicDocumentCategory } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { getDocumentProcurementInfo, getDocumentApplicationUrl, OfflineOfficeDetails } from '../utils/documentSources';
 import { SourceExcerptModal } from './SourceExcerptModal';
 import { OfflineDocModal } from './OfflineDocModal';
+import { SlaEscalationModal } from './SlaEscalationModal';
+import { DigiLockerModal } from './DigiLockerModal';
+import { isDigiLockerAvailable } from '../utils/digiLockerEligibility';
 
 interface StepDetailModalProps {
   step: ProcedureStep | null;
@@ -42,6 +46,8 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
   const { t } = useLanguage();
   const [showTransparency, setShowTransparency] = useState(false);
   const [isExcerptModalOpen, setIsExcerptModalOpen] = useState(false);
+  const [isSlaModalOpen, setIsSlaModalOpen] = useState(false);
+  const [digiLockerDoc, setDigiLockerDoc] = useState<{ name: string; docId: string } | null>(null);
   const [activeOfflineDoc, setActiveOfflineDoc] = useState<{
     name: string;
     details: OfflineOfficeDetails;
@@ -382,6 +388,19 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                                 }
                               })()}
 
+                              {/* DigiLocker 1-Click Pull Button (Only for eligible personal government documents) */}
+                              {isDigiLockerAvailable(doc.name) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setDigiLockerDoc({ name: doc.name, docId: doc.id })}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200 transition-colors shadow-2xs cursor-pointer"
+                                  title="Fetch this verified document directly from Government DigiLocker / API Setu"
+                                >
+                                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                  <span>Pull from DigiLocker</span>
+                                </button>
+                              )}
+
                               <button
                                 type="button"
                                 onClick={() => {
@@ -471,6 +490,17 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 <span>{t.viewOfficialSource || 'View Gazette Excerpt & Rule'}</span>
               </button>
+
+              {/* SLA / Escalation Complaint Generator */}
+              <button
+                type="button"
+                onClick={() => setIsSlaModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-all cursor-pointer"
+                title="Application pending or delayed? Generate a legal grievance draft and find the appellate authority."
+              >
+                <Clock className="w-3.5 h-3.5 text-amber-700" />
+                <span>Stuck? SLA & Escalation</span>
+              </button>
             </div>
           </div>
         </div>
@@ -540,6 +570,33 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
         stepTitle={step.title}
         query={journey.query}
       />
+
+      {/* SLA / Escalation Tracker & Grievance Letter Modal */}
+      {isSlaModalOpen && (
+        <SlaEscalationModal
+          isOpen={isSlaModalOpen}
+          onClose={() => setIsSlaModalOpen(false)}
+          step={step}
+          journey={journey}
+        />
+      )}
+
+      {/* DigiLocker Direct Fetch & Verification Modal */}
+      {digiLockerDoc && (
+        <DigiLockerModal
+          isOpen={!!digiLockerDoc}
+          onClose={() => setDigiLockerDoc(null)}
+          documentName={digiLockerDoc.name}
+          stepId={step.id}
+          docId={digiLockerDoc.docId}
+          onDocumentVerified={async (sId, dId, st) => {
+            if (onUpdateDocumentStatus) {
+              await onUpdateDocumentStatus(sId, dId, st);
+            }
+            setDigiLockerDoc(null);
+          }}
+        />
+      )}
 
       {/* Offline Document Details Modal (Item 3 & 4) */}
       {activeOfflineDoc && (

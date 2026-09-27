@@ -589,7 +589,7 @@ function generateHighResGraphCanvas(journey: CivicJourney): HTMLCanvasElement {
     ctx.fillStyle = '#64748B';
     ctx.font = '400 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
     const docCount = (step.documents || []).length;
-    const metaText = `⏱ ${step.processingTime || '1-2 weeks'}  •  📄 ${docCount} Required Doc${docCount === 1 ? '' : 's'}`;
+    const metaText = `${step.processingTime || '1-2 weeks'}  •  ${docCount} Required Doc${docCount === 1 ? '' : 's'}`;
     const metaY = y + (hasMultipleLines ? 106 : 90);
     ctx.fillText(metaText, x + 18, metaY);
 

@@ -7,6 +7,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  role?: 'admin' | 'citizen';
 }
 
 export interface AuthenticatedRequest extends Request {

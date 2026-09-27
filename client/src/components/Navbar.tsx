@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Bell, Globe, ChevronDown, ShieldCheck, LogIn, LogOut, Sun, Moon } from 'lucide-react';
 import { useLanguage, Language } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+
+import { VoiceSearchButton } from './VoiceSearchButton';
 
 const LANG_LABELS: Record<Language, string> = { en: 'EN', hi: 'हि', mr: 'म' };
 const LANG_NAMES: Record<Language, string> = { en: 'English', hi: 'हिन्दी', mr: 'मराठी' };
@@ -20,6 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNotifications,
   onOpenAdmin
 }) => {
+  const navigate = useNavigate();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
@@ -45,7 +48,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       </Link>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3 lg:gap-5">
+      <div className="flex items-center gap-2.5 lg:gap-4">
+        {/* Voice Assistant Trigger */}
+        <VoiceSearchButton
+          autoNavigate={true}
+          className="border border-[#DCE4DF] dark:border-[#1F3E33] bg-white dark:bg-[#12241E] shadow-2xs hover:scale-105 active:scale-95"
+        />
         {/* Light / Dark Mode Toggle Button */}
         <button
           onClick={toggleTheme}
@@ -66,15 +74,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        {/* Admin Console trigger */}
-        <button
-          onClick={onOpenAdmin}
-          title="Open Human-in-the-Loop Admin Validation"
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#FAF3E8] dark:bg-[#252014] text-[#8C6422] dark:text-[#E8BA64] border border-[#EED9B3] dark:border-[#4E3E20] hover:bg-[#F5EAD4] dark:hover:bg-[#322B1B] transition-colors"
-        >
-          <ShieldCheck className="w-3.5 h-3.5 text-[#8C6422] dark:text-[#E8BA64]" />
-          <span>{t.adminReview || 'Admin Review'}</span>
-        </button>
+        {/* Admin Console trigger - Only visible to authenticated Admin */}
+        {isAuthenticated && user?.role === 'admin' && (
+          <Link
+            to="/admin"
+            title="Open Human-in-the-Loop Admin Validation"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-200 shadow-xs transition-all"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+            <span>{t.adminReview || 'Admin Console'}</span>
+          </Link>
+        )}
 
         {/* Notifications */}
         <button
@@ -119,19 +129,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* User profile / Authentication button (Item 10) */}
+        {/* User profile / Authentication button */}
         {isAuthenticated && user ? (
           <div className="relative">
             <button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="flex items-center gap-2.5 pl-3 border-l border-[#E2E8E4] dark:border-[#1F3E33] cursor-pointer hover:opacity-90"
             >
-              <div className="w-8 h-8 rounded-full bg-[#1B4D3E] text-white font-bold text-xs flex items-center justify-center ring-2 ring-emerald-600/20">
+              <div className={`w-8 h-8 rounded-full text-white font-bold text-xs flex items-center justify-center ring-2 ${
+                user.role === 'admin'
+                  ? 'bg-amber-600 ring-amber-500/30'
+                  : 'bg-[#1B4D3E] ring-emerald-600/20'
+              }`}>
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="hidden lg:block text-left">
-                <div className="text-xs font-bold text-[#11261F] dark:text-white max-w-[100px] truncate">{user.name}</div>
-                <div className="text-[10px] text-[#7A8E85] dark:text-[#8EABA0] font-medium leading-none mt-0.5">Citizen</div>
+                <div className="text-xs font-bold text-[#11261F] dark:text-white max-w-[120px] truncate">{user.name}</div>
+                <div className="text-[10px] text-[#7A8E85] dark:text-[#8EABA0] font-medium leading-none mt-0.5">
+                  {user.role === 'admin' ? 'Administrator' : 'Citizen'}
+                </div>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-[#7A8E85] dark:text-[#8EABA0] hidden lg:block" />
             </button>
@@ -146,6 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => {
                     logout();
                     setUserDropdownOpen(false);
+                    navigate('/login');
                   }}
                   className="w-full mt-1 flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer"
                 >

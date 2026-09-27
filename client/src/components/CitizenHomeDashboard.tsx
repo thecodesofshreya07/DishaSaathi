@@ -184,17 +184,17 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
 
           {/* Card 4 */}
           <div
-            onClick={() => onGoToTab('updates')}
+            onClick={() => onGoToTab('deadlines')}
             className="p-4 rounded-2xl bg-white dark:bg-[#0E1E19] border border-[#DCE8E1] dark:border-[#1F3E33] hover:border-[#1B4D3E] dark:hover:border-[#34D399] cursor-pointer transition-all shadow-2xs hover:shadow-xs group"
           >
-            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <Layers className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Clock className="w-5 h-5" />
             </div>
             <h5 className="text-xs font-extrabold text-[#11261F] dark:text-white group-hover:text-[#1B4D3E] dark:group-hover:text-[#6EE7B7]">
-              Govt Updates
+              Stuck? SLA & Escalation
             </h5>
             <p className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC] mt-1 leading-relaxed">
-              Check real-time statutory amendments and AI-extracted legal excerpts.
+              Generate ready-made legal grievance letters when government departments cross legal deadlines.
             </p>
           </div>
         </div>

@@ -212,8 +212,8 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 bg-gradient-to-r from-[#1B4D3E] to-[#12382D] text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-300">
-              <Compass className="w-6 h-6 animate-spin-slow" />
+            <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs overflow-hidden">
+              <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <div className="flex items-center gap-2">

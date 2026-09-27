@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Building2,
@@ -22,7 +22,11 @@ import { getOfficialDocumentApplicationUrl, getDocumentProcurementInfo, OfflineO
 import { getHowToApplyGuide } from '../utils/documentApplicationGuide';
 import { OfflineDocModal } from './OfflineDocModal';
 import { HowToApplyModal } from './HowToApplyModal';
+import { DigiLockerModal } from './DigiLockerModal';
+import { SlaEscalationModal } from './SlaEscalationModal';
+import { isDigiLockerAvailable } from '../utils/digiLockerEligibility';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 // ----------------------------------------------------
 // 0. EXPLORE VIEW (Civic Categories & Government Guide)
@@ -449,6 +453,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
   } | null>(null);
 
   const [howToApplyDoc, setHowToApplyDoc] = useState<string | null>(null);
+  const [digiLockerDoc, setDigiLockerDoc] = useState<{ name: string; stepId: string; docId: string } | null>(null);
 
   const docs = Array.from(docMap.values());
   const readyCount = docs.filter((item) => item.doc.status === 'READY' || item.doc.status === 'UPLOADED').length;
@@ -532,6 +537,19 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
                     <span>How to Apply</span>
                   </button>
 
+                  {/* DigiLocker Direct Pull Button (Only for eligible government documents) */}
+                  {isDigiLockerAvailable(doc.name) && (
+                    <button
+                      type="button"
+                      onClick={() => setDigiLockerDoc({ name: doc.name, stepId: step.id, docId: doc.id })}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800 transition-all cursor-pointer"
+                      title="Fetch official verified document directly from Government DigiLocker / API Setu"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>DigiLocker</span>
+                    </button>
+                  )}
+
                   {/* Direct link to exact page */}
                   {proc.mode === 'ONLINE' ? (
                     <a
@@ -595,6 +613,21 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
         );
       })()}
 
+      {/* DigiLocker Direct Verification Modal */}
+      {digiLockerDoc && (
+        <DigiLockerModal
+          isOpen={!!digiLockerDoc}
+          onClose={() => setDigiLockerDoc(null)}
+          documentName={digiLockerDoc.name}
+          stepId={digiLockerDoc.stepId}
+          docId={digiLockerDoc.docId}
+          onDocumentVerified={async (sId, dId, st) => {
+            await onUpdateDocumentStatus(sId, dId, st);
+            setDigiLockerDoc(null);
+          }}
+        />
+      )}
+
       {/* Offline Document Modal (Item 3 & 4) */}
       {activeOfflineDoc && (
         <OfflineDocModal
@@ -623,6 +656,7 @@ interface UpdatesViewProps {
 }
 
 export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExcerpt, onViewImpactDiff, onOpenAdmin }) => {
+  const { user } = useAuth();
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-[#173F33] to-[#123126] text-white p-5 rounded-2xl shadow-sm">
@@ -636,7 +670,7 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
           </p>
         </div>
 
-        {onOpenAdmin && (
+        {onOpenAdmin && user?.role === 'admin' && (
           <button
             onClick={onOpenAdmin}
             className="px-4 py-2 bg-[#E8B931] hover:bg-[#D4A72C] text-[#11261F] text-xs font-black rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer"
@@ -718,9 +752,92 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
 };
 
 // ----------------------------------------------------
-// 4. STATUTORY COMPLIANCE DEADLINES VIEW (Explained in UI)
+// 4. STATUTORY COMPLIANCE DEADLINES VIEW (With SLA & Escalation Tracker)
 // ----------------------------------------------------
-export const DeadlinesView: React.FC = () => {
+export const DeadlinesView: React.FC<{ journey?: CivicJourney }> = ({ journey }) => {
+  const [activeSlaStep, setActiveSlaStep] = useState<ProcedureStep | null>(null);
+
+  const sampleProceduresForEscalation: ProcedureStep[] = [
+    {
+      id: 'gumasta-sla',
+      stepNumber: 1,
+      title: 'Maharashtra Shop & Establishment Registration (Gumasta)',
+      category: 'Commercial',
+      department: 'Municipal Corporation (BMC / Labour Dept)',
+      authority: 'Municipal Corporation of Greater Mumbai (BMC)',
+      description: 'Registration intimation under Maharashtra Shops & Establishments Act 2017.',
+      whyRequired: 'Statutory trade license for commercial shop operations',
+      status: 'In Progress',
+      documents: [],
+      prerequisites: [],
+      fee: { amount: '0' },
+      processingTime: '3 Days',
+      applicationMode: 'Online',
+      applicationUrl: 'https://lms.mahaonline.gov.in',
+      source: {
+        id: 'src-1',
+        title: 'Maharashtra RTS Act 2015',
+        url: 'https://aaplesarkar.mahaonline.gov.in',
+        department: 'Labour Department',
+        domain: 'mahaonline.gov.in',
+        lastChecked: '2026-03-20',
+        verificationStatus: 'Verified'
+      }
+    },
+    {
+      id: 'fssai-sla',
+      stepNumber: 2,
+      title: 'FSSAI Food Business License / Registration',
+      category: 'Food Safety',
+      department: 'Food Safety and Standards Authority of India (FSSAI)',
+      authority: 'FSSAI / State FDA',
+      description: 'Statutory food business operator licensing.',
+      whyRequired: 'Mandatory for food processing, bakery, cafe or restaurant',
+      status: 'In Progress',
+      documents: [],
+      prerequisites: [],
+      fee: { amount: '2000' },
+      processingTime: '30 Days',
+      applicationMode: 'Online',
+      applicationUrl: 'https://foscos.fssai.gov.in',
+      source: {
+        id: 'src-2',
+        title: 'Food Safety and Standards Regulations 2011',
+        url: 'https://foscos.fssai.gov.in',
+        department: 'FSSAI',
+        domain: 'fssai.gov.in',
+        lastChecked: '2026-03-20',
+        verificationStatus: 'Verified'
+      }
+    },
+    {
+      id: 'driving-sla',
+      stepNumber: 3,
+      title: 'Permanent Driving Licence Application / Renewal',
+      category: 'Transport',
+      department: 'Regional Transport Office (RTO) / MoRTH',
+      authority: 'State Transport Department',
+      description: 'Driving license issuance under Motor Vehicles Act.',
+      whyRequired: 'Statutory permission to drive on public roads',
+      status: 'In Progress',
+      documents: [],
+      prerequisites: [],
+      fee: { amount: '200' },
+      processingTime: '7 Days',
+      applicationMode: 'Online',
+      applicationUrl: 'https://parivahan.gov.in',
+      source: {
+        id: 'src-3',
+        title: 'Motor Vehicles Act 1988',
+        url: 'https://parivahan.gov.in',
+        department: 'MoRTH',
+        domain: 'parivahan.gov.in',
+        lastChecked: '2026-03-20',
+        verificationStatus: 'Verified'
+      }
+    }
+  ];
+
   const deadlines = [
     { title: 'GSTR-3B Monthly Return Filing', date: '20th of every month', dept: 'CBIC / GSTN', status: 'Monthly Statutory' },
     { title: 'FSSAI Annual Compliance Return (Form D-1)', date: '31st May Annually', dept: 'FSSAI Ministry of Health', status: 'Annual Statutory' },
@@ -734,11 +851,57 @@ export const DeadlinesView: React.FC = () => {
       <div>
         <h3 className="text-xl font-black text-[#11261F] dark:text-white">Statutory Deadlines & Compliance Tracker</h3>
         <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mt-0.5">
-          Real-time calendar tracking mandatory filing dates, penalty waivers, and renewal deadlines across Indian municipal and statutory bodies.
+          Real-time calendar tracking mandatory filing dates, penalty waivers, and legal SLA windows across Indian municipal and statutory bodies.
         </p>
       </div>
 
-      {/* UI Explanation Guide Box (Point 5) */}
+      {/* FEATURE 1 HERO: "Stuck? Here's what to do" (SLA & Escalation Complaint Generator) */}
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#173F33] via-[#1B4D3E] to-[#123126] text-white shadow-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/15 text-emerald-200 border border-white/20 inline-block">
+              Right to Public Services Act (RTS) Tracker
+            </span>
+            <h4 className="text-lg sm:text-xl font-black text-white">
+              Stuck on a Government Application? We've Got Your Back.
+            </h4>
+            <p className="text-xs text-white/80 max-w-xl">
+              Most government applications have a legal deadline (e.g. 3 to 15 days). If it's crossed, you have the legal right to complain. We hand you a ready-made complaint letter and tell you exactly where to submit it.
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              const activeStep = journey && journey.steps && journey.steps.length > 0
+                ? journey.steps[0]
+                : sampleProceduresForEscalation[0];
+              setActiveSlaStep(activeStep);
+            }}
+            className="px-5 py-2.5 rounded-xl bg-[#E8B931] hover:bg-[#D4A72C] text-[#11261F] text-xs font-black transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer hover:scale-102"
+          >
+            <Clock className="w-4 h-4 text-[#11261F]" />
+            <span>Generate Grievance Notice</span>
+          </button>
+        </div>
+
+        {/* Quick Launch Chips for Popular Escalations */}
+        <div className="pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold text-emerald-200">
+            Diagnose Delay For:
+          </span>
+          {sampleProceduresForEscalation.map((proc) => (
+            <button
+              key={proc.id}
+              onClick={() => setActiveSlaStep(proc)}
+              className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] font-bold text-white transition-all cursor-pointer"
+            >
+              {proc.title.split(' ')[0]} {proc.title.split(' ')[1]} (SLA: {proc.processingTime})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* UI Explanation Guide Box */}
       <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EAF2ED] to-[#E2EBE5] dark:from-[#10271F] dark:to-[#143329] border border-[#CDE3D7] dark:border-[#1E3B32] space-y-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-[#1B4D3E] text-white flex items-center justify-center font-bold text-xs">
@@ -796,89 +959,319 @@ export const DeadlinesView: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* SLA / Escalation Grievance Modal */}
+      {activeSlaStep && (
+        <SlaEscalationModal
+          isOpen={!!activeSlaStep}
+          onClose={() => setActiveSlaStep(null)}
+          step={activeSlaStep}
+          journey={journey}
+        />
+      )}
     </div>
   );
 };
 
 // ----------------------------------------------------
-// 5. CIVIC PASSPORT VIEW (Explained in UI)
+// 5. CIVIC VERIFICATION QR & MULTI-JOURNEY PORTFOLIO
 // ----------------------------------------------------
-export const PassportView: React.FC<{ journey: CivicJourney }> = ({ journey }) => {
+export const PassportView: React.FC<{
+  journey: CivicJourney;
+  journeys?: CivicJourney[];
+  onSelectJourney?: (id: string) => void;
+}> = ({ journey, journeys = [], onSelectJourney }) => {
+  const [copied, setCopied] = useState(false);
+  const [selectedJourneyId, setSelectedJourneyId] = useState<string>(journey?.id || 'all');
+
+  // Sync when journey prop changes
+  useEffect(() => {
+    if (journey?.id && selectedJourneyId !== 'all') {
+      setSelectedJourneyId(journey.id);
+    }
+  }, [journey?.id]);
+
+  const allJourneys = journeys.length > 0 ? journeys : (journey ? [journey] : []);
+  const isMasterPortfolio = selectedJourneyId === 'all';
+
+  const currentJourney = isMasterPortfolio
+    ? null
+    : allJourneys.find((j) => j.id === selectedJourneyId) || journey || allJourneys[0];
+
+  const verifyUrl = isMasterPortfolio
+    ? `${window.location.origin}/verify`
+    : `${window.location.origin}/verify/${currentJourney?.id || ''}`;
+
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(verifyUrl)}&margin=10`;
+
+  // Stats calculation
+  const totalStagesAcrossAll = allJourneys.reduce((sum, j) => sum + (j.steps?.length || j.totalSteps || 5), 0);
+  const completedStagesAcrossAll = allJourneys.reduce(
+    (sum, j) => sum + (j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0),
+    0
+  );
+
+  const steps = currentJourney?.steps || [];
+  const completedSteps = isMasterPortfolio
+    ? completedStagesAcrossAll
+    : steps.filter((s) => s.status === 'Completed').length;
+  const inProgressSteps = isMasterPortfolio
+    ? allJourneys.reduce((sum, j) => sum + (j.steps?.filter((s) => s.status === 'In Progress').length || 0), 0)
+    : steps.filter((s) => s.status === 'In Progress').length;
+  const totalSteps = isMasterPortfolio ? totalStagesAcrossAll : steps.length || currentJourney?.totalSteps || 5;
+  const progressPercent = Math.round((completedSteps / (totalSteps || 1)) * 100);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(verifyUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleSelect = (id: string) => {
+    setSelectedJourneyId(id);
+    if (id !== 'all' && onSelectJourney) {
+      onSelectJourney(id);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div>
-        <h3 className="text-xl font-black text-[#11261F] dark:text-white">Citizen Civic Passport</h3>
-        <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mt-0.5">
-          Your cryptographically verifiable credential for municipal clearances, business licenses, and statutory compliances.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-xl font-black text-[#11261F] dark:text-white">
+            Journey Verification QR & Compliance Portfolio
+          </h3>
+          <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mt-0.5">
+            Generate and scan verified QR codes for any individual goal or your complete citizen compliance portfolio.
+          </p>
+        </div>
       </div>
 
-      {/* Passport Card */}
-      <div className="max-w-xl mx-auto p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#1B4D3E] via-[#153D31] to-[#0E271F] text-white shadow-xl relative overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4">
-          <div className="flex items-center gap-2.5">
-            <Award className="w-6 h-6 text-amber-300" />
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-200 block">
-                Republic of India • e-Gov
+      {/* Multi-Journey Switcher Pills */}
+      {allJourneys.length > 1 && (
+        <div className="bg-white dark:bg-[#0D1A16] p-3 rounded-2xl border border-[#DCE8E1] dark:border-[#1E3B32] shadow-2xs space-y-2">
+          <div className="text-[11px] font-bold text-[#5C7066] dark:text-[#8C9B94] px-1">
+            Select Civic Procedure to Generate QR:
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {/* Master Portfolio Option */}
+            <button
+              type="button"
+              onClick={() => handleSelect('all')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                isMasterPortfolio
+                  ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-xs'
+                  : 'bg-[#F2F7F4] dark:bg-[#142B23] text-[#4A5D54] dark:text-[#9FB7AC] border-[#DCE8E0] dark:border-[#1E3B32]'
+              }`}
+            >
+              <span>All Journeys (Master Portfolio)</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                isMasterPortfolio ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+              }`}>
+                {allJourneys.length}
               </span>
-              <h4 className="text-base font-black">Digital Civic Passport</h4>
+            </button>
+
+            {/* Individual Journeys */}
+            {allJourneys.map((j) => {
+              const isSelected = selectedJourneyId === j.id;
+              const jCompleted = j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0;
+              const jTotal = j.steps?.length || j.totalSteps || 5;
+
+              return (
+                <button
+                  key={j.id}
+                  type="button"
+                  onClick={() => handleSelect(j.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
+                    isSelected
+                      ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-xs'
+                      : 'bg-[#F2F7F4] dark:bg-[#142B23] text-[#4A5D54] dark:text-[#9FB7AC] border-[#DCE8E0] dark:border-[#1E3B32]'
+                  }`}
+                >
+                  <span className="max-w-[160px] truncate">{j.title}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}>
+                    {jCompleted}/{jTotal}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        
+        {/* Left: Scannable QR Code Card */}
+        <div className="md:col-span-5 bg-white dark:bg-[#0D1A16] rounded-3xl border border-[#DCE8E1] dark:border-[#1E3B32] p-6 shadow-sm flex flex-col items-center text-center space-y-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>{isMasterPortfolio ? 'Master Portfolio QR' : 'Official Procedure QR'}</span>
+          </div>
+
+          {/* Real Scannable QR Code */}
+          <div className="p-3 bg-white rounded-2xl border-2 border-[#1B4D3E]/20 shadow-md">
+            <img
+              src={qrCodeUrl}
+              alt="Scan to verify journey status"
+              className="w-48 h-48 rounded-lg object-contain"
+              loading="lazy"
+            />
+          </div>
+
+          <p className="text-xs text-[#5C7066] dark:text-[#8C9B94] max-w-xs leading-relaxed">
+            {isMasterPortfolio
+              ? 'Point any mobile camera at this code to verify all active civic journeys for this citizen account.'
+              : `Point any phone camera to verify clearances for "${currentJourney?.title}".`}
+          </p>
+
+          <div className="w-full pt-2 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="w-full py-2 px-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>{copied ? 'Verification Link Copied!' : 'Copy Shareable Link'}</span>
+            </button>
+
+            <a
+              href={verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2 px-3 rounded-xl border border-[#DCE8E1] dark:border-[#1E3B32] bg-[#F7FAF8] dark:bg-[#12241E] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5"
+            >
+              <span>Open Scanned Preview</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+
+        {/* Right: Live Progress & Clearance Summary */}
+        <div className="md:col-span-7 space-y-4">
+          
+          {/* Status Overview Card */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-[#1B4D3E] via-[#153D31] to-[#0E271F] text-white shadow-lg space-y-4 border border-[#2B6352]">
+            <div className="flex items-center justify-between border-b border-white/20 pb-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-200 block">
+                  {isMasterPortfolio ? 'Unified Citizen Portfolio' : 'Public Compliance Status'}
+                </span>
+                <h4 className="text-base font-black text-white">
+                  {isMasterPortfolio ? 'Master Citizen Compliance Portfolio' : currentJourney?.title}
+                </h4>
+              </div>
+              <span className="text-xs font-bold text-amber-300 px-2.5 py-1 rounded-lg bg-white/10 border border-white/20">
+                {progressPercent}% Cleared
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-emerald-200 text-[11px] block">
+                  {isMasterPortfolio ? 'Active Civic Goals:' : 'Active Jurisdiction:'}
+                </span>
+                <span className="font-bold text-white mt-0.5 block">
+                  {isMasterPortfolio ? `${allJourneys.length} Procedures Tracked` : currentJourney?.location || 'Mumbai, Maharashtra'}
+                </span>
+              </div>
+              <div>
+                <span className="text-emerald-200 text-[11px] block">Stages Completed:</span>
+                <span className="font-bold text-white mt-0.5 block">{completedSteps} of {totalSteps} Stages</span>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full h-2.5 rounded-full bg-black/30 overflow-hidden border border-white/20">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-amber-300 transition-all"
+                style={{ width: `${Math.max(5, progressPercent)}%` }}
+              />
             </div>
           </div>
-          <span className="text-[10px] font-mono px-2 py-1 rounded-md bg-white/10 text-emerald-200 border border-white/20">
-            ID: DS-MUM-8921
-          </span>
+
+          {/* Step-by-Step Clearance List or Master Journey List */}
+          <div className="bg-white dark:bg-[#0D1A16] rounded-3xl border border-[#DCE8E1] dark:border-[#1E3B32] p-5 shadow-xs space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#11261F] dark:text-white">
+              {isMasterPortfolio ? 'All Active Civic Clearances in Portfolio:' : 'What Someone Sees When Scanning:'}
+            </h4>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
+              {isMasterPortfolio ? (
+                allJourneys.map((j) => {
+                  const jCompleted = j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0;
+                  const jTotal = j.steps?.length || j.totalSteps || 5;
+                  const jPct = Math.round((jCompleted / (jTotal || 1)) * 100);
+
+                  return (
+                    <div
+                      key={j.id}
+                      onClick={() => handleSelect(j.id)}
+                      className="p-3.5 rounded-2xl border border-[#E8ECE9] dark:border-[#1E3B32] hover:border-[#1B4D3E] transition-all cursor-pointer bg-[#FBFDFB] dark:bg-[#12241E] flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            {j.category || 'Statutory'}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{j.location}</span>
+                        </div>
+                        <h5 className="font-bold text-[#11261F] dark:text-white">{j.title}</h5>
+                      </div>
+
+                      <div className="flex flex-col items-end shrink-0">
+                        <span className="font-black text-[#1B4D3E] dark:text-[#6EE7B7] text-xs">
+                          {jCompleted} / {jTotal} Done
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-bold">{jPct}%</span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                steps.map((step, idx) => {
+                  const isCompleted = step.status === 'Completed';
+                  const isInProgress = step.status === 'In Progress';
+
+                  return (
+                    <div
+                      key={step.id || idx}
+                      className="p-3 rounded-xl border border-[#E8ECE9] dark:border-[#1E3B32] flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
+                          isCompleted
+                            ? 'bg-emerald-600 text-white'
+                            : isInProgress
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                        }`}>
+                          {isCompleted ? '✓' : idx + 1}
+                        </div>
+                        <span className="font-bold text-[#11261F] dark:text-white truncate max-w-[220px]">
+                          {step.title}
+                        </span>
+                      </div>
+
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isCompleted
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                          : isInProgress
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
+                          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                      }`}>
+                        {isCompleted ? 'Cleared' : isInProgress ? 'In Progress' : 'Pending'}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
         </div>
 
-        <div className="space-y-3 text-xs">
-          <div className="flex justify-between">
-            <span className="text-emerald-200">Active Jurisdiction:</span>
-            <span className="font-bold">{journey.location || 'Mumbai, Maharashtra'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-emerald-200">Registered Goal:</span>
-            <span className="font-bold">{journey.title}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-emerald-200">Completed Clearances:</span>
-            <span className="font-bold text-amber-300">{journey.completedSteps} of {journey.totalSteps} Stages</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-emerald-200">Verification Source:</span>
-            <span className="font-bold text-emerald-300">100% Gazette Grounded</span>
-          </div>
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between text-[11px] text-emerald-200">
-          <span>Official Digital Verification</span>
-          <span className="font-mono text-[10px]">HASH: 0x8F92...B41E</span>
-        </div>
-      </div>
-
-      {/* UI Explanation Guide for Passport (Point 8) */}
-      <div className="max-w-xl mx-auto p-5 rounded-2xl bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] shadow-2xs space-y-3">
-        <h4 className="text-sm font-extrabold text-[#11261F] dark:text-white flex items-center gap-2">
-          <span>️</span>
-          <span>What is the Citizen Civic Passport?</span>
-        </h4>
-        <p className="text-xs text-[#556960] dark:text-[#A2B9AE] leading-relaxed">
-          The <strong>Civic Passport</strong> is your unified digital credential that bundles all verified municipal clearances, commercial licenses, and statutory registrations into a single tamper-evident digital identity.
-        </p>
-
-        <div className="space-y-2 pt-1 text-xs">
-          <div className="flex items-start gap-2 text-[#4A5D54] dark:text-[#9FB7AC]">
-            <span className="text-emerald-600 font-bold">•</span>
-            <span><strong>Single-Window Verification:</strong> Present this passport to municipal ward inspectors or banks for loan underwriting without carrying stacks of physical paperwork.</span>
-          </div>
-          <div className="flex items-start gap-2 text-[#4A5D54] dark:text-[#9FB7AC]">
-            <span className="text-emerald-600 font-bold">•</span>
-            <span><strong>Cryptographically Verifiable:</strong> Linked to your permanent registration ID with instant QR verification across Maharashtra & National single-window portals.</span>
-          </div>
-          <div className="flex items-start gap-2 text-[#4A5D54] dark:text-[#9FB7AC]">
-            <span className="text-emerald-600 font-bold">•</span>
-            <span><strong>Auto-Syncing:</strong> Updates in real-time as you complete roadmap steps and prepare mandatory documents.</span>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -899,28 +899,55 @@ const translations: Record<Language, LanguageStrings> = {
 };
 
 /**
- * Triggers Google Translate dynamically across the DOM
+ * Convert numbers (0-9) to Devanagari numerals (०-९) for Hindi and Marathi
+ */
+export const formatNumberForLang = (num: number | string, lang: Language): string => {
+  const str = String(num);
+  if (lang === 'en') return str;
+  const devanagariDigits: Record<string, string> = {
+    '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
+    '5': '५', '6': '६', '7': '७', '8': '८', '9': '९'
+  };
+  return str.replace(/[0-9]/g, (d) => devanagariDigits[d] || d);
+};
+
+/**
+ * Triggers Google Translate dynamically across the entire DOM
  */
 export const triggerGoogleTranslate = (lang: Language) => {
   try {
-    const googleCode = lang;
+    const googleCode = lang === 'en' ? '' : lang;
     const hostname = window.location.hostname;
 
-    // Set translation cookies
-    document.cookie = `googtrans=/en/${googleCode}; path=/;`;
+    // Set translation cookies for all domain paths
+    document.cookie = `googtrans=/en/${lang}; path=/;`;
+    document.cookie = `googtrans=/auto/${lang}; path=/;`;
     if (hostname && hostname !== 'localhost') {
-      document.cookie = `googtrans=/en/${googleCode}; path=/; domain=.${hostname};`;
-      document.cookie = `googtrans=/en/${googleCode}; path=/; domain=${hostname};`;
+      document.cookie = `googtrans=/en/${lang}; path=/; domain=.${hostname};`;
+      document.cookie = `googtrans=/en/${lang}; path=/; domain=${hostname};`;
+      document.cookie = `googtrans=/auto/${lang}; path=/; domain=.${hostname};`;
+      document.cookie = `googtrans=/auto/${lang}; path=/; domain=${hostname};`;
     }
 
-    // Trigger select element in DOM if Google Translate widget is rendered
-    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-    if (select) {
-      select.value = googleCode;
-      select.dispatchEvent(new Event('change'));
+    // Function to trigger DOM select element
+    const applySelect = () => {
+      const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+      if (select) {
+        select.value = googleCode;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+      return false;
+    };
+
+    if (!applySelect()) {
+      // Retry in 200ms, 600ms, 1200ms in case Google widget is still initializing
+      setTimeout(applySelect, 200);
+      setTimeout(applySelect, 600);
+      setTimeout(applySelect, 1200);
     }
   } catch (err) {
-    console.warn('Google Translate sync:', err);
+    console.warn('Google Translate sync error:', err);
   }
 };
 
@@ -928,12 +955,14 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: LanguageStrings;
+  formatNumber: (num: number | string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: () => { },
   t: translations.en,
+  formatNumber: (n) => String(n)
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -949,14 +978,25 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     triggerGoogleTranslate(lang);
   }, []);
 
+  const formatNumber = useCallback(
+    (num: number | string) => formatNumberForLang(num, language),
+    [language]
+  );
+
   useEffect(() => {
     document.documentElement.lang = language;
-    // Apply Google Translate trigger on mount / lang change
     triggerGoogleTranslate(language);
   }, [language]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t: translations[language] || translations.en }}>
+    <LanguageContext.Provider
+      value={{
+        language,
+        setLanguage,
+        t: translations[language] || translations.en,
+        formatNumber
+      }}
+    >
       {children}
     </LanguageContext.Provider>
   );

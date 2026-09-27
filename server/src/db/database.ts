@@ -25,7 +25,9 @@ if (tursoUrl && tursoUrl.startsWith('libsql://')) {
 
 export const dbClient = client;
 
-// Initialize schema
+import bcrypt from 'bcryptjs';
+
+// Initialize schema & seed super admin
 export async function initDatabase() {
   try {
     await dbClient.execute(`
@@ -34,9 +36,17 @@ export async function initDatabase() {
         name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
+        role TEXT DEFAULT 'citizen',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Ensure role column exists if table existed previously
+    try {
+      await dbClient.execute(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'citizen';`);
+    } catch {
+      // Column already exists, safe to ignore
+    }
 
     await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS user_journeys (
@@ -46,8 +56,26 @@ export async function initDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
-    console.log('[Database] Schema verification completed successfully.');
+
+    // Seed official Admin account if not present
+    const adminEmail = 'admin@dishasaathi.gov.in';
+    const checkAdmin = await dbClient.execute({
+      sql: 'SELECT id FROM users WHERE email = ?',
+      args: [adminEmail]
+    });
+
+    if (checkAdmin.rows.length === 0) {
+      const adminPasswordHash = bcrypt.hashSync('Admin@DishaSaathi2026', 10);
+      await dbClient.execute({
+        sql: `INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)`,
+        args: ['admin-dishasaathi-root', 'Chief Validation Officer (Admin)', adminEmail, adminPasswordHash, 'admin']
+      });
+      console.log('[Database] Seeded default Admin user: admin@dishasaathi.gov.in (Password: Admin@DishaSaathi2026)');
+    }
+
+    console.log('[Database] Schema verification & admin seeding completed successfully.');
   } catch (err: any) {
     console.error('[Database] Failed to initialize database schema:', err?.message || err);
   }
 }
+

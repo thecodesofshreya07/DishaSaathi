@@ -54,16 +54,10 @@ export const LandingNavbar: React.FC = () => {
               {t.navExploreServices}
             </button>
             <button
-              onClick={() => scrollToSection('updates')}
-              className="hover:text-[#1B4D3E] transition-colors cursor-pointer py-1"
-            >
-              {t.navGovUpdates}
-            </button>
-            <button
               onClick={() => scrollToSection('faq')}
               className="hover:text-[#1B4D3E] transition-colors cursor-pointer py-1"
             >
-              {t.navAbout}
+              {t.navAbout || 'About'}
             </button>
           </div>
 
@@ -164,8 +158,7 @@ export const LandingNavbar: React.FC = () => {
           {[
             { id: 'how-it-works', label: t.navHowItWorks },
             { id: 'features', label: t.navExploreServices },
-            { id: 'updates', label: t.navGovUpdates },
-            { id: 'faq', label: t.navAbout },
+            { id: 'faq', label: t.navAbout || 'About' },
           ].map((item) => (
             <button
               key={item.id}

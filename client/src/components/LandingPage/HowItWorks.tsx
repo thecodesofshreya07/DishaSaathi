@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Target, Bell, Check } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const HowItWorks: React.FC = () => {
@@ -66,7 +66,7 @@ export const HowItWorks: React.FC = () => {
             {/* Intent Key-Value Box */}
             <div className="p-3 bg-[#F9FAF8] rounded-2xl border border-[#E0EBE4] space-y-2 text-[11px]">
               <div className="p-1.5 rounded-lg bg-[#EAF2ED] border border-[#D1E2D8] text-[10px] font-bold text-[#1B4D3E] flex items-center gap-1.5">
-                <span>🍃</span>
+                <Target className="w-3.5 h-3.5 text-[#1B4D3E]" />
                 <span className="truncate">{t.card2Req}</span>
               </div>
               <div className="flex items-start justify-between gap-2 text-[11px]">
@@ -149,7 +149,9 @@ export const HowItWorks: React.FC = () => {
             <div className="p-3.5 bg-[#FFF9F2] rounded-2xl border border-[#FFE6CC] space-y-2">
               <div className="flex items-center justify-between gap-1">
                 <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#B85C00] min-w-0">
-                  <span className="w-5 h-5 rounded-full bg-[#FF9933] text-white flex items-center justify-center text-xs shrink-0">🔔</span>
+                  <span className="w-5 h-5 rounded-full bg-[#FF9933] text-white flex items-center justify-center shrink-0">
+                    <Bell className="w-3 h-3 text-white" />
+                  </span>
                   <span className="truncate">{t.card4Alert}</span>
                 </div>
                 <span className="text-[9px] text-[#B85C00]/70 font-semibold shrink-0">24 Sep</span>

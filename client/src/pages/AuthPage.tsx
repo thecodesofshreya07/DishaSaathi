@@ -43,6 +43,13 @@ export const AuthPage: React.FC = () => {
     }
   }, [location.pathname, searchParams]);
 
+  const handleFillAdmin = () => {
+    setMode('login');
+    setEmail('admin@dishasaathi.gov.in');
+    setPassword('Admin@DishaSaathi2026');
+    setError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -69,7 +76,11 @@ export const AuthPage: React.FC = () => {
       } else {
         const res = await login(email, password);
         if (res.success) {
-          navigate('/roadmap');
+          if (res.user?.role === 'admin' || email.trim().toLowerCase().includes('admin')) {
+            navigate('/admin');
+          } else {
+            navigate('/roadmap');
+          }
         } else {
           setError(res.error || 'Invalid email or password');
         }
@@ -367,6 +378,29 @@ export const AuthPage: React.FC = () => {
                   </button>
                 </span>
               )}
+            </div>
+
+            {/* Official Administrator Quick-Fill Box */}
+            <div className="mt-6 pt-5 border-t border-[#E5ECE8] text-left">
+              <div className="p-3.5 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-900 dark:text-amber-200">
+                    <ShieldCheck className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                    <span>Officer / Admin Review Access</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleFillAdmin}
+                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+                  >
+                    Quick-Fill Admin
+                  </button>
+                </div>
+                <div className="text-[11px] text-amber-900/90 dark:text-amber-300 font-mono space-y-0.5">
+                  <div><strong>Email:</strong> admin@dishasaathi.gov.in</div>
+                  <div><strong>Password:</strong> Admin@DishaSaathi2026</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

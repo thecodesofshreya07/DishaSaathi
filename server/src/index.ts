@@ -33,6 +33,9 @@ import {
   optionalAuthMiddleware, 
   AuthenticatedRequest 
 } from './middleware/authMiddleware.js';
+import { generateStatutoryGrievanceDraft, getStepSlaInfo } from './services/civic/slaEscalationService.js';
+import { fetchFromDigiLocker } from './services/civic/digilockerService.js';
+import { sendRoadmapEmail, sendEscalationNoticeEmail, sendEmailViaBrevo } from './services/civic/emailService.js';
 
 dotenv.config();
 
@@ -589,10 +592,6 @@ app.get('/api/updates', (req: Request, res: Response) => {
 
 // 6. Trigger Change Detection & apply to roadmap
 app.post('/api/updates/:id/apply', (req: Request, res: Response) => {
-  if (!currentJourney) {
-    return res.status(404).json({ success: false, error: 'No active journey' });
-  }
-
   const { id } = req.params;
   const update = updates.find(u => u.id === id);
 
@@ -600,31 +599,35 @@ app.post('/api/updates/:id/apply', (req: Request, res: Response) => {
     return res.status(404).json({ success: false, error: 'Update not found' });
   }
 
-  // Find step or attach to active step
-  const targetStep = currentJourney.steps.find(s => s.id === update.serviceId) || currentJourney.steps[0];
-  if (targetStep) {
-    targetStep.hasUpdate = true;
-    targetStep.updateDetails = {
-      date: update.date,
-      summary: update.title,
-      addedRequirement: update.newValue
-    };
-    targetStep.documents.push({
-      id: `doc-update-${Date.now()}`,
-      name: update.newValue || 'Updated Statutory Document Requirement',
-      description: `Amended requirement as per notification on ${update.date}`,
-      isMandatory: true,
-      sourceUrl: update.sourceUrl
-    });
-    currentJourney.pendingDocuments += 1;
-  }
   update.reviewStatus = 'Approved';
+
+  let targetStep: any = null;
+  if (currentJourney && currentJourney.steps && currentJourney.steps.length > 0) {
+    targetStep = currentJourney.steps.find(s => s.id === update.serviceId) || currentJourney.steps[0];
+    if (targetStep) {
+      targetStep.hasUpdate = true;
+      targetStep.updateDetails = {
+        date: update.date,
+        summary: update.title,
+        addedRequirement: update.newValue
+      };
+      if (!targetStep.documents) targetStep.documents = [];
+      targetStep.documents.push({
+        id: `doc-update-${Date.now()}`,
+        name: update.newValue || 'Updated Statutory Document Requirement',
+        description: `Amended requirement as per notification on ${update.date}`,
+        isMandatory: true,
+        sourceUrl: update.sourceUrl
+      });
+      currentJourney.pendingDocuments = (currentJourney.pendingDocuments || 0) + 1;
+    }
+  }
 
   res.json({
     success: true,
-    message: 'Government requirement change applied to visual roadmap',
+    message: 'Government requirement change approved & applied to visual roadmap',
     affectedStep: targetStep?.id,
-    journey: currentJourney,
+    journey: currentJourney || null,
     update
   });
 });
@@ -775,7 +778,174 @@ app.post('/api/copilot/message', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================================
+// 12. "STUCK? HERE'S WHAT TO DO" (SLA & ESCALATION TRACKER)
+// ============================================================
+app.post('/api/civic/sla-escalation', async (req: Request, res: Response) => {
+  try {
+    const { citizenName, stepTitle, department, applicationNumber, submissionDate, daysElapsed, contactEmail, contactPhone, location } = req.body;
+    if (!stepTitle) {
+      return res.status(400).json({ success: false, error: 'stepTitle is required' });
+    }
 
+    const grievanceData = generateStatutoryGrievanceDraft({
+      citizenName: citizenName || 'Citizen Applicant',
+      stepTitle,
+      department,
+      applicationNumber,
+      submissionDate,
+      daysElapsed: Number(daysElapsed) || undefined,
+      contactEmail,
+      contactPhone,
+      location
+    });
+
+    res.json({
+      success: true,
+      ...grievanceData
+    });
+  } catch (err: any) {
+    console.error('Error generating SLA escalation draft:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to generate grievance letter' });
+  }
+});
+
+// ============================================================
+// 13. DIRECT GOVERNMENT REPOSITORY FETCH (DIGILOCKER / API SETU)
+// ============================================================
+app.post('/api/civic/digilocker/fetch', async (req: Request, res: Response) => {
+  try {
+    const { documentName, documentType, citizenAadhaarOrId, consentGranted } = req.body;
+    if (!documentName && !documentType) {
+      return res.status(400).json({ success: false, error: 'documentName or documentType is required' });
+    }
+
+    const verifiedDoc = await fetchFromDigiLocker({
+      documentName: documentName || 'Government Document',
+      documentType: documentType || 'Official_Certificate',
+      citizenAadhaarOrId,
+      consentGranted: consentGranted !== false
+    });
+
+    res.json({
+      success: true,
+      document: verifiedDoc
+    });
+  } catch (err: any) {
+    console.error('Error in DigiLocker fetch:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to fetch from DigiLocker' });
+  }
+});
+
+// ============================================================
+// 14. BREVO EMAIL CIVIC ROADMAP & ESCALATION DELIVERY
+// ============================================================
+app.post('/api/civic/send-roadmap-email', async (req: Request, res: Response) => {
+  try {
+    const { email, name, journey } = req.body;
+    const activeJourney = journey || currentJourney;
+
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'Email address is required' });
+    }
+    if (!activeJourney) {
+      return res.status(404).json({ success: false, error: 'No active roadmap found to email' });
+    }
+
+    const result = await sendRoadmapEmail(email, name || 'Citizen', activeJourney);
+    res.json(result);
+  } catch (err: any) {
+    console.error('Error sending roadmap email:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to send roadmap email' });
+  }
+});
+
+app.post('/api/civic/send-escalation-email', async (req: Request, res: Response) => {
+  try {
+    const {
+      toEmail,
+      citizenName,
+      stepTitle,
+      authority,
+      mandatedSlaDays,
+      daysElapsed,
+      applicationNumber,
+      complaintDraft,
+      firstAppellateAuthority,
+      officialGrievancePortal
+    } = req.body;
+
+    if (!toEmail || !complaintDraft) {
+      return res.status(400).json({ success: false, error: 'toEmail and complaintDraft are required' });
+    }
+
+    const result = await sendEscalationNoticeEmail({
+      toEmail,
+      citizenName: citizenName || 'Citizen',
+      stepTitle: stepTitle || 'Civic Application',
+      authority: authority || 'Competent Authority',
+      mandatedSlaDays: Number(mandatedSlaDays) || 15,
+      daysElapsed: Number(daysElapsed) || 22,
+      applicationNumber: applicationNumber || 'N/A',
+      complaintDraft,
+      firstAppellateAuthority: firstAppellateAuthority || 'First Appellate Authority',
+      officialGrievancePortal: officialGrievancePortal || 'https://pgportal.gov.in/'
+    });
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('Error sending escalation email:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to send escalation email' });
+  }
+});
+
+app.post('/api/civic/email-assist', async (req: Request, res: Response) => {
+  try {
+    const { email, name, question, journey } = req.body;
+    if (!email || !question) {
+      return res.status(400).json({ success: false, error: 'Email and question are required' });
+    }
+
+    const activeJourney = journey || currentJourney;
+    const answerResult = activeJourney
+      ? await answerCopilotQuery({ question, journey: activeJourney })
+      : { answer: 'Thank you for reaching out to DishaSaathi. Please visit the portal to track active procedures.' };
+
+    const htmlContent = `
+      <div style="font-family: sans-serif; padding: 20px; max-width: 600px; color: #11261F;">
+        <div style="background-color: #1B4D3E; color: white; padding: 18px; border-radius: 12px; margin-bottom: 16px;">
+          <h2 style="margin: 0; font-size: 18px;">DishaSaathi Civic Assistant Response</h2>
+        </div>
+        <div style="background-color: #F8FAF9; padding: 16px; border-radius: 10px; border: 1px solid #DCE8E1; margin-bottom: 16px;">
+          <p style="font-size: 12px; color: #5C7066; margin: 0 0 6px 0;"><strong>Your Question:</strong></p>
+          <p style="font-size: 14px; margin: 0; color: #11261F;">${question}</p>
+        </div>
+        <div style="font-size: 14px; line-height: 1.6; color: #11261F; margin-bottom: 20px;">
+          ${(answerResult.answer || '').replace(/\\n/g, '<br/>')}
+        </div>
+        <div style="font-size: 11px; color: #6C8075; border-top: 1px solid #DCE8E1; padding-top: 12px;">
+          Powered by DishaSaathi Civic Navigation • Official Gazette Grounded
+        </div>
+      </div>
+    `;
+
+    const result = await sendEmailViaBrevo(
+      [{ email, name: name || 'Citizen' }],
+      `DishaSaathi Civic Query: ${question.substring(0, 40)}...`,
+      htmlContent
+    );
+
+    res.json({
+      success: true,
+      answer: answerResult.answer,
+      emailSent: result.success,
+      simulated: result.simulated
+    });
+  } catch (err: any) {
+    console.error('Error in email assist:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to process email inquiry' });
+  }
+});
 
 // Production Static Client Serving & SPA Fallback
 const rootDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -19,33 +19,14 @@ import { useLanguage } from '../../context/LanguageContext';
 export const LandingHero: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const sampleQueries = [
-    t.heroPopBirth,
-    t.heroPopBusiness,
-    t.heroPopProperty,
-    t.heroPopWater,
-    t.heroPopTrade
-  ];
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = searchQuery.trim() || t.heroInputPlaceholder;
-    navigate('/create', { state: { initialQuery: query } });
-  };
-
-  const handleChipClick = (query: string) => {
-    navigate('/create', { state: { initialQuery: `I want to apply for ${query}` } });
-  };
 
   return (
     <section className="relative overflow-hidden bg-[#F9FAF8] pt-8 sm:pt-14 pb-12 sm:pb-16 border-b border-[#E5EAE7]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* ── TOP HERO SPLIT: LEFT TEXT/SEARCH + RIGHT CONNECTED SOURCES CARD ── */}
+        {/* ── TOP HERO SPLIT: LEFT TEXT + RIGHT CONNECTED SOURCES CARD ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10 sm:mb-16">
-          {/* Left Column: Heading, Subtitle, Search Console */}
-          <div className="lg:col-span-6 space-y-4 sm:space-y-5 text-left">
+          {/* Left Column: Heading, Subtitle, Direct CTA */}
+          <div className="lg:col-span-6 space-y-4 sm:space-y-6 text-left">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#EAF2ED] text-[#1B4D3E] text-xs font-bold border border-[#D1E2D8]">
               <span>{t.heroBadge}</span>
@@ -60,66 +41,15 @@ export const LandingHero: React.FC = () => {
               {t.heroSubtext}
             </p>
 
-            {/* Search Input Bar Capsule */}
-            <div className="pt-2 max-w-xl">
-              <form
-                onSubmit={handleSearchSubmit}
-                className="p-1.5 bg-white rounded-full border border-[#CBD7D0] shadow-sm focus-within:border-[#1B4D3E] focus-within:ring-2 focus-within:ring-[#1B4D3E]/10 transition-all flex items-center justify-between gap-2"
-              >
-                <div className="flex-1 flex items-center pl-3 sm:pl-4 gap-2 sm:gap-3 min-w-0">
-                  <span className="text-[#1B4D3E] text-base font-bold shrink-0">✦</span>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t.heroInputPlaceholder}
-                    className="w-full text-xs sm:text-sm text-[#0D1F1A] placeholder:text-slate-400 focus:outline-hidden bg-transparent font-medium"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center cursor-pointer shrink-0 transition-transform active:scale-95 shadow-xs"
-                  aria-label="Search"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-
-              {/* Try Asking Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap mt-3 text-xs">
-                <span className="text-slate-500 font-medium mr-1 text-[11px] sm:text-xs">{t.heroTryAsking}</span>
-                {sampleQueries.map((q, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleChipClick(q)}
-                    className="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold text-[#3B4D44] bg-white border border-[#D8E2DC] hover:border-[#1B4D3E] hover:text-[#1B4D3E] transition-all cursor-pointer shadow-2xs"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4 sm:gap-6 pt-2 flex-wrap">
+            {/* Direct Action Button */}
+            <div className="pt-2 flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => navigate('/create')}
-                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+                className="px-6 py-3.5 rounded-2xl bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
-                <span>{t.heroCTA}</span>
+                <span>{t.heroCTA || 'Start Your Journey'}</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="text-xs sm:text-sm font-bold text-[#3B4D44] hover:text-[#1B4D3E] transition-colors cursor-pointer py-1"
-              >
-                {t.heroExploreServices}
               </button>
             </div>
           </div>
