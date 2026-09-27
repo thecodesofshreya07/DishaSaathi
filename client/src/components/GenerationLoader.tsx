@@ -23,9 +23,9 @@ export const GenerationLoader: React.FC<GenerationLoaderProps> = ({
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#E6F0EB] rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10">
-          {/* Compass / Pulsing Icon */}
-          <div className="w-16 h-16 rounded-2xl bg-[#EAF2ED] border border-[#CDE3D7] text-[#1B4D3E] flex items-center justify-center mx-auto mb-4 shadow-sm relative">
-            <Compass className="w-8 h-8 animate-spin" style={{ animationDuration: '8s' }} />
+          {/* Official Logo / Pulsing Container */}
+          <div className="w-16 h-16 rounded-2xl bg-white border border-[#CDE3D7] p-2 flex items-center justify-center mx-auto mb-4 shadow-sm relative overflow-hidden">
+            <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain animate-pulse" />
             <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center shadow-xs">
               <Sparkles className="w-3 h-3 text-[#E8BD65]" />
             </div>

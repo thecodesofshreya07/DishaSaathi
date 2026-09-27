@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Home,
   Compass,
@@ -6,10 +7,12 @@ import {
   Bell,
   FileText,
   Calendar,
-  Bookmark,
   Award,
   Settings,
-  Layers
+  Layers,
+  MapPin,
+  History,
+  QrCode
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -27,15 +30,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   updatesCount = 0,
   deadlinesCount = 0
 }) => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  // Requirement 5: Without authentication show: home, explore, services, govt updates, settings
-  // With authentication: show all tabs
   const menuItems = !isAuthenticated
     ? [
         { id: 'home', label: t.sidebarHome || 'Home', icon: Home },
         { id: 'explore', label: t.sidebarExplore || 'Explore', icon: Compass },
+        { id: 'ward-map', label: 'Ward Map', icon: MapPin },
+        { id: 'evolution', label: 'Evolution Replay', icon: History },
         { id: 'services', label: t.sidebarServices || 'Services', icon: Search },
         { id: 'updates', label: t.sidebarUpdates || 'Govt Updates', icon: Bell, badge: updatesCount },
         { id: 'settings', label: t.sidebarSettings || 'Settings', icon: Settings },
@@ -44,12 +48,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'home', label: t.sidebarHome || 'Home', icon: Home },
         { id: 'journeys', label: t.sidebarJourneys || 'My Journeys', icon: Compass },
         { id: 'explore', label: t.sidebarExplore || 'Explore', icon: Layers },
+        { id: 'ward-map', label: 'Ward Map', icon: MapPin },
+        { id: 'evolution', label: 'Evolution Replay', icon: History },
         { id: 'services', label: t.sidebarServices || 'Services', icon: Search },
         { id: 'documents', label: t.sidebarDocuments || 'Documents', icon: FileText },
         { id: 'updates', label: t.sidebarUpdates || 'Govt Updates', icon: Bell, badge: updatesCount },
         { id: 'deadlines', label: t.sidebarDeadlines || 'Deadlines', icon: Calendar, badge: deadlinesCount },
-        { id: 'saved', label: t.sidebarSaved || 'Saved', icon: Bookmark },
-        { id: 'passport', label: t.sidebarPassport || 'Civic Passport', icon: Award },
+        { id: 'passport', label: 'Verification QR', icon: QrCode },
         { id: 'settings', label: t.sidebarSettings || 'Settings', icon: Settings },
       ];
 

@@ -9,6 +9,7 @@ export interface UserRow {
   name: string;
   email: string;
   password_hash: string;
+  role?: string;
   created_at: string;
 }
 
@@ -27,13 +28,14 @@ export async function registerUser(name: string, email: string, password: string
 
   const id = `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const passwordHash = bcrypt.hashSync(password, 10);
+  const role: 'admin' | 'citizen' = normalizedEmail.includes('admin') ? 'admin' : 'citizen';
 
   await dbClient.execute({
-    sql: 'INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)',
-    args: [id, name.trim(), normalizedEmail, passwordHash]
+    sql: 'INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+    args: [id, name.trim(), normalizedEmail, passwordHash, role]
   });
 
-  const user: AuthUser = { id, name: name.trim(), email: normalizedEmail };
+  const user: AuthUser = { id, name: name.trim(), email: normalizedEmail, role };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
   return { user, token };
@@ -57,7 +59,8 @@ export async function loginUser(email: string, password: string): Promise<{ user
     throw new Error('Invalid email or password.');
   }
 
-  const user: AuthUser = { id: row.id, name: row.name, email: row.email };
+  const role: 'admin' | 'citizen' = (row.role as 'admin' | 'citizen') || (row.email.includes('admin') ? 'admin' : 'citizen');
+  const user: AuthUser = { id: row.id, name: row.name, email: row.email, role };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
   // Hydrate saved journeys if present

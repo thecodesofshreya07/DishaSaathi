@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, Globe } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const LandingFooter: React.FC = () => {
@@ -121,10 +121,10 @@ export const LandingFooter: React.FC = () => {
 
             {/* Social / Direct Channels */}
             <div className="flex items-center gap-4 text-white/60 text-xs">
-              <span className="hover:text-white cursor-pointer font-bold">in</span>
-              <span className="hover:text-white cursor-pointer font-bold">𝕏</span>
-              <span className="hover:text-white cursor-pointer font-bold">▶</span>
-              <span className="hover:text-white cursor-pointer font-bold">🌐</span>
+              <span className="hover:text-white cursor-pointer font-semibold text-xs">LinkedIn</span>
+              <span className="hover:text-white cursor-pointer font-semibold text-xs">X</span>
+              <span className="hover:text-white cursor-pointer font-semibold text-xs">YouTube</span>
+              <Globe className="w-3.5 h-3.5 hover:text-white cursor-pointer" />
             </div>
           </div>
 

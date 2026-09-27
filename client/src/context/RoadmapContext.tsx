@@ -74,15 +74,8 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const user = auth?.user || null;
   const token = auth?.token || null;
 
-  // Load intake from localStorage or sessionStorage or default
-  const [intake, setIntake] = useState<GoalIntake>(() => {
-    try {
-      const saved = localStorage.getItem('dishasaathi_saved_intake') || sessionStorage.getItem('dishasaathi_intake');
-      return saved ? JSON.parse(saved) : defaultIntake;
-    } catch {
-      return defaultIntake;
-    }
-  });
+  // Initialize clean intake
+  const [intake, setIntake] = useState<GoalIntake>(defaultIntake);
 
   // User-scoped journeys collection
   const [journeys, setJourneys] = useState<CivicJourney[]>(() => {

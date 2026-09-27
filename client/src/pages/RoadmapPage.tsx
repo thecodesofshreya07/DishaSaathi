@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, Scale, ShieldAlert, X, Layers } from 'lucide-react';
+import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -26,7 +26,11 @@ import { ChangeDetectionModal } from '../components/ChangeDetectionModal';
 import { AdminValidationModal } from '../components/AdminValidationModal';
 import { AiAssistantModal } from '../components/AiAssistantModal';
 import { SourceExcerptModal } from '../components/SourceExcerptModal';
+import { SlaEscalationModal } from '../components/SlaEscalationModal';
+import { EmailRoadmapModal } from '../components/EmailRoadmapModal';
 import { CivicCopilot } from '../components/CivicCopilot';
+import { WardLocatorView } from '../components/WardLocatorView';
+import { EvolutionTimelineView } from '../components/EvolutionTimelineView';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, StepStatus, CivicDocumentStatus } from '../types';
 import { useRoadmap } from '../context/RoadmapContext';
@@ -84,6 +88,9 @@ export const RoadmapPage: React.FC = () => {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isSlaModalOpen, setIsSlaModalOpen] = useState(false);
+  const [activeSlaStep, setActiveSlaStep] = useState<ProcedureStep | null>(null);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
   const [blockedStepError, setBlockedStepError] = useState<string | null>(null);
 
@@ -367,17 +374,8 @@ export const RoadmapPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Tool Action Buttons: Procedure Check & Compare */}
-                    <div className="flex items-center flex-wrap gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => setIsCompareOpen(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#10231C] hover:bg-[#F0F7F4] dark:hover:bg-[#163328] border-2 border-[#1B4D3E]/40 dark:border-[#22C55E]/50 text-[#1B4D3E] dark:text-[#6EE7B7] text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer hover:scale-102 active:scale-98"
-                      >
-                        <Layers className="w-4 h-4 shrink-0 text-[#1B4D3E] dark:text-[#22C55E]" />
-                        <span>Compare Procedures</span>
-                      </button>
-
+                    {/* Action buttons: Simulator, Email Roadmap & SLA Escalation */}
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setIsSimulatorOpen(true)}
@@ -385,6 +383,34 @@ export const RoadmapPage: React.FC = () => {
                       >
                         <Scale className="w-3.5 h-3.5 shrink-0" />
                         <span>Check What Happens If You Skip a Step</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const stepToEscalate = (activeJourney.steps && activeJourney.steps.length > 0)
+                            ? activeJourney.steps[0]
+                            : null;
+                          if (stepToEscalate) {
+                            setActiveSlaStep(stepToEscalate);
+                            setIsSlaModalOpen(true);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+                        title="Application taking too long? Generate a formal legal complaint letter."
+                      >
+                        <Clock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+                        <span>Stuck? SLA Escalation</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsEmailModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+                        title="Send this complete civic roadmap to your email address via Brevo"
+                      >
+                        <Mail className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                        <span>Email Roadmap</span>
                       </button>
                     </div>
                   </div>
@@ -426,6 +452,16 @@ export const RoadmapPage: React.FC = () => {
             />
           )}
 
+          {/* TAB: MUNICIPAL WARD & RTO LOCATOR (Item 28) */}
+          {(activeTab === 'ward-map' || activeTab === 'ward-locator') && (
+            <WardLocatorView />
+          )}
+
+          {/* TAB: GOVERNMENT EVOLUTION & REPLAY TIMELINE (Items 22, 54) */}
+          {(activeTab === 'evolution' || activeTab === 'timeline') && (
+            <EvolutionTimelineView />
+          )}
+
           {/* TAB 3: Item 11: EXPLORE SERVICES VIEW */}
           {activeTab === 'services' && (
             <ServicesView
@@ -455,12 +491,16 @@ export const RoadmapPage: React.FC = () => {
 
           {/* TAB 6: DEADLINES VIEW */}
           {activeTab === 'deadlines' && (
-            <DeadlinesView />
+            <DeadlinesView journey={activeJourney} />
           )}
 
-          {/* TAB 7: CIVIC PASSPORT VIEW */}
+          {/* TAB 7: CIVIC VERIFICATION QR & PORTFOLIO VIEW */}
           {activeTab === 'passport' && (
-            <PassportView journey={activeJourney} />
+            <PassportView
+              journey={activeJourney}
+              journeys={journeys}
+              onSelectJourney={(id) => selectJourney(id)}
+            />
           )}
 
           {/* TAB 8: SAVED VIEW */}
@@ -635,13 +675,25 @@ export const RoadmapPage: React.FC = () => {
         />
       )}
 
-      {/* I. Item 73: Side-by-Side Compare Procedures Tool */}
-      {isCompareOpen && (
-        <CompareProceduresModal
-          isOpen={isCompareOpen}
-          onClose={() => setIsCompareOpen(false)}
-          activeJourney={activeJourney}
-          onSwitchJourney={(newJourney) => setJourney(newJourney)}
+      {/* I. Brevo Email Roadmap Digest Modal */}
+      {isEmailModalOpen && (
+        <EmailRoadmapModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          journey={activeJourney}
+        />
+      )}
+
+      {/* J. "Stuck? Here's What to Do" SLA Escalation & Grievance Modal */}
+      {isSlaModalOpen && activeSlaStep && (
+        <SlaEscalationModal
+          isOpen={isSlaModalOpen}
+          onClose={() => {
+            setIsSlaModalOpen(false);
+            setActiveSlaStep(null);
+          }}
+          step={activeSlaStep}
+          journey={activeJourney}
         />
       )}
     </div>

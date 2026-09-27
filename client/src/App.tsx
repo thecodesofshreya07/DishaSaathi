@@ -8,6 +8,11 @@ import LandingPage from './pages/LandingPage';
 import GoalIntakePage from './pages/GoalIntakePage';
 import RoadmapPage from './pages/RoadmapPage';
 import AuthPage from './pages/AuthPage';
+import WardLocatorPage from './pages/WardLocatorPage';
+import EvolutionTimelinePage from './pages/EvolutionTimelinePage';
+import AdminValidationPage from './pages/AdminValidationPage';
+
+import PublicJourneyVerificationPage from './pages/PublicJourneyVerificationPage';
 
 export const App: React.FC = () => {
   return (
@@ -25,6 +30,21 @@ export const App: React.FC = () => {
 
                 {/* Generated Civic Roadmap Visualization & Hub */}
                 <Route path="/roadmap" element={<RoadmapPage />} />
+
+                {/* Dedicated Officer Admin Console */}
+                <Route path="/admin" element={<AdminValidationPage />} />
+
+                {/* Public QR Journey Verification & Status Page */}
+                <Route path="/verify/:journeyId" element={<PublicJourneyVerificationPage />} />
+                <Route path="/verify" element={<PublicJourneyVerificationPage />} />
+
+                {/* Interactive Municipal Ward & Jurisdiction Map (Item 28) */}
+                <Route path="/ward-locator" element={<WardLocatorPage />} />
+                <Route path="/ward-map" element={<WardLocatorPage />} />
+
+                {/* Government Journey Replay & Evolution Timeline (Items 22, 54) */}
+                <Route path="/evolution" element={<EvolutionTimelinePage />} />
+                <Route path="/timeline" element={<EvolutionTimelinePage />} />
 
                 {/* Authentication: Login & Sign Up (Item 10) */}
                 <Route path="/login" element={<AuthPage />} />

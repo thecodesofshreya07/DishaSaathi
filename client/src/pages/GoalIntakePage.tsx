@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Compass,
   ArrowRight,
@@ -11,9 +11,11 @@ import {
 } from 'lucide-react';
 import { useRoadmap } from '../context/RoadmapContext';
 import { GenerationLoader } from '../components/GenerationLoader';
+import { VoiceSearchButton } from '../components/VoiceSearchButton';
 
 export const GoalIntakePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     intake,
     updateIntakeField,
@@ -23,6 +25,19 @@ export const GoalIntakePage: React.FC = () => {
   } = useRoadmap();
 
   const [errors, setErrors] = useState<{ goal?: string; location?: string }>({});
+
+  useEffect(() => {
+    const passedQuery = (location.state as any)?.initialQuery;
+    if (passedQuery && typeof passedQuery === 'string') {
+      updateIntakeField('goal', passedQuery);
+    } else {
+      updateIntakeField('goal', '');
+    }
+    if (!intake.state) {
+      updateIntakeField('state', 'Maharashtra');
+      updateIntakeField('city', 'Mumbai');
+    }
+  }, [location.state]);
 
   const stateCityMap: Record<string, string[]> = {
     Maharashtra: ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik', 'Navi Mumbai', 'Aurangabad (Chhatrapati Sambhajinagar)'],
@@ -101,13 +116,18 @@ export const GoalIntakePage: React.FC = () => {
             <span>Back</span>
           </button>
 
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl bg-[#1B4D3E] text-white flex items-center justify-center shadow-2xs">
-              <Compass className="w-4 h-4 text-white" />
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 border border-[#E0EBE4] dark:border-slate-700 p-0.5 flex items-center justify-center shadow-2xs overflow-hidden">
+              <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-base font-black text-[#11261F] dark:text-white tracking-tight">
-              DishaSaathi
-            </span>
+            <div>
+              <span className="text-base font-black text-[#11261F] dark:text-white tracking-tight leading-none block">
+                DishaSaathi
+              </span>
+              <span className="text-[10px] text-[#63756E] dark:text-[#9FB7AC] font-medium leading-none mt-0.5 block">
+                Your GPS for Government Services
+              </span>
+            </div>
           </Link>
 
           <div className="text-xs text-[#6C8075] dark:text-[#9FB7AC] font-semibold hidden sm:block">
@@ -153,12 +173,20 @@ export const GoalIntakePage: React.FC = () => {
                     if (errors.goal) setErrors((prev) => ({ ...prev, goal: undefined }));
                   }}
                   placeholder="Describe your civic or commercial goal in plain words (e.g. starting a business, property title, trade permits)..."
-                  className={`w-full p-4 rounded-2xl border text-sm sm:text-base font-medium text-[#11261F] dark:text-white placeholder-[#8C9B94] dark:placeholder-[#5E7A6E] focus:outline-none transition-all resize-none ${
-                    errors.goal
-                      ? 'border-[#C53929] bg-[#FDF0ED]/30 dark:bg-[#3D1410]/30 ring-2 ring-[#C53929]/20'
-                      : 'border-[#D0DDD5] dark:border-[#1E3B32] bg-[#FAFDFB] dark:bg-[#12231E] focus:border-[#1B4D3E] dark:focus:border-[#6EE7B7] focus:ring-2 focus:ring-[#1B4D3E]/15'
-                  }`}
+                  className={`w-full p-4 pr-12 rounded-2xl border text-sm sm:text-base font-medium text-[#11261F] dark:text-white placeholder-[#8C9B94] dark:placeholder-[#5E7A6E] focus:outline-none transition-all resize-none ${errors.goal
+                    ? 'border-[#C53929] bg-[#FDF0ED]/30 dark:bg-[#3D1410]/30 ring-2 ring-[#C53929]/20'
+                    : 'border-[#D0DDD5] dark:border-[#1E3B32] bg-[#FAFDFB] dark:bg-[#12231E] focus:border-[#1B4D3E] dark:focus:border-[#6EE7B7] focus:ring-2 focus:ring-[#1B4D3E]/15'
+                    }`}
                 />
+                <div className="absolute right-3 bottom-3">
+                  <VoiceSearchButton
+                    autoNavigate={false}
+                    onTranscript={(transcript) => {
+                      updateIntakeField('goal', transcript);
+                      if (errors.goal) setErrors((prev) => ({ ...prev, goal: undefined }));
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Inline Validation Error */}
@@ -277,10 +305,6 @@ export const GoalIntakePage: React.FC = () => {
 
             {/* Section 4: Primary CTA Button */}
             <div className="pt-6 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs text-[#6C8075] dark:text-[#9FB7AC]">
-                <CheckCircle2 className="w-4 h-4 text-[#1B4D3E] dark:text-[#6EE7B7]" />
-                <span>Zero signup required • Free instant roadmap generation</span>
-              </div>
 
               <button
                 type="submit"

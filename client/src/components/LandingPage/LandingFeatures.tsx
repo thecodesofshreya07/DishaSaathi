@@ -5,7 +5,8 @@ import {
   Building2,
   GitFork,
   Bell,
-  FileText
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -134,8 +135,8 @@ export const LandingFeatures: React.FC = () => {
 
               {/* Visual Alert Mockup */}
               <div className="bg-[#FFF9F2] rounded-2xl p-3 border border-[#FFE6CC] mb-4 space-y-1 text-[10px]">
-                <div className="font-bold text-[#B85C00] flex items-center gap-1">
-                  <span>⚠️</span>
+                <div className="font-bold text-[#B85C00] flex items-center gap-1.5">
+                  <AlertCircle className="w-3 h-3 text-[#B85C00]" />
                   <span>Fee Update Notice</span>
                 </div>
                 <div className="text-[9px] text-[#7A4B1A] leading-tight">

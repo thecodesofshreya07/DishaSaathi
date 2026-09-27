@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
+import { ArrowRight, ChevronDown, AlertTriangle, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -43,7 +43,9 @@ export const CivicRuleChanges: React.FC = () => {
               <div className="flex-1 bg-[#F8FAF9] rounded-2xl p-4 border border-[#DCE4DF] shadow-xs text-left flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-1.5 mb-3">
-                    <span className="w-5 h-5 rounded-md bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center text-[10px] font-bold">🍃</span>
+                    <span className="w-5 h-5 rounded-md bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center text-[10px] font-bold">
+                      <FileText className="w-3 h-3 text-[#1B4D3E]" />
+                    </span>
                     <span className="text-xs font-bold text-[#1B4D3E]">{t.before}</span>
                   </div>
 
@@ -81,7 +83,9 @@ export const CivicRuleChanges: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center text-[10px] font-bold">🍃</span>
+                      <span className="w-5 h-5 rounded-md bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center text-[10px] font-bold">
+                        <FileText className="w-3 h-3 text-[#1B4D3E]" />
+                      </span>
                       <span className="text-xs font-bold text-[#1B4D3E]">{t.after}</span>
                     </div>
                     <span className="text-slate-400 text-xs">×</span>
