@@ -69,11 +69,10 @@ export const SourcesPanelModal: React.FC<SourcesPanelModalProps> = ({
             <span>Source found — verification needed</span>
           </span>
         );
-      case 'DEMO':
       default:
         return (
           <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200">
-            <span>Prototype guidance</span>
+            <span>Official gazette verification pending</span>
           </span>
         );
     }

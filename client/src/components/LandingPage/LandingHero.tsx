@@ -292,7 +292,7 @@ export const LandingHero: React.FC = () => {
             <div className="mt-7 pt-4 border-t border-[#EDF2EE] flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-xs text-[#6C8075] flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#FF9933] animate-pulse"/>
-                <span>Example: <strong className="text-[#0D1F1A]">"I want to start a bakery in Mumbai"</strong> → 6 sequential dependencies resolved</span>
+                <span>Live Engine: <strong className="text-[#0D1F1A]">Statutory Procedure Resolution</strong> → Multi-department sequential dependencies mapped</span>
               </p>
               <button onClick={() => navigate('/create')}
                 className="text-xs font-bold text-[#138808] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap">

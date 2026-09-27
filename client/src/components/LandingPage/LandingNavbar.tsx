@@ -65,7 +65,6 @@ export const LandingNavbar: React.FC = () => {
             <div className="hidden md:flex items-center gap-7 text-sm font-semibold text-[#4A5D54]">
               {[
                 { id: 'how-it-works', label: t.navHowItWorks },
-                { id: 'example-goals', label: t.navExampleGoals },
                 { id: 'features', label: t.navFeatures },
                 { id: 'about', label: t.navAbout },
               ].map(item => (
@@ -142,7 +141,6 @@ export const LandingNavbar: React.FC = () => {
           <div className="sm:hidden border-t border-[#E8ECE9] bg-white px-4 pt-3 pb-5 space-y-1">
             {[
               { id: 'how-it-works', label: t.navHowItWorks },
-              { id: 'example-goals', label: t.navExampleGoals },
               { id: 'features', label: t.navFeatures },
               { id: 'about', label: t.navAbout },
             ].map(item => (

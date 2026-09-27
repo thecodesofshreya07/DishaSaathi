@@ -7,7 +7,6 @@ export interface LanguageStrings {
   brandName: string;
   brandTagline: string;
   navHowItWorks: string;
-  navExampleGoals: string;
   navFeatures: string;
   navAbout: string;
   navViewRoadmap: string;
@@ -76,7 +75,6 @@ export interface LanguageStrings {
   pipelineCompletionDesc: string;
   pipelineTitle: string;
   pipelineSubtitle: string;
-  pipelineExample: string;
   pipelineTestBtn: string;
 
   // Impact Numbers
@@ -145,7 +143,6 @@ const translations: Record<Language, LanguageStrings> = {
     brandName: 'DishaSaathi',
     brandTagline: 'Your GPS for Government Services',
     navHowItWorks: 'How It Works',
-    navExampleGoals: 'Example Goals',
     navFeatures: 'Features',
     navAbout: 'About',
     navViewRoadmap: 'View Active Roadmap',
@@ -211,7 +208,6 @@ const translations: Record<Language, LanguageStrings> = {
     pipelineCompletionDesc: 'Lawful license & active compliance',
     pipelineTitle: 'Interactive Civic Pipeline',
     pipelineSubtitle: 'How fragmented bureaucracy becomes a structured journey',
-    pipelineExample: '"I want to start a small bakery in Mumbai" automatically resolves 6 sequential dependencies.',
     pipelineTestBtn: 'Test your own goal',
 
     impactVisits: 'Visits Saved',
@@ -275,7 +271,6 @@ const translations: Record<Language, LanguageStrings> = {
     brandName: 'DishaSaathi',
     brandTagline: 'सरकारी सेवाओं के लिए आपका जीपीएस',
     navHowItWorks: 'यह कैसे काम करता है',
-    navExampleGoals: 'उदाहरण लक्ष्य',
     navFeatures: 'विशेषताएं',
     navAbout: 'के बारे में',
     navViewRoadmap: 'सक्रिय रोडमैप देखें',
@@ -341,7 +336,6 @@ const translations: Record<Language, LanguageStrings> = {
     pipelineCompletionDesc: 'वैध लाइसेंस और अनुपालन',
     pipelineTitle: 'इंटरएक्टिव नागरिक पाइपलाइन',
     pipelineSubtitle: 'जटिल नौकरशाही एक संरचित यात्रा बन जाती है',
-    pipelineExample: '"मैं मुंबई में छोटी बेकरी शुरू करना चाहता हूं" 6 क्रमिक निर्भरताएं स्वचालित रूप से हल करता है।',
     pipelineTestBtn: 'अपना लक्ष्य आज़माएं',
 
     impactVisits: 'विज़िट बचाए',
@@ -405,7 +399,6 @@ const translations: Record<Language, LanguageStrings> = {
     brandName: 'DishaSaathi',
     brandTagline: 'सरकारी सेवांसाठी आपला जीपीएस',
     navHowItWorks: 'हे कसे कार्य करते',
-    navExampleGoals: 'उदाहरणे',
     navFeatures: 'वैशिष्ट्ये',
     navAbout: 'माहिती',
     navViewRoadmap: 'सक्रिय रोडमॅप पहा',
@@ -471,7 +464,6 @@ const translations: Record<Language, LanguageStrings> = {
     pipelineCompletionDesc: 'अधिकृत परवाना आणि अनुपालन',
     pipelineTitle: 'परस्परसंवादी नागरी प्रक्रिया',
     pipelineSubtitle: 'क्लिष्ट सरकारी कामे आता एका सोप्या प्रवासात',
-    pipelineExample: '"मला मुंबईत बेकरी सुरू करायची आहे" यातून 6 क्रमवार पायऱ्या आपोआप तयार होतात.',
     pipelineTestBtn: 'तुमचे उद्दिष्ट तपासा',
 
     impactVisits: 'वाचलेल्या फेऱ्या',

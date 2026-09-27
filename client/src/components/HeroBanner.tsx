@@ -32,7 +32,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
     onSearch(itemQuery);
   };
 
-  const displayName = userName?.trim() ? userName.toUpperCase() : 'BHUMIKA';
+  const displayName = userName?.trim() ? userName.toUpperCase() : 'CITIZEN';
 
   return (
     <div className="relative rounded-3xl bg-[#EAF2ED] border border-[#D5E3DB] p-6 md:p-8 shadow-2xs overflow-hidden mb-6 min-h-[260px] flex items-center justify-between">

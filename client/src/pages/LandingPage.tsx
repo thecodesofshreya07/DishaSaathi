@@ -2,7 +2,6 @@ import React from 'react';
 import { LandingNavbar } from '../components/LandingPage/LandingNavbar';
 import { LandingHero } from '../components/LandingPage/LandingHero';
 import { HowItWorks } from '../components/LandingPage/HowItWorks';
-import { ExampleGoals } from '../components/LandingPage/ExampleGoals';
 import { LandingFeatures } from '../components/LandingPage/LandingFeatures';
 import { LandingFooter } from '../components/LandingPage/LandingFooter';
 
@@ -14,7 +13,6 @@ export const LandingPage: React.FC = () => {
         <main>
           <LandingHero />
           <HowItWorks />
-          <ExampleGoals />
           <LandingFeatures />
         </main>
       </div>

@@ -60,28 +60,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'bhumika@dishasaathi.gov.in', password: 'citizen123' })
-      }).then(r => r.json());
-      if (res.success) {
-        onClose();
-      } else {
-        setError(res.error || 'Demo login failed');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Demo login error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-white rounded-3xl max-w-md w-full border border-[#D5E3DB] shadow-2xl overflow-hidden flex flex-col font-sans">
@@ -96,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 {isRegisterMode ? 'Create Citizen Account' : 'Sign in to DishaSaathi'}
               </h3>
               <p className="text-xs text-emerald-200">
-                Sync roadmaps across devices with persistent SQLite storage
+                Sync roadmaps across devices with persistent account storage
               </p>
             </div>
           </div>
@@ -110,30 +88,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
         {/* Content */}
         <div className="p-6 space-y-4">
-          {/* Quick Demo Login Pill for Hackathon Judges */}
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            disabled={loading}
-            className="w-full p-3 rounded-2xl bg-[#EAF2ED] border border-[#CDE3D7] hover:bg-[#DEEFE5] text-[#1B4D3E] text-xs font-bold flex items-center justify-between transition-all shadow-2xs group cursor-pointer"
-          >
-            <div className="flex items-center gap-2 text-left">
-              <Sparkles className="w-4 h-4 text-[#1B4D3E]" />
-              <div>
-                <span className="block font-extrabold">1-Click Hackathon Demo Login</span>
-                <span className="text-[11px] text-[#4A5D54] font-normal">Bhumika Sharma (bhumika@dishasaathi.gov.in)</span>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-[#1B4D3E] group-hover:translate-x-0.5 transition-transform" />
-          </button>
-
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-slate-200"></div>
-            <span className="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
-              Or {isRegisterMode ? 'Register' : 'Sign In'} with Email
-            </span>
-            <div className="flex-grow border-t border-slate-200"></div>
-          </div>
 
           {error && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">

@@ -7,7 +7,6 @@ const steps = [
     num: '01',
     title: 'Tell Us Your Goal',
     description: 'Describe what you want in plain language — no department jargon, no code names. Just write what you want to accomplish.',
-    example: '"मुझे मुंबई में एक छोटी बेकरी खोलनी है।"',
     icon: MessageSquare,
     accent: '#FF9933',
     bg: '#FFF8F0',
@@ -19,7 +18,6 @@ const steps = [
     num: '02',
     title: 'AI Maps the Procedure',
     description: 'The civic engine analyzes your goal against official municipal bylaws, identifying required registrations, documents, fees, and prerequisite sequences.',
-    example: 'PAN → Udyam → Gumasta → FSSAI → Health NOC → GST',
     icon: GitFork,
     accent: '#000080',
     bg: '#F0F2FF',
@@ -31,7 +29,6 @@ const steps = [
     num: '03',
     title: 'Follow Your Roadmap',
     description: 'Receive an ordered, actionable sequence. Track progress, view documents, visit official portals, and get alerts when statutory rules change.',
-    example: 'Interactive progress + official .gov.in links',
     icon: CheckCircle,
     accent: '#138808',
     bg: '#F0FFF0',
@@ -99,17 +96,6 @@ export const HowItWorks: React.FC = () => {
                   <p className="text-sm text-[#4A5D54] leading-relaxed">
                     {s.description}
                   </p>
-                </div>
-
-                {/* Example pill */}
-                <div className="mt-6 pt-5 border-t" style={{ borderColor: s.border }}>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: s.accent }}>
-                    Example
-                  </span>
-                  <div className="mt-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold italic leading-snug text-[#0D1F1A] border"
-                    style={{ background: s.badgeBg, borderColor: s.border }}>
-                    {s.example}
-                  </div>
                 </div>
               </div>
             );

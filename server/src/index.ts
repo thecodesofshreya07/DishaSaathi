@@ -16,7 +16,6 @@ import {
   computeDocumentPriorities 
 } from './services/civic/adaptiveEngine.js';
 import { answerCopilotQuery } from './services/civic/copilotService.js';
-import { demoScenarios } from './services/civic/demoScenarios.js';
 import { runSourceVerificationPipeline } from './services/civic/sourceFetcher.js';
 import { initDatabase } from './db/database.js';
 import { 
@@ -48,42 +47,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// In-memory demo state store - initialize with primary hackathon demo
+// In-memory state store for active citizen session
 let currentJourney: CivicJourney | null = null;
 let updates: GovernmentUpdate[] = JSON.parse(JSON.stringify(initialGovernmentUpdates));
-
-// Initialize default journey (uses AI if GEMINI_API_KEY configured, else seed template)
-async function initDefault() {
-  try {
-    if (process.env.GEMINI_API_KEY) {
-      const goal = await parseCitizenGoal('I want to start a small bakery in Mumbai.', {
-        locationOverride: 'Mumbai, Maharashtra',
-        context: 'Small / home-based bakery'
-      });
-      const procedures = findRelevantProcedures(goal);
-      currentJourney = buildRoadmap(goal, procedures);
-      return;
-    }
-  } catch (err) {
-    console.warn('Initial AI goal parse skipped (waiting for user GEMINI_API_KEY):', err);
-  }
-
-  // Pre-configured default roadmap for the initial view
-  const defaultGoal: any = {
-    rawGoal: 'I want to start a small bakery in Mumbai.',
-    intent: 'START_BUSINESS',
-    domain: 'FOOD_BUSINESS',
-    activity: 'BAKERY',
-    location: { city: 'Mumbai', state: 'Maharashtra', country: 'India' },
-    context: { scale: 'small', type: 'home_based', additionalNotes: 'Small / home-based bakery' },
-    entities: { businessType: 'bakery', scale: 'small' },
-    confidence: 1.0,
-    clarificationNeeded: false
-  };
-  const procedures = findRelevantProcedures(defaultGoal);
-  currentJourney = buildRoadmap(defaultGoal, procedures);
-}
-initDefault();
 
 // 1. Health check endpoint (Phase 1 Requirement)
 app.get('/api/health', (req: Request, res: Response) => {
@@ -151,13 +117,15 @@ app.get('/api/user/journey', authMiddleware, (req: AuthenticatedRequest, res: Re
 
 // 2. Get active civic journey
 app.get('/api/journey/current', async (req: Request, res: Response) => {
-  if (!currentJourney) {
-    await initDefault();
-  }
   res.json({
     success: true,
     journey: currentJourney
   });
+});
+
+app.post('/api/journey/reset', (req: Request, res: Response) => {
+  currentJourney = null;
+  res.json({ success: true, journey: null });
 });
 
 // 3. Dynamic Natural Language Task Interpretation & Procedure Synthesis (Phase 3 Core Pipeline)
@@ -272,7 +240,7 @@ Return ONLY a valid JSON object matching this schema:
   "portalLink": "${sourceUrl || ''}"
 }`;
 
-    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
     const response = await ai.models.generateContent({
       model: modelName,
       contents: prompt,
@@ -541,7 +509,7 @@ app.post('/api/admin/verify-sources', async (req: Request, res: Response) => {
 
 // 8. Reset journey
 app.post('/api/journey/reset', async (req: Request, res: Response) => {
-  await initDefault();
+  currentJourney = null;
   updates = JSON.parse(JSON.stringify(initialGovernmentUpdates));
   res.json({
     success: true,
@@ -645,36 +613,7 @@ app.post('/api/copilot/message', async (req: Request, res: Response) => {
   }
 });
 
-// 13. Demo Mode Scenarios (Section 27, 28, 29)
-app.get('/api/demo/scenarios', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    scenarios: demoScenarios
-  });
-});
 
-app.post('/api/demo/load/:scenarioId', async (req: Request, res: Response) => {
-  const { scenarioId } = req.params;
-  const scenario = demoScenarios.find((s) => s.id === scenarioId);
-  if (!scenario) {
-    return res.status(404).json({ success: false, error: 'Scenario not found' });
-  }
-
-  const goal = await parseCitizenGoal(scenario.goal, {
-    locationOverride: `${scenario.city}, ${scenario.state}`,
-    context: scenario.additionalContext
-  });
-
-  const procs = findRelevantProcedures(goal);
-  currentJourney = computeDocumentPriorities(buildRoadmap(goal, procs));
-
-  res.json({
-    success: true,
-    journey: currentJourney,
-    scenario,
-    recommendation: getNextAction(currentJourney)
-  });
-});
 
 // Production Static Client Serving & SPA Fallback
 const rootDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();

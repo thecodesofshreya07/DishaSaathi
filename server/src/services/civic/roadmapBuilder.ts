@@ -328,12 +328,10 @@ GUIDELINES:
 - If asking "Why do I need this?", ground your answer strictly in whyRequired and its prerequisite role.
 - If asking "What happens if I skip this?", explain which subsequent steps will be blocked.
 - If asking "Can I do this before Step X?", evaluate if Step X is a prerequisite or parallel.
-- If asking "What comes after this?", describe the next step in the roadmap.
-- If the requirement is marked as DEMO, include: "Demo information — verify with the relevant authority."
 - If uncertain or asked something not covered in the data, state: "I don't have enough verified information to answer that confidently. Here is what we know: ... What you should verify: ..."`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
         contents: prompt
       });
 

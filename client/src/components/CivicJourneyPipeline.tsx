@@ -181,24 +181,6 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
         <p className="text-xs text-[#6C8075] max-w-md mx-auto mt-1 leading-relaxed">
           Type any government procedure or commercial goal in natural language to generate a verified, dependency-aware step-by-step roadmap.
         </p>
-
-        {onQuickSearch && (
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            {[
-              'I want to start a small bakery in Mumbai.',
-              'I want to register my new bike in Mumbai.',
-              'I want to build a house on my land in Mumbai.'
-            ].map((example) => (
-              <button
-                key={example}
-                onClick={() => onQuickSearch(example)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#F3F7F5] hover:bg-[#E6F0EB] text-[#1B4D3E] border border-[#D5E3DB] transition-all"
-              >
-                + {example}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     );
   }
@@ -252,17 +234,6 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
         >
           <ShieldCheck className="w-3 h-3 text-emerald-600" />
           <span>✓ Verified source</span>
-        </span>
-      );
-    }
-    if (status === 'DEMO') {
-      return (
-        <span
-          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200"
-          title="Demo information — verify with the relevant authority"
-        >
-          <Info className="w-3 h-3 text-amber-600" />
-          <span>Demo Info</span>
         </span>
       );
     }

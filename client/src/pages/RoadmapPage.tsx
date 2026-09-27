@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, PlusCircle, RotateCcw, Clock, Download } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -120,15 +119,15 @@ export const RoadmapPage: React.FC = () => {
     }
   };
 
-  const handleResetDemo = async () => {
+  const handleResetJourney = async () => {
     try {
       const res = await fetch('/api/journey/reset', { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
-        if (data.journey) setJourney(data.journey);
+        setJourney(data.journey || null);
       }
     } catch (err) {
-      console.error('Failed to reset demo', err);
+      console.error('Failed to reset journey', err);
     }
   };
 
@@ -140,80 +139,21 @@ export const RoadmapPage: React.FC = () => {
 
   // Safe fallback if journey hasn't loaded yet
   const activeJourney: CivicJourney = journey || {
-    id: 'journey-default',
-    title: intake.goal || 'Register a Small Business',
-    query: intake.goal || 'Register a small business in Mumbai',
-    location: `${intake.city}, ${intake.state}`,
-    category: 'Business & Commercial Permitting',
-    totalSteps: 5,
-    completedSteps: 1,
-    pendingDocuments: 3,
-    lastUpdated: 'Updated today',
+    id: '',
+    title: intake.goal || '',
+    query: intake.goal || '',
+    location: intake.city ? `${intake.city}, ${intake.state}` : '',
+    category: '',
+    totalSteps: 0,
+    completedSteps: 0,
+    pendingDocuments: 0,
+    lastUpdated: '',
     status: 'In Progress',
     steps: []
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] font-sans text-[#11261F] antialiased">
-      {/* Context Sub-Bar */}
-      <div className="bg-[#EAF2ED] border-b border-[#D5E3DB] px-4 py-2 text-xs">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Link
-              to="/create"
-              className="inline-flex items-center gap-1.5 font-bold text-[#1B4D3E] hover:underline"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Goal Intake</span>
-            </Link>
-            <span className="text-[#8C9B94]">•</span>
-            <span className="text-[#4A5D54] font-medium">
-              Active Roadmap for: <strong className="text-[#11261F]">"{activeJourney.title}"</strong> ({activeJourney.location})
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Item 14: Download PDF button right in top bar */}
-            <button
-              onClick={handleDownloadRoadmap}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#1B4D3E] font-bold border border-[#CDE3D7] hover:bg-[#F2F8F5] transition-all shadow-2xs cursor-pointer text-xs"
-              title="Download official roadmap in PDF format"
-            >
-              <Download className="w-3 h-3 text-[#1B4D3E]" />
-              <span>Download PDF</span>
-            </button>
-
-            <button
-              onClick={() => {
-                if (resetToDefault()) {
-                  window.location.href = '/create';
-                }
-              }}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#8C3A27] font-bold border border-[#E9C3BA] hover:bg-[#FDF3F1] transition-all shadow-2xs cursor-pointer text-xs"
-              title="Reset current roadmap after confirmation"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>{t.resetRoadmap || 'Reset'}</span>
-            </button>
-
-            <Link
-              to="/create"
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#1B4D3E] font-bold border border-[#CDE3D7] hover:bg-[#F2F8F5] transition-all shadow-2xs"
-            >
-              <PlusCircle className="w-3 h-3" />
-              <span>{t.navCreateRoadmap || 'New Goal'}</span>
-            </Link>
-
-            <Link
-              to="/"
-              className="text-[#4A5D54] hover:text-[#11261F] font-semibold"
-            >
-              {t.backToHome || 'Landing Page'}
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* 1. Global Navigation Bar */}
       <Navbar
         onSearch={handleSearch}
@@ -223,6 +163,7 @@ export const RoadmapPage: React.FC = () => {
         }}
         onOpenAdmin={() => setIsAdminModalOpen(true)}
       />
+
 
       {/* 2. Main 2-Column Layout (Item 15: right sidebar removed, full screen width) */}
       <div className="flex max-w-[1720px] mx-auto min-h-[calc(100vh-100px)]">
@@ -435,7 +376,7 @@ export const RoadmapPage: React.FC = () => {
           onClose={() => setIsAdminModalOpen(false)}
           onApproveUpdate={handleAdminApprove}
           onRejectUpdate={handleAdminReject}
-          onResetDemo={handleResetDemo}
+          onResetJourney={handleResetJourney}
           onUpdatesReceived={(newUpdates) => setUpdates(newUpdates)}
         />
       )}

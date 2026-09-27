@@ -142,7 +142,7 @@ export const GoalIntakePage: React.FC = () => {
                     updateIntakeField('goal', e.target.value);
                     if (errors.goal) setErrors((prev) => ({ ...prev, goal: undefined }));
                   }}
-                  placeholder="Example: I want to start a small bakery in Mumbai."
+                  placeholder="Describe your civic or commercial goal in plain words (e.g. starting a business, property title, trade permits)..."
                   className={`w-full p-4 rounded-2xl border text-sm sm:text-base font-medium text-[#11261F] placeholder-[#8C9B94] focus:outline-none transition-all resize-none ${
                     errors.goal
                       ? 'border-[#C53929] bg-[#FDF0ED]/30 ring-2 ring-[#C53929]/20'
@@ -260,7 +260,7 @@ export const GoalIntakePage: React.FC = () => {
                 rows={2}
                 value={intake.additionalContext || ''}
                 onChange={(e) => updateIntakeField('additionalContext', e.target.value)}
-                placeholder="Example: This will be a small home-based bakery with under 5 employees."
+                placeholder="Provide any additional specifications (e.g. premise details, staff size, or current registrations held)..."
                 className="w-full p-3.5 rounded-2xl border border-[#D0DDD5] bg-[#FAFDFB] text-xs sm:text-sm font-medium text-[#11261F] placeholder-[#8C9B94] focus:outline-none focus:border-[#1B4D3E] focus:ring-2 focus:ring-[#1B4D3E]/15 transition-all resize-none"
               />
             </div>

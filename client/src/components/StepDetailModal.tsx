@@ -98,14 +98,6 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
         </span>
       );
     }
-    if (status === 'DEMO') {
-      return (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-          <Info className="w-3.5 h-3.5 text-amber-600" />
-          <span>Demo Info</span>
-        </span>
-      );
-    }
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
         <Clock className="w-3.5 h-3.5 text-slate-500" />

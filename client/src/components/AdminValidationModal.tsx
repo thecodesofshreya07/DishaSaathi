@@ -15,7 +15,7 @@ interface AdminValidationModalProps {
   onClose: () => void;
   onApproveUpdate: (updateId: string) => void;
   onRejectUpdate: (updateId: string) => void;
-  onResetDemo: () => void;
+  onResetJourney: () => void;
   onUpdatesReceived?: (newUpdates: GovernmentUpdate[]) => void;
 }
 
@@ -24,7 +24,7 @@ export const AdminValidationModal: React.FC<AdminValidationModalProps> = ({
   onClose,
   onApproveUpdate,
   onRejectUpdate,
-  onResetDemo,
+  onResetJourney,
   onUpdatesReceived
 }) => {
   const [isVerifying, setIsVerifying] = useState(false);
@@ -100,7 +100,7 @@ export const AdminValidationModal: React.FC<AdminValidationModalProps> = ({
               </button>
 
               <button
-                onClick={onResetDemo}
+                onClick={onResetJourney}
                 className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 p-1 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />

@@ -32,20 +32,15 @@ interface RoadmapContextType {
   adaptiveRecommendation: ActionRecommendation | null;
   refineGoal: (params: { goal?: string; city?: string; state?: string; additionalContext?: string }) => Promise<{ success: boolean; diff?: RoadmapDiff }>;
   recheckRoadmap: () => Promise<{ success: boolean; message: string }>;
-  loadDemoScenario: (scenarioId: string) => Promise<boolean>;
-  isPresentationMode: boolean;
-  setIsPresentationMode: React.Dispatch<React.SetStateAction<boolean>>;
   isCopilotOpen: boolean;
   setIsCopilotOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  activeScenarioId: string;
-  setActiveScenarioId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const defaultIntake: GoalIntake = {
-  goal: 'I want to start a small bakery in Mumbai.',
-  state: 'Maharashtra',
-  city: 'Mumbai',
-  additionalContext: 'Small / home-based bakery'
+  goal: '',
+  state: '',
+  city: '',
+  additionalContext: ''
 };
 
 const defaultStages: GenerationStage[] = [
@@ -120,9 +115,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [adaptiveRecommendation, setAdaptiveRecommendation] = useState<ActionRecommendation | null>(null);
-  const [isPresentationMode, setIsPresentationMode] = useState<boolean>(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
-  const [activeScenarioId, setActiveScenarioId] = useState<string>('bakery-mumbai');
 
   // Sync adaptive recommendation whenever journey changes
   useEffect(() => {
@@ -389,6 +382,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!confirmed) return false;
     }
     setIntake(defaultIntake);
+    setJourney(null);
     sessionStorage.removeItem('dishasaathi_intake');
     sessionStorage.removeItem('dishasaathi_journey');
     localStorage.removeItem('dishasaathi_saved_journey');
@@ -449,33 +443,6 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const loadDemoScenario = async (scenarioId: string) => {
-    try {
-      const res = await fetch(`/api/demo/load/${scenarioId}`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.journey) {
-          setJourney(data.journey);
-          setActiveScenarioId(scenarioId);
-          if (data.recommendation) setAdaptiveRecommendation(data.recommendation);
-          if (data.scenario) {
-            setIntake({
-              goal: data.scenario.goal,
-              city: data.scenario.city,
-              state: data.scenario.state,
-              additionalContext: data.scenario.additionalContext
-            });
-          }
-          return true;
-        }
-      }
-      return false;
-    } catch (err) {
-      console.error('Failed to load demo scenario', err);
-      return false;
-    }
-  };
-
   return (
     <RoadmapContext.Provider
       value={{
@@ -499,13 +466,8 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         adaptiveRecommendation,
         refineGoal,
         recheckRoadmap,
-        loadDemoScenario,
-        isPresentationMode,
-        setIsPresentationMode,
         isCopilotOpen,
-        setIsCopilotOpen,
-        activeScenarioId,
-        setActiveScenarioId
+        setIsCopilotOpen
       }}
     >
       {children}

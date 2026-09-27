@@ -62,14 +62,29 @@ Return ONLY a valid JSON object matching this schema:
   "clarificationSuggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"]
 }`;
 
-    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json'
+    const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+    let response: any = null;
+    let lastErr: any = null;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json'
+          }
+        });
+        if (response && response.text) break;
+      } catch (err: any) {
+        lastErr = err;
+        if (attempt < 3 && (err?.message?.includes('503') || err?.message?.includes('high demand') || err?.message?.includes('429'))) {
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+          continue;
+        }
+        throw err;
       }
-    });
+    }
 
     if (response && response.text) {
       const parsed = JSON.parse(response.text) as StructuredGoal;
@@ -84,7 +99,7 @@ Return ONLY a valid JSON object matching this schema:
       }
     }
 
-    throw new Error('Gemini AI returned an empty or invalid response format.');
+    throw lastErr || new Error('Gemini AI returned an empty or invalid response format.');
   } catch (aiErr: any) {
     console.error('Gemini AI Goal Parsing Error:', aiErr);
     throw new Error(`AI Goal Parsing failed: ${aiErr?.message || aiErr}. (Regex fallback is disabled).`);
