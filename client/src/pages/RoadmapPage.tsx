@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, ArrowLeft } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
+import { JourneyCardsView } from '../components/JourneyCardsView';
 import { CivicJourneyPipeline } from '../components/CivicJourneyPipeline';
 import { RoadmapFlowchart } from '../components/RoadmapFlowchart';
 import { CitizenHomeDashboard } from '../components/CitizenHomeDashboard';
@@ -36,6 +37,9 @@ export const RoadmapPage: React.FC = () => {
   const {
     journey,
     setJourney,
+    journeys,
+    selectJourney,
+    deleteJourney,
     updates,
     setUpdates,
     intake,
@@ -52,6 +56,8 @@ export const RoadmapPage: React.FC = () => {
 
   // Active Tab: 'home' | 'journeys' | 'services' | 'updates' | 'documents' | 'deadlines' | 'saved' | 'passport' | 'settings'
   const [activeTab, setActiveTab] = useState('home');
+  // Journey View Mode: 'cards' (list all journeys) | 'detail' (view current roadmap)
+  const [journeyViewMode, setJourneyViewMode] = useState<'cards' | 'detail'>('cards');
   const [loading, setLoading] = useState(false);
 
   // Modals state
@@ -71,6 +77,7 @@ export const RoadmapPage: React.FC = () => {
       if (generated) {
         setJourney(generated);
         setActiveTab('journeys');
+        setJourneyViewMode('detail');
       }
     } catch (err) {
       console.error('Failed to interpret task', err);
@@ -86,7 +93,7 @@ export const RoadmapPage: React.FC = () => {
   ) => {
     const result = await updateStepStatusContext(stepId, status);
     if (!result.success && result.blocked) {
-      alert(`🔒 Step Blocked: ${result.message}`);
+      alert(` Step Blocked: ${result.message}`);
       return;
     }
     // Item 9: Close the card after doing submitted
@@ -218,7 +225,10 @@ export const RoadmapPage: React.FC = () => {
             <CitizenHomeDashboard
               journey={activeJourney}
               updates={updates}
-              onGoToJourney={() => setActiveTab('journeys')}
+              onGoToJourney={() => {
+                setActiveTab('journeys');
+                setJourneyViewMode('cards');
+              }}
               onGoToTab={(tab) => setActiveTab(tab)}
               onDownloadPdf={handleDownloadRoadmap}
               onOpenAiCopilot={() => setIsCopilotOpen(true)}
@@ -229,36 +239,79 @@ export const RoadmapPage: React.FC = () => {
             />
           )}
 
-          {/* TAB 2: Item 13 & Flowchart: IN JOURNEY SHOW THE ROADMAP */}
+          {/* TAB 2: IN JOURNEY SHOW CARDS LIST OR THE SELECTED ROADMAP (NO HERO BANNER HERE) */}
           {activeTab === 'journeys' && (
             <div className="space-y-6">
-              {/* Hero Banner for Natural Language Search */}
-              <HeroBanner
-                onSearch={handleSearch}
-                isLoading={loading}
-              />
-
-              {/* MOST IMPORTANT: FLOWCHART WITH ONLY SMALL STEPS */}
-              <RoadmapFlowchart
-                journey={activeJourney}
-                onSelectStep={(step) => setSelectedStep(step)}
-                selectedStepId={selectedStep?.id}
-              />
-
-              {/* AND THEN THE ALREADY GIVEN FLOW.. DONT CHANGE IT */}
-              <ErrorBoundary fallbackTitle="Interactive Civic Roadmap Unavailable">
-                <CivicJourneyPipeline
-                  journey={activeJourney}
-                  onSelectStep={(step) => setSelectedStep(step)}
-                  onOpenGraphView={() => setIsGraphModalOpen(true)}
-                  onOpenAiAssistant={(stepId) => {
-                    setAiFocusStepId(stepId);
-                    setIsCopilotOpen(true);
+              {journeyViewMode === 'cards' ? (
+                <JourneyCardsView
+                  journeys={journeys}
+                  onSelectJourney={(id) => {
+                    selectJourney(id);
+                    setJourneyViewMode('detail');
                   }}
-                  selectedStepId={selectedStep?.id}
-                  onQuickSearch={handleSearch}
+                  onCreateNewJourney={async (goal) => {
+                    await handleSearch(goal);
+                    setJourneyViewMode('detail');
+                  }}
+                  onDeleteJourney={deleteJourney}
+                  isLoading={loading}
                 />
-              </ErrorBoundary>
+              ) : (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  {/* Top Navigation Bar: Back to All Journeys */}
+                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E8ECE9] dark:border-[#1E3B32] rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setJourneyViewMode('cards')}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-[#18392F] hover:bg-[#E6F0EB] dark:hover:bg-[#22C55E]/20 text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>All Journeys</span>
+                      </button>
+
+                      <div className="h-4 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block" />
+
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h2 className="text-base font-bold text-[#11261F] dark:text-white line-clamp-1">
+                            {activeJourney.title}
+                          </h2>
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#E6F0EB] text-[#1B4D3E] dark:bg-[#18392F] dark:text-[#6EE7B7]">
+                            {activeJourney.totalSteps > 0
+                              ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete`
+                              : 'In Progress'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          {activeJourney.location || 'Municipal Guidance'} • {activeJourney.completedSteps || 0} of {activeJourney.totalSteps || 0} steps completed
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* MOST IMPORTANT: FLOWCHART WITH ONLY SMALL STEPS */}
+                  <RoadmapFlowchart
+                    journey={activeJourney}
+                    onSelectStep={(step) => setSelectedStep(step)}
+                    selectedStepId={selectedStep?.id}
+                  />
+
+                  {/* AND THEN THE ALREADY GIVEN FLOW.. DONT CHANGE IT */}
+                  <ErrorBoundary fallbackTitle="Interactive Civic Roadmap Unavailable">
+                    <CivicJourneyPipeline
+                      journey={activeJourney}
+                      onSelectStep={(step) => setSelectedStep(step)}
+                      onOpenGraphView={() => setIsGraphModalOpen(true)}
+                      onOpenAiAssistant={(stepId) => {
+                        setAiFocusStepId(stepId);
+                        setIsCopilotOpen(true);
+                      }}
+                      selectedStepId={selectedStep?.id}
+                      onQuickSearch={handleSearch}
+                    />
+                  </ErrorBoundary>
+                </div>
+              )}
             </div>
           )}
 

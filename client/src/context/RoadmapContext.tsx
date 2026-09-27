@@ -11,12 +11,20 @@ import {
   DATA_VERSION 
 } from '../types';
 
+import { initialDefaultJourneys } from '../data/defaultJourneys';
+
 interface RoadmapContextType {
   intake: GoalIntake;
   setIntake: React.Dispatch<React.SetStateAction<GoalIntake>>;
   updateIntakeField: (field: keyof GoalIntake, value: string) => void;
   journey: CivicJourney | null;
   setJourney: React.Dispatch<React.SetStateAction<CivicJourney | null>>;
+  journeys: CivicJourney[];
+  setJourneys: React.Dispatch<React.SetStateAction<CivicJourney[]>>;
+  activeJourneyId: string | null;
+  setActiveJourneyId: React.Dispatch<React.SetStateAction<string | null>>;
+  selectJourney: (journeyId: string) => void;
+  deleteJourney: (journeyId: string) => Promise<void>;
   updates: GovernmentUpdate[];
   setUpdates: React.Dispatch<React.SetStateAction<GovernmentUpdate[]>>;
   isGenerating: boolean;
@@ -55,14 +63,37 @@ const RoadmapContext = createContext<RoadmapContextType | undefined>(undefined);
 function validateStoredJourney(data: any): CivicJourney | null {
   if (!data || typeof data !== 'object') return null;
   if (data.dataVersion !== DATA_VERSION) {
-    console.warn(`[DishaSaathi] Stored journey version mismatch (found: ${data.dataVersion}, expected: ${DATA_VERSION}). Resetting to clean baseline.`);
     return null;
   }
   if (!data.id || !data.title || !Array.isArray(data.steps) || data.steps.length === 0) {
-    console.warn('[DishaSaathi] Incomplete stored journey schema. Resetting to baseline.');
     return null;
   }
   return data as CivicJourney;
+}
+
+function loadInitialJourneys(): CivicJourney[] {
+  try {
+    const raw = localStorage.getItem('dishasaathi_saved_journeys');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const validated = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+        if (validated.length > 0) return validated;
+      }
+    }
+    // Also check single legacy stored journey
+    const legacySingle = localStorage.getItem('dishasaathi_saved_journey');
+    if (legacySingle) {
+      const parsedSingle = JSON.parse(legacySingle);
+      const validatedSingle = validateStoredJourney(parsedSingle);
+      if (validatedSingle) {
+        return [validatedSingle, ...initialDefaultJourneys.filter((d) => d.id !== validatedSingle.id)];
+      }
+    }
+  } catch (e) {
+    console.warn('Could not load saved journeys from localStorage', e);
+  }
+  return initialDefaultJourneys;
 }
 
 export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -76,46 +107,138 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
-  // Load journey from localStorage or sessionStorage with DATA_VERSION validation (Section 27, 28)
+  // Multiple journeys collection
+  const [journeys, setJourneys] = useState<CivicJourney[]>(loadInitialJourneys);
+
+  // Active Journey ID
+  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(() => {
+    const initialList = loadInitialJourneys();
+    return initialList.length > 0 ? initialList[0].id : null;
+  });
+
+  // Currently active journey
   const [journey, setJourney] = useState<CivicJourney | null>(() => {
-    try {
-      const saved = localStorage.getItem('dishasaathi_saved_journey') || sessionStorage.getItem('dishasaathi_journey');
-      if (!saved) return null;
-      const parsed = JSON.parse(saved);
-      const validated = validateStoredJourney(parsed);
-      if (!validated) {
-        localStorage.removeItem('dishasaathi_saved_journey');
-        sessionStorage.removeItem('dishasaathi_journey');
-        return null;
-      }
-      return validated;
-    } catch {
-      localStorage.removeItem('dishasaathi_saved_journey');
-      sessionStorage.removeItem('dishasaathi_journey');
-      return null;
-    }
+    const initialList = loadInitialJourneys();
+    return initialList.length > 0 ? initialList[0] : null;
   });
 
   const [updates, setUpdates] = useState<GovernmentUpdate[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [activeStageIndex, setActiveStageIndex] = useState<number>(0);
   const [generationStages, setGenerationStages] = useState<GenerationStage[]>(defaultStages);
-  const [hasSavedProgress, setHasSavedProgress] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('dishasaathi_saved_journey');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const validated = validateStoredJourney(parsed);
-        return Boolean(validated && (validated.completedSteps > 0 || (validated.readyDocuments && validated.readyDocuments > 0)));
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  });
-
+  const [hasSavedProgress, setHasSavedProgress] = useState<boolean>(false);
   const [adaptiveRecommendation, setAdaptiveRecommendation] = useState<ActionRecommendation | null>(null);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
+
+  // Sync active journey when activeJourneyId changes
+  useEffect(() => {
+    if (activeJourneyId) {
+      const matched = journeys.find((j) => j.id === activeJourneyId);
+      if (matched) {
+        setJourney(matched);
+      }
+    } else if (journeys.length > 0) {
+      setActiveJourneyId(journeys[0].id);
+      setJourney(journeys[0]);
+    } else {
+      setJourney(null);
+    }
+  }, [activeJourneyId, journeys]);
+
+  // Sync journeys to localStorage and Turso DB with JWT
+  useEffect(() => {
+    if (journeys.length > 0) {
+      try {
+        localStorage.setItem('dishasaathi_saved_journeys', JSON.stringify(journeys));
+        if (journey) {
+          localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(journey));
+        }
+      } catch (e) {
+        console.warn('Could not save journeys to localStorage', e);
+      }
+
+      // Sync to backend DB if authenticated
+      const token = localStorage.getItem('dishasaathi_token');
+      if (token) {
+        fetch('/api/user/journeys', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ journeys })
+        }).catch((err) => console.warn('Cloud DB multi-journey sync error:', err));
+      }
+    }
+  }, [journeys, journey]);
+
+  // Select a specific journey
+  const selectJourney = (journeyId: string) => {
+    const target = journeys.find((j) => j.id === journeyId);
+    if (target) {
+      setActiveJourneyId(target.id);
+      setJourney(target);
+    }
+  };
+
+  // Delete a journey
+  const deleteJourney = async (journeyId: string) => {
+    const updated = journeys.filter((j) => j.id !== journeyId);
+    setJourneys(updated);
+    if (activeJourneyId === journeyId) {
+      if (updated.length > 0) {
+        setActiveJourneyId(updated[0].id);
+        setJourney(updated[0]);
+      } else {
+        setActiveJourneyId(null);
+        setJourney(null);
+      }
+    }
+
+    const token = localStorage.getItem('dishasaathi_token');
+    if (token) {
+      try {
+        await fetch(`/api/user/journeys/${journeyId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (err) {
+        console.warn('Cloud DB delete error:', err);
+      }
+    }
+  };
+
+  // Cloud DB sync on auth / mount
+  useEffect(() => {
+    const token = localStorage.getItem('dishasaathi_token');
+    if (token) {
+      fetch('/api/user/journeys', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to fetch user journeys from cloud');
+        })
+        .then((data) => {
+          if (data.journeys && Array.isArray(data.journeys) && data.journeys.length > 0) {
+            setJourneys(data.journeys);
+            setActiveJourneyId(data.journeys[0].id);
+            setJourney(data.journeys[0]);
+          } else if (journeys.length > 0) {
+            // Seed DB with existing journeys
+            fetch('/api/user/journeys', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              },
+              body: JSON.stringify({ journeys })
+            });
+          }
+        })
+        .catch((err) => console.warn('Backend user journeys sync:', err));
+    }
+  }, []);
 
   // Sync adaptive recommendation whenever journey changes
   useEffect(() => {
@@ -171,7 +294,10 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         if (!journey && resJourney.ok) {
           const dataJ = await resJourney.json();
-          if (dataJ.journey) setJourney(dataJ.journey);
+          if (dataJ.journey) {
+            setJourney(dataJ.journey);
+            setActiveJourneyId(dataJ.journey.id);
+          }
         }
       } catch (err) {
         console.warn('Backend sync in progress...', err);
@@ -250,9 +376,26 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const data = await response.json();
         if (data.journey) {
           setGenerationStages((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
-          setJourney(data.journey);
+          const generatedJourney: CivicJourney = {
+            ...data.journey,
+            id: data.journey.id || `journey-${Date.now()}`,
+            dataVersion: DATA_VERSION
+          };
+          setJourney(generatedJourney);
+          setActiveJourneyId(generatedJourney.id);
+          setJourneys((prev) => {
+            const index = prev.findIndex(
+              (j) => j.id === generatedJourney.id || (j.title && j.title.toLowerCase() === generatedJourney.title.toLowerCase())
+            );
+            if (index >= 0) {
+              const updated = [...prev];
+              updated[index] = generatedJourney;
+              return updated;
+            }
+            return [generatedJourney, ...prev];
+          });
           setIsGenerating(false);
-          return data.journey;
+          return generatedJourney;
         }
       }
       throw new Error('Failed to generate journey from backend');
@@ -285,7 +428,9 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       if (data.journey) {
-        setJourney(data.journey);
+        const updatedJ = data.journey;
+        setJourney(updatedJ);
+        setJourneys((prev) => prev.map((j) => (j.id === updatedJ.id ? updatedJ : j)));
         return { success: true };
       }
       return { success: false, message: 'Step update failed' };
@@ -326,13 +471,16 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      setJourney({
+      const updatedJourney: CivicJourney = {
         ...journey,
         steps: updatedSteps,
         totalDocuments: totalDocs,
         readyDocuments: readyDocs,
         pendingDocuments: pendingDocs
-      });
+      };
+
+      setJourney(updatedJourney);
+      setJourneys((prev) => prev.map((j) => (j.id === updatedJourney.id ? updatedJourney : j)));
     }
 
     // 2. Sync to Backend
@@ -346,6 +494,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const data = await res.json();
         if (data.journey) {
           setJourney(data.journey);
+          setJourneys((prev) => prev.map((j) => (j.id === data.journey.id ? data.journey : j)));
         }
       }
       return { success: true };
@@ -362,7 +511,10 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.journey) setJourney(data.journey);
+        if (data.journey) {
+          setJourney(data.journey);
+          setJourneys((prev) => prev.map((j) => (j.id === data.journey.id ? data.journey : j)));
+        }
         const resU = await fetch('/api/updates');
         if (resU.ok) {
           const dataU = await resU.json();
@@ -382,12 +534,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!confirmed) return false;
     }
     setIntake(defaultIntake);
-    setJourney(null);
     sessionStorage.removeItem('dishasaathi_intake');
-    sessionStorage.removeItem('dishasaathi_journey');
-    localStorage.removeItem('dishasaathi_saved_journey');
-    localStorage.removeItem('dishasaathi_saved_intake');
-    setHasSavedProgress(false);
     return true;
   };
 
@@ -398,6 +545,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const parsed = JSON.parse(saved) as CivicJourney;
         if (parsed) {
           setJourney(parsed);
+          setActiveJourneyId(parsed.id);
           setHasSavedProgress(false);
         }
       }
@@ -417,6 +565,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const data = await res.json();
         if (data.journey) {
           setJourney(data.journey);
+          setJourneys((prev) => prev.map((j) => (j.id === data.journey.id ? data.journey : j)));
           if (data.recommendation) setAdaptiveRecommendation(data.recommendation);
           return { success: true, diff: data.diff };
         }
@@ -433,7 +582,10 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const res = await fetch('/api/journey/recheck', { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
-        if (data.journey) setJourney(data.journey);
+        if (data.journey) {
+          setJourney(data.journey);
+          setJourneys((prev) => prev.map((j) => (j.id === data.journey.id ? data.journey : j)));
+        }
         if (data.recommendation) setAdaptiveRecommendation(data.recommendation);
         return { success: true, message: data.message || 'Roadmap re-checked against current knowledge base.' };
       }
@@ -451,6 +603,12 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateIntakeField,
         journey,
         setJourney,
+        journeys,
+        setJourneys,
+        activeJourneyId,
+        setActiveJourneyId,
+        selectJourney,
+        deleteJourney,
         updates,
         setUpdates,
         isGenerating,

@@ -135,7 +135,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               iconBg = 'bg-[#2563EB] text-white';
             } else if (update.type === 'New Service') {
               badgeBg = 'bg-[#E8F5EE] text-[#1B4D3E] border-[#CDE3D7]';
-              iconSymbol = '✓';
+              iconSymbol = '';
               iconBg = 'bg-[#1B4D3E] text-white';
             }
 

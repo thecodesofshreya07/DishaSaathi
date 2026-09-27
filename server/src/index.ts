@@ -22,7 +22,10 @@ import {
   registerUser, 
   loginUser, 
   saveUserJourney, 
+  saveUserJourneys,
   getUserJourney, 
+  getUserJourneys,
+  deleteUserJourney,
   seedDefaultUser 
 } from './services/authService.js';
 import { 
@@ -105,7 +108,45 @@ app.get('/api/auth/me', authMiddleware, async (req: AuthenticatedRequest, res: R
   }
 });
 
-// Journey DB sync endpoints for logged-in citizens
+// Multiple Journey DB sync endpoints for logged-in citizens
+app.get('/api/user/journeys', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  try {
+    const journeys = await getUserJourneys(req.user.id);
+    res.json({ success: true, journeys });
+  } catch (err: any) {
+    res.json({ success: true, journeys: [] });
+  }
+});
+
+app.post('/api/user/journeys', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  const { journey, journeys } = req.body;
+  try {
+    if (journeys && Array.isArray(journeys)) {
+      await saveUserJourneys(req.user.id, journeys);
+      return res.json({ success: true, journeys, message: 'Journeys synced successfully' });
+    } else if (journey) {
+      const updated = await saveUserJourney(req.user.id, journey);
+      return res.json({ success: true, journeys: updated, message: 'Journey saved successfully' });
+    }
+    return res.status(400).json({ success: false, error: 'No journey data provided' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to save journey' });
+  }
+});
+
+app.delete('/api/user/journeys/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
+  try {
+    const updated = await deleteUserJourney(req.user.id, req.params.id);
+    res.json({ success: true, journeys: updated, message: 'Journey deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to delete journey' });
+  }
+});
+
+// Journey DB sync endpoints for logged-in citizens (single)
 app.post('/api/user/journey', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
   const { journey } = req.body;
@@ -134,11 +175,6 @@ app.get('/api/journey/current', async (req: Request, res: Response) => {
     success: true,
     journey: currentJourney
   });
-});
-
-app.post('/api/journey/reset', (req: Request, res: Response) => {
-  currentJourney = null;
-  res.json({ success: true, journey: null });
 });
 
 // 3. Dynamic Natural Language Task Interpretation & Procedure Synthesis (Phase 3 Core Pipeline)
@@ -619,7 +655,9 @@ app.post('/api/admin/verify-sources', async (req: Request, res: Response) => {
 
 // 8. Reset journey
 app.post('/api/journey/reset', async (req: Request, res: Response) => {
-  currentJourney = null;
+  const structuredGoal = await parseCitizenGoal('Open a bakery in Mumbai', {});
+  const procedures = findRelevantProcedures(structuredGoal);
+  currentJourney = buildRoadmap(structuredGoal, procedures);
   updates = JSON.parse(JSON.stringify(initialGovernmentUpdates));
   res.json({
     success: true,
@@ -737,7 +775,7 @@ const candidateDistPaths = [
 const clientDistPath = candidateDistPaths.find((p) => fs.existsSync(p));
 
 if (clientDistPath) {
-  console.log(`📦 Serving static client bundle from: ${clientDistPath}`);
+  console.log(` Serving static client bundle from: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
   app.get('*', (req: Request, res: Response, next) => {
     if (req.path.startsWith('/api')) {
@@ -748,13 +786,13 @@ if (clientDistPath) {
 }
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 DishaSaathi Server running on http://localhost:${PORT}`);
-  console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+  console.log(` DishaSaathi Server running on http://localhost:${PORT}`);
+  console.log(` Health Check: http://localhost:${PORT}/api/health`);
 });
 
 server.on('error', (err: any) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`⚠️ Port ${PORT} is currently in use.`);
+    console.error(`️ Port ${PORT} is currently in use.`);
   } else {
     console.error('Server error:', err);
   }

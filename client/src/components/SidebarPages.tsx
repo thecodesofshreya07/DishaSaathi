@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, CivicDocumentStatus } from '../types';
 import { getOfficialDocumentApplicationUrl, getDocumentProcurementInfo, OfflineOfficeDetails } from '../utils/documentSources';
+import { getHowToApplyGuide } from '../utils/documentApplicationGuide';
 import { OfflineDocModal } from './OfflineDocModal';
+import { HowToApplyModal } from './HowToApplyModal';
 import { useTheme } from '../context/ThemeContext';
 
 // ----------------------------------------------------
@@ -152,7 +154,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({ onStartProcedure, onEx
                       {cat.badge}
                     </span>
                     <span className="text-[10px] font-bold text-slate-500">
-                      ⏱ {cat.timeEst}
+                       {cat.timeEst}
                     </span>
                   </div>
                 </div>
@@ -314,7 +316,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ onStartProcedure }) 
 
   const filtered = civicServices.filter((s) => {
     const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          s.dept.toLowerCase().includes(searchTerm.toLowerCase());
+      s.dept.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = selectedCategory === 'All' || s.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
@@ -348,11 +350,10 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ onStartProcedure }) 
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-              selectedCategory === cat
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${selectedCategory === cat
                 ? 'bg-[#1B4D3E] text-white shadow-2xs'
                 : 'bg-white text-[#4A5D54] border border-[#DCE6E1] hover:bg-[#F3F7F5]'
-            }`}
+              }`}
           >
             {cat}
           </button>
@@ -443,6 +444,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
     docId: string;
   } | null>(null);
 
+  const [howToApplyDoc, setHowToApplyDoc] = useState<string | null>(null);
+
   const docs = Array.from(docMap.values());
   const readyCount = docs.filter((item) => item.doc.status === 'READY' || item.doc.status === 'UPLOADED').length;
 
@@ -450,13 +453,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
     <div className="space-y-5 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-black text-[#11261F]">Citizen Document Vault</h3>
-          <p className="text-xs text-[#6C8075]">
-            Track required statutory certificates for "{journey.title}" with instant procurement links.
+          <h3 className="text-xl font-black text-[#11261F] dark:text-white">Citizen Document Vault</h3>
+          <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC]">
+            Track required statutory certificates for "{journey.title}" with instant procurement links and written steps.
           </p>
         </div>
 
-        <div className="px-3.5 py-1.5 rounded-full bg-[#EAF2ED] text-[#1B4D3E] text-xs font-extrabold border border-[#CDE3D7]">
+        <div className="px-3.5 py-1.5 rounded-full bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-extrabold border border-[#CDE3D7] dark:border-[#1E3B32]">
           {readyCount} of {docs.length} Documents Ready ({docs.length > 0 ? Math.round((readyCount / docs.length) * 100) : 0}%)
         </div>
       </div>
@@ -465,87 +468,116 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
         {docs.map(({ doc, step }) => {
           const isReady = doc.status === 'READY' || doc.status === 'UPLOADED';
           const proc = getDocumentProcurementInfo(doc.name, doc.sourceUrl);
+          const guide = getHowToApplyGuide(doc.name);
 
           return (
             <div
               key={`${step.id}-${doc.id}`}
-              className={`p-4 rounded-2xl border transition-all ${
-                isReady
-                  ? 'bg-[#F2F8F5] border-[#C2DFD0]'
-                  : 'bg-white border-[#DCE8E1]'
-              } shadow-2xs flex flex-col justify-between`}
+              className={`p-4 rounded-2xl border transition-all ${isReady
+                  ? 'bg-[#F2F8F5] dark:bg-[#0E201B] border-[#C2DFD0] dark:border-[#1F3E33]'
+                  : 'bg-white dark:bg-[#0D1A16] border-[#DCE8E1] dark:border-[#1E3B32]'
+                } shadow-2xs flex flex-col justify-between`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${isReady ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${isReady ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                       {isReady ? <CheckCircle2 className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                     </span>
                     <div>
-                      <h4 className="text-xs font-bold text-[#11261F]">
+                      <h4 className="text-xs font-bold text-[#11261F] dark:text-white">
                         {doc.name}
                       </h4>
-                      <span className="text-[10px] text-[#6C8075]">
+                      <span className="text-[10px] text-[#6C8075] dark:text-[#9FB7AC]">
                         Required for Step {step.stepNumber}: {step.title.replace(/^\d+\.\s*/, '')}
                       </span>
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${isReady ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}`}>
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${isReady ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300'}`}>
                     {isReady ? 'Ready' : 'Pending'}
                   </span>
                 </div>
 
-                <p className="text-[11px] text-[#5C7066] mt-1 leading-relaxed">
-                  {doc.description || `Statutory certificate issued by competent authority for verification.`}
+                <p className="text-[11px] text-[#5C7066] dark:text-[#A2B9AE] mt-1 leading-relaxed">
+                  {doc.description || `Statutory certificate issued by ${guide.authority} for verification.`}
                 </p>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-[#EDF2EE] flex items-center justify-between gap-2">
-                {/* Item 3: Online deep link or Offline office guidance */}
-                {proc.mode === 'ONLINE' ? (
-                  <a
-                    href={proc.url || getOfficialDocumentApplicationUrl(doc.name)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EAF2ED] hover:bg-[#DEEFE5] text-[#1B4D3E] text-xs font-bold border border-[#CDE3D7] transition-all cursor-pointer"
-                  >
-                    <span>Apply Online ↗</span>
-                  </a>
-                ) : (
+              <div className="mt-3 pt-3 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* Step-by-Step "How to Apply" Card Trigger */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveOfflineDoc({
-                        name: doc.name,
-                        details: proc.offlineDetails!,
-                        stepId: step.id,
-                        docId: doc.id
-                      });
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300 transition-all cursor-pointer"
-                    title="View office location, timings and submission checklist"
+                    onClick={() => setHowToApplyDoc(doc.name)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-900 dark:text-blue-300 text-xs font-bold border border-blue-200 dark:border-blue-800 transition-all cursor-pointer"
+                    title="View step-by-step written procedure on how to apply for this document"
                   >
-                    <Building2 className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Where to Apply (Offline) 📍</span>
+                    <BookOpen className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                    <span>How to Apply</span>
                   </button>
-                )}
+
+                  {/* Direct link to exact page */}
+                  {proc.mode === 'ONLINE' ? (
+                    <a
+                      href={guide.directUrl || proc.url || getOfficialDocumentApplicationUrl(doc.name)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EAF2ED] dark:bg-[#18392F] hover:bg-[#DEEFE5] dark:hover:bg-[#22C55E]/20 text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold border border-[#CDE3D7] dark:border-[#1E3B32] transition-all cursor-pointer"
+                    >
+                      <span>Apply Online ↗</span>
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveOfflineDoc({
+                          name: doc.name,
+                          details: proc.offlineDetails!,
+                          stepId: step.id,
+                          docId: doc.id
+                        });
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 text-amber-900 dark:text-amber-300 text-xs font-bold border border-amber-300 dark:border-amber-800 transition-all cursor-pointer"
+                      title="View office location, timings and submission checklist"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Offline Center</span>
+                    </button>
+                  )}
+                </div>
 
                 <button
                   onClick={() => onUpdateDocumentStatus(step.id, doc.id, isReady ? 'NOT_READY' : 'READY')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    isReady
-                      ? 'bg-white border border-[#D5E3DB] text-[#4A5D54] hover:bg-slate-50'
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isReady
+                      ? 'bg-white dark:bg-[#12231E] border border-[#D5E3DB] dark:border-[#1E3B32] text-[#4A5D54] dark:text-gray-300 hover:bg-slate-50'
                       : 'bg-[#1B4D3E] hover:bg-[#143B2F] text-white shadow-2xs'
-                  }`}
+                    }`}
                 >
-                  {isReady ? 'Mark as Missing' : 'Mark as Ready ✓'}
+                  {isReady ? 'Mark Missing' : 'Mark Ready'}
                 </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Centered How to Apply Modal with Written Steps */}
+      {howToApplyDoc && (() => {
+        const selectedDocItem = docs.find((d) => d.doc.name === howToApplyDoc);
+        return (
+          <HowToApplyModal
+            isOpen={!!howToApplyDoc}
+            onClose={() => setHowToApplyDoc(null)}
+            documentName={howToApplyDoc}
+            authority={selectedDocItem?.step.authority || selectedDocItem?.step.department}
+            description={selectedDocItem?.doc.description}
+            category={selectedDocItem?.doc.category}
+            sourceUrl={selectedDocItem?.doc.sourceUrl}
+            journeyTitle={journey.title}
+          />
+        );
+      })()}
 
       {/* Offline Document Modal (Item 3 & 4) */}
       {activeOfflineDoc && (
@@ -576,8 +608,8 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       <div>
-        <h3 className="text-xl font-black text-[#11261F]">Government Gazette Updates</h3>
-        <p className="text-xs text-[#6C8075]">
+        <h3 className="text-xl font-black text-[#11261F] dark:text-white">Government Gazette Updates</h3>
+        <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC]">
           Real-time statutory notifications and legal amendments tracked across central and municipal gazettes.
         </p>
       </div>
@@ -586,34 +618,34 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
         {updates.map((update) => (
           <div
             key={update.id}
-            className="p-5 rounded-2xl bg-white border border-[#DCE8E1] hover:border-[#1B4D3E] shadow-2xs transition-all"
+            className="p-5 rounded-2xl bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] hover:border-[#1B4D3E] shadow-2xs transition-all"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800">
                   {update.type}
                 </span>
-                <span className="text-xs font-semibold text-[#6C8075]">
+                <span className="text-xs font-semibold text-[#6C8075] dark:text-[#9FB7AC]">
                   Date: {update.date}
                 </span>
               </div>
 
-              <span className="text-xs font-bold text-[#1B4D3E]">
+              <span className="text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7]">
                 {update.reviewStatus}
               </span>
             </div>
 
-            <h4 className="text-sm font-extrabold text-[#11261F]">
+            <h4 className="text-sm font-extrabold text-[#11261F] dark:text-white">
               {update.title}
             </h4>
 
-            <p className="text-xs text-[#4A5D54] mt-1.5 leading-relaxed">
+            <p className="text-xs text-[#4A5D54] dark:text-[#A2B9AE] mt-1.5 leading-relaxed">
               {update.description}
             </p>
 
-            <div className="mt-3 pt-3 border-t border-[#EDF2EE] flex items-center justify-between">
-              <span className="text-[11px] text-[#6C8075]">
-                Source: <strong className="text-[#11261F]">{update.sourceUrl || 'The Gazette of India'}</strong>
+            <div className="mt-3 pt-3 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex items-center justify-between">
+              <span className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC]">
+                Source: <strong className="text-[#11261F] dark:text-white">{update.sourceUrl || 'The Gazette of India'}</strong>
               </span>
 
               {/* Item 7: View AI Statutory Excerpt */}
@@ -622,7 +654,7 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
                 className="px-3.5 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
               >
                 <BookOpen className="w-3.5 h-3.5 text-emerald-300" />
-                <span>View Gazette Excerpt (AI) 📄</span>
+                <span>View Gazette Excerpt </span>
               </button>
             </div>
           </div>
@@ -633,37 +665,79 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
 };
 
 // ----------------------------------------------------
-// 4. STATUTORY COMPLIANCE DEADLINES VIEW
+// 4. STATUTORY COMPLIANCE DEADLINES VIEW (Explained in UI)
 // ----------------------------------------------------
 export const DeadlinesView: React.FC = () => {
   const deadlines = [
-    { title: 'GSTR-3B Monthly Return Filing', date: '20th of every month', dept: 'CBIC / GSTN', status: 'Upcoming' },
-    { title: 'FSSAI Annual Compliance Return', date: '31st May Annually', dept: 'FSSAI Ministry of Health', status: 'Statutory' },
-    { title: 'Commercial Property Tax 10% Early Rebate', date: '30th June Annually', dept: 'Municipal Assessment Dept', status: 'Rebate' },
-    { title: 'Shop & Establishment Intimation Renewal', date: 'No Annual Renewal (Self-Attested)', dept: 'Labour Dept / BMC', status: 'Exempt' }
+    { title: 'GSTR-3B Monthly Return Filing', date: '20th of every month', dept: 'CBIC / GSTN', status: 'Monthly Statutory' },
+    { title: 'FSSAI Annual Compliance Return (Form D-1)', date: '31st May Annually', dept: 'FSSAI Ministry of Health', status: 'Annual Statutory' },
+    { title: 'Commercial Property Tax 10% Early Payment Rebate', date: '30th June Annually', dept: 'Municipal Assessment Dept (BMC)', status: 'Rebate Window' },
+    { title: 'Shop & Establishment Intimation Renewal', date: 'No Annual Renewal (Permanent Self-Declaration)', dept: 'Labour Dept / BMC', status: 'Exempt' },
+    { title: 'Fire Safety Extinguisher Audit & Hydro-Test', date: 'Quarterly (Every 3 Months)', dept: 'Mumbai Fire Brigade', status: 'Quarterly Safety' }
   ];
 
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <h3 className="text-xl font-black text-[#11261F]">Statutory Deadlines & Calendar</h3>
-        <p className="text-xs text-[#6C8075]">
-          Avoid compounding municipal penalties and compliance lapses with statutory reminders.
+        <h3 className="text-xl font-black text-[#11261F] dark:text-white">Statutory Deadlines & Compliance Tracker</h3>
+        <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mt-0.5">
+          Real-time calendar tracking mandatory filing dates, penalty waivers, and renewal deadlines across Indian municipal and statutory bodies.
         </p>
       </div>
 
+      {/* UI Explanation Guide Box (Point 5) */}
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EAF2ED] to-[#E2EBE5] dark:from-[#10271F] dark:to-[#143329] border border-[#CDE3D7] dark:border-[#1E3B32] space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-[#1B4D3E] text-white flex items-center justify-center font-bold text-xs">
+            
+          </div>
+          <div>
+            <h4 className="text-sm font-extrabold text-[#11261F] dark:text-white">
+              Why Deadlines Matter for Your Roadmap
+            </h4>
+            <p className="text-xs text-[#4A5D54] dark:text-[#9FB7AC]">
+              Keep your civic and business procedures 100% compliant without unexpected penalty notices.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+          <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0D1A16]/80 border border-white/40 dark:border-[#1E3B32]">
+            <span className="font-bold text-[#11261F] dark:text-white block mb-1"> Penalty Protection</span>
+            <p className="text-[11px] text-[#556960] dark:text-[#A2B9AE]">
+              Avoid compounding late fees under the GST and FSSAI Acts by submitting filings within monthly windows.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0D1A16]/80 border border-white/40 dark:border-[#1E3B32]">
+            <span className="font-bold text-[#11261F] dark:text-white block mb-1"> Early Rebate Windows</span>
+            <p className="text-[11px] text-[#556960] dark:text-[#A2B9AE]">
+              Save up to 10% on municipal commercial property tax assessments by settling challans before June 30.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0D1A16]/80 border border-white/40 dark:border-[#1E3B32]">
+            <span className="font-bold text-[#11261F] dark:text-white block mb-1"> Renewal vs Exemption</span>
+            <p className="text-[11px] text-[#556960] dark:text-[#A2B9AE]">
+              Instant clarity on which certificates need annual renewal versus lifetime digital self-declaration.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Deadlines Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {deadlines.map((dl) => (
-          <div key={dl.title} className="p-4 rounded-2xl bg-white border border-[#DCE8E1] shadow-2xs">
-            <div className="flex items-center justify-between text-[10px] font-bold text-[#6C8075] uppercase mb-1.5">
+          <div key={dl.title} className="p-5 rounded-2xl bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] shadow-2xs hover:shadow-xs transition-all">
+            <div className="flex items-center justify-between text-[10px] font-bold text-[#6C8075] dark:text-[#9FB7AC] uppercase mb-1.5">
               <span>{dl.dept}</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold">
                 {dl.status}
               </span>
             </div>
-            <h4 className="text-xs font-bold text-[#11261F]">{dl.title}</h4>
-            <div className="mt-2 text-xs font-extrabold text-[#1B4D3E] flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[#1B4D3E]" />
+            <h4 className="text-sm font-bold text-[#11261F] dark:text-white">{dl.title}</h4>
+            <div className="mt-3 text-xs font-extrabold text-[#1B4D3E] dark:text-[#6EE7B7] flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-[#1B4D3E] dark:text-[#6EE7B7]" />
               <span>{dl.date}</span>
             </div>
           </div>
@@ -674,19 +748,20 @@ export const DeadlinesView: React.FC = () => {
 };
 
 // ----------------------------------------------------
-// 5. CIVIC PASSPORT VIEW
+// 5. CIVIC PASSPORT VIEW (Explained in UI)
 // ----------------------------------------------------
 export const PassportView: React.FC<{ journey: CivicJourney }> = ({ journey }) => {
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <div>
-        <h3 className="text-xl font-black text-[#11261F]">Citizen Civic Passport</h3>
-        <p className="text-xs text-[#6C8075]">
-          Your cryptographically verifiable credential for municipal clearances and statutory compliances.
+        <h3 className="text-xl font-black text-[#11261F] dark:text-white">Citizen Civic Passport</h3>
+        <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mt-0.5">
+          Your cryptographically verifiable credential for municipal clearances, business licenses, and statutory compliances.
         </p>
       </div>
 
-      <div className="max-w-xl mx-auto p-6 rounded-3xl bg-gradient-to-br from-[#1B4D3E] to-[#12362B] text-white shadow-xl relative overflow-hidden">
+      {/* Passport Card */}
+      <div className="max-w-xl mx-auto p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#1B4D3E] via-[#153D31] to-[#0E271F] text-white shadow-xl relative overflow-hidden">
         <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4">
           <div className="flex items-center gap-2.5">
             <Award className="w-6 h-6 text-amber-300" />
@@ -726,6 +801,32 @@ export const PassportView: React.FC<{ journey: CivicJourney }> = ({ journey }) =
           <span className="font-mono text-[10px]">HASH: 0x8F92...B41E</span>
         </div>
       </div>
+
+      {/* UI Explanation Guide for Passport (Point 8) */}
+      <div className="max-w-xl mx-auto p-5 rounded-2xl bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] shadow-2xs space-y-3">
+        <h4 className="text-sm font-extrabold text-[#11261F] dark:text-white flex items-center gap-2">
+          <span>️</span>
+          <span>What is the Citizen Civic Passport?</span>
+        </h4>
+        <p className="text-xs text-[#556960] dark:text-[#A2B9AE] leading-relaxed">
+          The <strong>Civic Passport</strong> is your unified digital credential that bundles all verified municipal clearances, commercial licenses, and statutory registrations into a single tamper-evident digital identity.
+        </p>
+
+        <div className="space-y-2 pt-1 text-xs">
+          <div className="flex items-start gap-2 text-[#4A5D54] dark:text-[#9FB7AC]">
+            <span className="text-emerald-600 font-bold">•</span>
+            <span><strong>Single-Window Verification:</strong> Present this passport to municipal ward inspectors or banks for loan underwriting without carrying stacks of physical paperwork.</span>
+          </div>
+          <div className="flex items-start gap-2 text-[#4A5D54] dark:text-[#9FB7AC]">
+            <span className="text-emerald-600 font-bold">•</span>
+            <span><strong>Cryptographically Verifiable:</strong> Linked to your permanent registration ID with instant QR verification across Maharashtra & National single-window portals.</span>
+          </div>
+          <div className="flex items-start gap-2 text-[#4A5D54] dark:text-[#9FB7AC]">
+            <span className="text-emerald-600 font-bold">•</span>
+            <span><strong>Auto-Syncing:</strong> Updates in real-time as you complete roadmap steps and prepare mandatory documents.</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -757,7 +858,7 @@ export const SavedView: React.FC<{
             </div>
             <h4 className="text-sm font-extrabold text-[#11261F]">{journey.title}</h4>
             <p className="text-xs text-[#5C7066] mt-0.5">
-              {journey.completedSteps} of {journey.totalSteps} steps completed ({journey.totalSteps > 0 ? Math.round((journey.completedSteps/journey.totalSteps)*100) : 0}%)
+              {journey.completedSteps} of {journey.totalSteps} steps completed ({journey.totalSteps > 0 ? Math.round((journey.completedSteps / journey.totalSteps) * 100) : 0}%)
             </p>
           </div>
 
@@ -801,11 +902,10 @@ export const SettingsView: React.FC<{
             <button
               type="button"
               onClick={() => setTheme('light')}
-              className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${
-                !isDarkMode
+              className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${!isDarkMode
                   ? 'border-[#1B4D3E] bg-[#EAF2ED] text-[#1B4D3E] shadow-2xs font-bold'
                   : 'border-[#DCE8E1] dark:border-[#1F3E33] bg-[#F6FAF8] dark:bg-[#12241E] text-[#4A5D54] dark:text-[#9FB7AC] hover:bg-[#EDF5F1] dark:hover:bg-[#172D25]'
-              }`}
+                }`}
             >
               <Sun className={`w-5 h-5 ${!isDarkMode ? 'text-[#1B4D3E]' : 'text-amber-500'}`} />
               <div className="text-left">
@@ -817,11 +917,10 @@ export const SettingsView: React.FC<{
             <button
               type="button"
               onClick={() => setTheme('dark')}
-              className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${
-                isDarkMode
+              className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${isDarkMode
                   ? 'border-[#34D399] bg-[#18392F] text-[#6EE7B7] shadow-2xs font-bold'
                   : 'border-[#DCE8E1] dark:border-[#1F3E33] bg-[#F6FAF8] dark:bg-[#12241E] text-[#4A5D54] dark:text-[#9FB7AC] hover:bg-[#EDF5F1] dark:hover:bg-[#172D25]'
-              }`}
+                }`}
             >
               <Moon className={`w-5 h-5 ${isDarkMode ? 'text-[#6EE7B7]' : 'text-[#1B4D3E]'}`} />
               <div className="text-left">

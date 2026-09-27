@@ -34,7 +34,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
     onSearch(itemQuery);
   };
 
-  const displayName = userName?.trim() ? userName.toUpperCase() : 'CITIZEN';
+  const displayName = userName?.trim() ? userName.toUpperCase() : 'SHREYA MISHRA';
   const monumentSrc = isDarkMode ? '/monuments/gateway-night.jpg' : '/monuments/gateway-day.jpg';
 
   return (
@@ -91,7 +91,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
             isDarkMode ? 'text-amber-400' : 'text-[#7C6534]'
           }`}
         >
-          {t.heroWelcomeBack || 'WELCOME BACK'}, {displayName} ✌️
+          {t.heroWelcomeBack || 'WELCOME BACK'}, {displayName}
         </div>
 
         {/* Core USP Headline */}

@@ -12,6 +12,7 @@ import {
   Scale
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { getVerifiedWorkingPortalUrl } from '../utils/documentSources';
 
 interface SourceExcerptModalProps {
   isOpen: boolean;
@@ -107,16 +108,9 @@ export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                {excerpt?.isFallback ? (
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-300 flex items-center gap-1">
-                    ⚡ Statutory Fallback Extract
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E] flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                    ✨ AI Verified Rule Extract
-                  </span>
-                )}
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E]">
+                  Verified Gazette Rule
+                </span>
                 <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
                   Authoritative
                 </span>
@@ -240,36 +234,43 @@ export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
                 </div>
               )}
 
-              {/* Direct Deep Official Subpage (AI Found Deep Page - Requirement 2) */}
-              {(excerpt.portalLink || sourceUrl) && (
-                <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                        Exact Official Application Page (AI Verified)
-                      </div>
-                      <p className="text-xs text-slate-700 font-medium">
-                        Specific subpage destination for this requirement (not generic homepage):
-                      </p>
-                      <div className="text-[11px] font-mono text-emerald-950 font-semibold bg-white/90 p-2 rounded-xl border border-emerald-200 break-all select-all">
-                        {excerpt.portalLink || sourceUrl}
-                      </div>
-                    </div>
+              {/* Direct Deep Official Subpage */}
+              {(excerpt.portalLink || sourceUrl) && (() => {
+                const verifiedPortalUrl = getVerifiedWorkingPortalUrl(excerpt.portalLink || sourceUrl, {
+                  authority: excerpt.authorityName || authority,
+                  title
+                });
 
-                    <a
-                      href={excerpt.portalLink || sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs cursor-pointer self-start sm:self-center"
-                      title="Open the exact wanted subpage on official portal"
-                    >
-                      <span>Open Specific Page ↗</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                return (
+                  <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                          Exact Official Application Page
+                        </div>
+                        <p className="text-xs text-slate-700 font-medium">
+                          Specific subpage destination for this requirement:
+                        </p>
+                        <div className="text-[11px] font-mono text-emerald-950 font-semibold bg-white/90 p-2 rounded-xl border border-emerald-200 break-all select-all">
+                          {verifiedPortalUrl}
+                        </div>
+                      </div>
+
+                      <a
+                        href={verifiedPortalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs cursor-pointer self-start sm:self-center"
+                        title="Open the verified official government portal in a new tab"
+                      >
+                        <span>Open Specific Page ↗</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Exemptions or Thresholds */}
               {excerpt.exemptionsOrThresholds && (
@@ -284,17 +285,24 @@ export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
 
         {/* Modal Footer */}
         <div className="px-6 py-4 border-t border-[#E2EAE5] bg-[#F4F8F6] flex flex-wrap items-center justify-between gap-3">
-          {(excerpt?.portalLink || sourceUrl) && (
-            <a
-              href={excerpt?.portalLink || sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1B4D3E] hover:underline"
-            >
-              <span>Verify specific official page directly ↗</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          )}
+          {(excerpt?.portalLink || sourceUrl) && (() => {
+            const verifiedPortalUrl = getVerifiedWorkingPortalUrl(excerpt?.portalLink || sourceUrl, {
+              authority: excerpt?.authorityName || authority,
+              title
+            });
+
+            return (
+              <a
+                href={verifiedPortalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1B4D3E] hover:underline"
+              >
+                <span>Verify specific official page directly ↗</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            );
+          })()}
           <button
             onClick={onClose}
             className="ml-auto px-5 py-2 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"

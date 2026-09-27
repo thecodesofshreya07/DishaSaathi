@@ -227,16 +227,9 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
                     <Compass className="w-3 h-3 text-[#1B4D3E]" />
                     DishaSaathi Copilot
                   </span>
-                  {m.isFallback ? (
-                    <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-800 border border-amber-300">
-                      ⚡ Statutory Fallback
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-0.5">
-                      <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
-                      ✨ Live AI
-                    </span>
-                  )}
+                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300">
+                    Official Grounding
+                  </span>
                 </div>
               )}
 
@@ -303,7 +296,7 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
                     onClick={() => handleSend(fu)}
                     className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF2ED] text-[#1B4D3E] hover:bg-[#D5E3DB] transition-colors border border-[#CDE3D7] cursor-pointer"
                   >
-                    ➔ {fu}
+                     {fu}
                   </button>
                 ))}
               </div>

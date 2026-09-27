@@ -85,7 +85,7 @@ export const OfflineDocModal: React.FC<OfflineDocModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 pt-1 border-t border-slate-200/80">
-                📍 Location: <strong className="text-slate-700">{details.location}</strong>
+                 Location: <strong className="text-slate-700">{details.location}</strong>
               </p>
             </div>
           </div>
@@ -175,7 +175,7 @@ export const OfflineDocModal: React.FC<OfflineDocModalProps> = ({
               title="Confirm that you visited and submitted this document in person"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-              <span>I Have Submitted This / Mark as Ready ✓</span>
+              <span>I Have Submitted This / Mark as Ready </span>
             </button>
           )}
         </div>

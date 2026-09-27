@@ -101,14 +101,14 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
       return (
         <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>✓ Verified Source</span>
+          <span> Verified Source</span>
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
         <Clock className="w-3.5 h-3.5 text-slate-500" />
-        <span>⚠ Needs Verification</span>
+        <span> Needs Verification</span>
       </span>
     );
   };
@@ -162,7 +162,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                 <Eye className="w-3.5 h-3.5" />
                 Why am I seeing this step?
               </strong>
-              <button onClick={() => setShowTransparency(false)} className="text-amber-800 font-bold">✕</button>
+              <button onClick={() => setShowTransparency(false)} className="text-amber-800 font-bold"></button>
             </div>
             <div className="mt-2 space-y-1 text-slate-700">
               <p>• <strong>Citizen Goal:</strong> "{journey.query}"</p>
@@ -357,7 +357,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                         <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
                           {isReady ? (
                             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              ✓ {t.docsReady || 'Ready'}
+                               {t.docsReady || 'Ready'}
                             </span>
                           ) : (
                             <>
@@ -392,7 +392,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                                       title="Open card showing where to apply and office timings"
                                     >
                                       <Building className="w-3 h-3 text-amber-700" />
-                                      <span>Where to Apply (Offline) 📍</span>
+                                      <span>Where to Apply (Offline)</span>
                                     </button>
                                   );
                                 }
@@ -407,7 +407,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                                 }}
                                 className="px-2 py-1 rounded-lg border border-transparent hover:border-[#D5E3DB] text-[11px] font-bold text-[#1B4D3E] hover:underline cursor-pointer"
                               >
-                                ✓ {t.haveDoc || 'I have this document'}
+                                {t.haveDoc || 'I have this document'}
                               </button>
                             </>
                           )}
@@ -459,14 +459,39 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
             {/* Official Source Link & AI Excerpt Trigger */}
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
+              {(() => {
+                const officialUrl = step.source?.url || (
+                  (step.authority || step.department || '').toLowerCase().includes('mca') || (step.title || '').toLowerCase().includes('company') ? 'https://www.mca.gov.in' :
+                  (step.authority || step.department || '').toLowerCase().includes('fssai') || (step.title || '').toLowerCase().includes('food') ? 'https://foscos.fssai.gov.in' :
+                  (step.authority || step.department || '').toLowerCase().includes('bmc') || (step.authority || step.department || '').toLowerCase().includes('mcgm') || (step.authority || step.department || '').toLowerCase().includes('municipal') ? 'https://portal.mcgm.gov.in' :
+                  (step.authority || step.department || '').toLowerCase().includes('rto') || (step.title || '').toLowerCase().includes('license') ? 'https://parivahan.gov.in' :
+                  (step.authority || step.department || '').toLowerCase().includes('gst') ? 'https://www.gst.gov.in' :
+                  (step.authority || step.department || '').toLowerCase().includes('labor') || (step.authority || step.department || '').toLowerCase().includes('gumasta') ? 'https://lms.mahaonline.gov.in' :
+                  'https://aaplesarkar.mahaonline.gov.in'
+                );
+
+                return (
+                  <a
+                    href={officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1B4D3E] text-white hover:bg-[#143B2F] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                    title="Open the official department / government website in a new tab"
+                  >
+                    <span>Open Official Website ↗</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                );
+              })()}
+
               <button
                 type="button"
                 onClick={() => setIsExcerptModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1B4D3E] text-white hover:bg-[#143B2F] text-xs font-bold transition-all shadow-2xs cursor-pointer"
-                title="View specific applicable text and open the exact verified official page"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#EAF2ED] text-[#1B4D3E] hover:bg-[#D4E8DC] border border-[#CDE3D7] text-xs font-bold transition-all cursor-pointer"
+                title="View specific applicable text and statutory gazette rule"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>{t.viewOfficialSource || 'View Official Source & Rule (AI) 📄'}</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>{t.viewOfficialSource || 'View Gazette Excerpt & Rule'}</span>
               </button>
             </div>
           </div>

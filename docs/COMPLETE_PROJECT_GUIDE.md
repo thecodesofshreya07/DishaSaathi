@@ -1,9 +1,7 @@
 # DishaSaathi — Complete Project & Architecture Guide
 **PSWB 02: Municipal Bureaucracy Path Visualizer | Computer Engineering Department**
 *Master Reference: Problem Statement Alignment, Technical Architecture, Features, UI Breakdown & Data Models*
-
 ---
-
 ## 1. Problem Statement (PSWB 02) & Alignment Matrix
 
 ### Official Problem Statement Details

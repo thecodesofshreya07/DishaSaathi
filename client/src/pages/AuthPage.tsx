@@ -49,7 +49,7 @@ export const AuthPage: React.FC = () => {
               onClick={() => navigate('/roadmap')}
               className="w-full py-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
-              Go to My Active Journey ➔
+              Go to My Active Journey 
             </button>
             <Link
               to="/"

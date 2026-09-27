@@ -95,9 +95,6 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
             <span className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold">
               <Compass className="w-4 h-4" />
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
-              ⚡
-            </span>
           </div>
           <div className="text-2xl font-black text-[#11261F] dark:text-white tracking-tight">
             22+
@@ -115,9 +112,6 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
           <div className="flex items-center justify-between mb-2">
             <span className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold">
               <Clock className="w-4 h-4" />
-            </span>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
-              🕒
             </span>
           </div>
           <div className="text-2xl font-black text-[#11261F] dark:text-white tracking-tight">
@@ -150,15 +144,6 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
               <h5 className="text-xs font-extrabold text-[#11261F] dark:text-white group-hover:text-[#1B4D3E] dark:group-hover:text-[#6EE7B7]">
                 My Active Journey
               </h5>
-              {journey?.isFallback ? (
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                  ⚡ Fallback
-                </span>
-              ) : journey ? (
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  ✨ AI Live
-                </span>
-              ) : null}
             </div>
             <p className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC] mt-1 leading-relaxed">
               Open the interactive step-by-step flowchart with dependency rules.

@@ -131,7 +131,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                     onClick={() => onQuickSearch && onQuickSearch(suggestion)}
                     className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#F3F7F5] hover:bg-[#E6F0EB] text-[#1B4D3E] border border-[#CDE3D7] transition-all hover:scale-[1.02] shadow-2xs text-left"
                   >
-                    ➔ {suggestion}
+                     {suggestion}
                   </button>
                 ))}
               </div>
@@ -233,7 +233,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
           title="Verified against authoritative government portals"
         >
           <ShieldCheck className="w-3 h-3 text-emerald-600" />
-          <span>✓ Verified source</span>
+          <span> Verified source</span>
         </span>
       );
     }
@@ -243,7 +243,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
         title="Official source verification pending"
       >
         <Clock className="w-3 h-3 text-slate-500" />
-        <span>⚠ Needs verification</span>
+        <span> Needs verification</span>
       </span>
     );
   };
@@ -263,26 +263,14 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
             <h3 className="text-base font-bold text-[#11261F] dark:text-[#E2ECE7] tracking-tight">
               Interactive Civic Roadmap
             </h3>
-            {journey.isFallback ? (
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60 text-[11px] font-bold shadow-2xs"
-                title="Generated via DishaSaathi Deterministic Statutory Gazette Engine (Offline Direct Mode)"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-pulse" />
-                <span>⚡ Fallback: Statutory Gazette Engine</span>
-              </span>
-            ) : (
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60 text-[11px] font-bold shadow-2xs"
-                title="Synthesized live with Gemini Generative AI"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>✨ AI-Powered: Direct Neural Analysis</span>
-              </span>
-            )}
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60 text-[11px] font-bold shadow-2xs"
+            >
+              <span>Gazette Grounded</span>
+            </span>
           </div>
           <p className="text-xs text-[#6C8075] dark:text-[#90A79C] mt-0.5 font-normal">
-            Understand first. Act second. Synthesized from authoritative regulatory sources.
+            Understand first. Act second. Grounded in official statutory regulations.
           </p>
         </div>
 
@@ -348,7 +336,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
             <span>{recheckMessage}</span>
           </div>
           <button onClick={() => setRecheckMessage(null)} className="text-emerald-700 hover:text-emerald-900 font-bold text-xs">
-            ✕
+            
           </button>
         </div>
       )}
@@ -449,7 +437,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                     </span>
                     {adaptiveRecommendation?.primaryAction.isParallelAlternative && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                        ⚡ Parallel Action Available
+                         Parallel Action Available
                       </span>
                     )}
                   </div>
@@ -505,7 +493,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F2F8F5] text-[11px] font-semibold text-[#11261F] border border-[#CDE3D7] hover:border-[#1B4D3E] transition-all shadow-2xs cursor-pointer flex items-center gap-1"
                   >
                     <span>Step {pa.stepNumber}: {pa.title.replace(/^\d+\.\s*/, '')}</span>
-                    <span className="text-[10px] text-[#1B4D3E] font-bold">➔</span>
+                    <span className="text-[10px] text-[#1B4D3E] font-bold"></span>
                   </button>
                 ))}
               </div>
@@ -589,7 +577,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                 {/* Header row of card */}
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2.5">
-                    {/* Status circle: Completed (✓), Current (●), Blocked (🔒), Upcoming (○) */}
+                    {/* Status circle: Completed (), Current (●), Blocked (), Upcoming (○) */}
                     {isCompleted ? (
                       <div className="w-8 h-8 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center shadow-2xs" title="Completed">
                         <Check className="w-4 h-4 stroke-[3]" />
@@ -763,7 +751,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                 onClick={() => setTransparencyStep(null)}
                 className="text-slate-400 hover:text-slate-700 text-xs font-bold"
               >
-                ✕
+                
               </button>
             </div>
 

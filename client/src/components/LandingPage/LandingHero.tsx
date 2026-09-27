@@ -140,7 +140,7 @@ export const LandingHero: React.FC = () => {
               })}
             </svg>
             <span className="text-xs font-bold text-[#1B4D3E] tracking-wide">
-              🇮🇳 AI-Powered Civic Guidance for Every Indian Citizen
+               AI-Powered Civic Guidance for Every Indian Citizen
             </span>
             <span className="w-2 h-2 rounded-full bg-[#138808] animate-pulse"/>
           </div>
@@ -207,7 +207,7 @@ export const LandingHero: React.FC = () => {
             </div>
             <div className="px-6 py-5">
               <p className="text-[11px] font-black uppercase tracking-widest text-center text-[#7C6534] mb-5">
-                ✦ Impact at a Glance ✦
+                 Impact at a Glance 
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {stats.map(s => {

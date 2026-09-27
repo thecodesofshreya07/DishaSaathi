@@ -106,7 +106,7 @@ export const generateRoadmapPdf = (journey: CivicJourney, citizenName: string = 
     doc.setFontSize(8);
     if (isCompleted) {
       doc.setTextColor(16, 128, 92);
-      doc.text('✓ COMPLETED', pageWidth - margin - 26, y + 7);
+      doc.text(' COMPLETED', pageWidth - margin - 26, y + 7);
     } else {
       doc.setTextColor(180, 100, 20);
       doc.text(`[${step.status.toUpperCase()}]`, pageWidth - margin - 26, y + 7);
