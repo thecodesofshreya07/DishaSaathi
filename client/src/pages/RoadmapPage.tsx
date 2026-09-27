@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, ArrowLeft } from 'lucide-react';
+import { Clock, ArrowLeft, Scale } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -17,6 +17,7 @@ import {
   SavedView,
   SettingsView
 } from '../components/SidebarPages';
+import { ProcedureSimulatorModal } from '../components/ProcedureSimulatorModal';
 import { StepDetailModal } from '../components/StepDetailModal';
 import { ReactFlowGraphModal } from '../components/ReactFlowGraphModal';
 import { ChangeDetectionModal } from '../components/ChangeDetectionModal';
@@ -66,6 +67,7 @@ export const RoadmapPage: React.FC = () => {
   const [selectedUpdate, setSelectedUpdate] = useState<GovernmentUpdate | null>(null);
   const [selectedExcerptUpdate, setSelectedExcerptUpdate] = useState<GovernmentUpdate | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
 
@@ -345,6 +347,18 @@ export const RoadmapPage: React.FC = () => {
                         </p>
                       </div>
                     </div>
+
+                    {/* Procedure Simulator Sandbox Trigger Button */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsSimulatorOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer hover:scale-102 active:scale-98"
+                      >
+                        <Scale className="w-3.5 h-3.5 shrink-0" />
+                        <span>Check What Happens If You Skip a Step</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* MOST IMPORTANT: FLOWCHART WITH ONLY SMALL STEPS */}
@@ -539,6 +553,15 @@ export const RoadmapPage: React.FC = () => {
           focusStepId={aiFocusStepId}
         />
       </ErrorBoundary>
+
+      {/* H. Item 57: Procedure Simulator & What-If Sandbox Modal */}
+      {isSimulatorOpen && (
+        <ProcedureSimulatorModal
+          isOpen={isSimulatorOpen}
+          onClose={() => setIsSimulatorOpen(false)}
+          journey={activeJourney}
+        />
+      )}
     </div>
   );
 };
