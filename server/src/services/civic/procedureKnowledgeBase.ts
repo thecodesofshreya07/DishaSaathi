@@ -577,5 +577,137 @@ export const procedureKnowledgeBase: BaseCivicProcedure[] = [
       verificationStatus: 'Verified'
     },
     verificationStatus: 'VERIFIED'
+  },
+
+  // ==========================================
+  // 5. RESIDENTIAL FLAT & PROPERTY PURCHASE
+  // ==========================================
+  {
+    id: 'proc-flat-rera-title',
+    code: 'FLAT_RERA_TITLE',
+    title: 'MahaRERA Project Sanction & 30-Year Encumbrance Verification',
+    plainLanguageSummary: 'Verify RERA project registration, carpet area sanction, developer escrow account, and obtain 30-year non-encumbrance title search report from IGR.',
+    whyRequired: 'Mandatory under Section 3 & 4 of Real Estate (Regulation and Development) Act 2016 to prevent purchasing unauthorized or disputed property.',
+    authority: 'Maharashtra Real Estate Regulatory Authority (MahaRERA) / IGR Maharashtra',
+    category: 'Property Due Diligence',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_ACQUISITION',
+    dependsOn: [],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-flt-1', name: 'MahaRERA Project Registration Certificate & Approved Layout Plan', isMandatory: true, description: 'Valid RERA project listing' },
+      { id: 'doc-flt-2', name: '30-Year Title Search & Non-Encumbrance Report', isMandatory: true, description: 'Issued by Advocate / SRO Search' },
+      { id: 'doc-flt-3', name: 'Commencement Certificate (CC) & Approved Floor Sanction', isMandatory: true, description: 'Municipal building approval' }
+    ],
+    fee: { amount: '₹500 - ₹2,000', description: 'Online IGR search and RERA public register inspection fee' },
+    estimatedTime: '3 - 7 working days',
+    applicationMode: 'Online',
+    applicationUrl: 'https://maharera.mahaonline.gov.in',
+    source: {
+      id: 'src-maharera',
+      title: 'MahaRERA Public Project Verification Portal',
+      url: 'https://maharera.mahaonline.gov.in',
+      department: 'Maharashtra Real Estate Regulatory Authority',
+      domain: 'mahaonline.gov.in',
+      lastChecked: '2026-09-25',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-flat-stamp-duty',
+    code: 'FLAT_STAMP_DUTY',
+    title: 'Stamp Duty Assessment & e-Challan Payment (GRAS Portal)',
+    plainLanguageSummary: 'Calculate stamp duty and registration charges based on Ready Reckoner Rate (RRR) and pay online via Government Receipt Accounting System (GRAS).',
+    whyRequired: 'Mandatory under Maharashtra Stamp Act; un-stamped or under-stamped property sale deeds are legally inadmissible as evidence of ownership.',
+    authority: 'Department of Registration & Stamps (IGR Maharashtra) / Finance Department',
+    category: 'Property Taxation',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_ACQUISITION',
+    dependsOn: ['proc-flat-rera-title'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-flt-4', name: 'Draft Agreement for Sale / Sale Deed', isMandatory: true, description: 'Executed terms and consideration value' },
+      { id: 'doc-flt-5', name: 'Ready Reckoner Market Value Assessment Sheet', isMandatory: true, description: 'Calculated stamp valuation' },
+      { id: 'doc-flt-6', name: 'PAN Cards & Aadhaar of Buyer and Seller', isMandatory: true, description: 'Tax identity verification' }
+    ],
+    fee: { amount: '5% - 6% of Agreement Value + 1% Metro Cess + ₹30,000 Reg. Fee', description: 'Statutory Maharashtra stamp duty and registration tariff' },
+    estimatedTime: 'Instant online challan generation',
+    applicationMode: 'Online',
+    applicationUrl: 'https://gras.mahakosh.gov.in/',
+    source: {
+      id: 'src-gras',
+      title: 'Government Receipt Accounting System (GRAS) - Maharashtra Treasury',
+      url: 'https://gras.mahakosh.gov.in/',
+      department: 'Finance Department, Government of Maharashtra',
+      domain: 'mahakosh.gov.in',
+      lastChecked: '2026-09-25',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-flat-deed-registration',
+    code: 'FLAT_DEED_REGISTRATION',
+    title: 'Sub-Registrar Office Deed Registration & Biometric Index-II Extraction',
+    plainLanguageSummary: 'Attend Joint Sub-Registrar office or complete e-Registration with biometric Aadhaar authentication and two witnesses to receive registered Index-II.',
+    whyRequired: 'Section 17 of the Registration Act, 1908 makes registration of immovable property transactions above ₹100 compulsory to confer legal title.',
+    authority: 'Sub-Registrar of Assurances (SRO Mumbai) / IGR Maharashtra',
+    category: 'Title Registration',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_ACQUISITION',
+    dependsOn: ['proc-flat-stamp-duty'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-flt-7', name: 'Original Stamped Agreement for Sale with GRAS e-Challan & MTR-6 Receipt', isMandatory: true, description: 'Duty paid proof' },
+      { id: 'doc-flt-8', name: 'Biometric Aadhaar Authentication of Buyer, Seller & 2 Witnesses', isMandatory: true, description: 'Physical / e-KYC presence' },
+      { id: 'doc-flt-9', name: 'TDS Payment Challan (Form 26QB @ 1% for property value >= ₹50 Lakhs)', isMandatory: true, description: 'Income Tax Act 194-IA' }
+    ],
+    fee: { amount: '₹100 - ₹500 (Document handling fee)', description: 'Biometric registration scanning and Index-II generation' },
+    estimatedTime: '1 - 2 business days (Slot appointment)',
+    applicationMode: 'Hybrid',
+    applicationUrl: 'https://igrmaharashtra.gov.in',
+    source: {
+      id: 'src-igr-reg',
+      title: 'Inspector General of Registration - Public Data Entry & e-Step-in',
+      url: 'https://igrmaharashtra.gov.in',
+      department: 'Department of Registration and Stamps',
+      domain: 'igrmaharashtra.gov.in',
+      lastChecked: '2026-09-25',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-flat-property-tax-mutation',
+    code: 'FLAT_MUTATION_TRANSFER',
+    title: 'Municipal Property Tax Mutation & Society Share Certificate Transfer',
+    plainLanguageSummary: 'Submit registered Index-II to Municipal Assessment Department to update Property Tax bill name and obtain Co-op Housing Society Share Certificate.',
+    whyRequired: 'Ensures municipal tax records, utility bills, and housing society voting rights reflect you as the undisputed registered owner.',
+    authority: 'Brihanmumbai Municipal Corporation (BMC) - Assessment & Collection Dept & Co-op Housing Society',
+    category: 'Municipal Ownership Record',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_ACQUISITION',
+    dependsOn: ['proc-flat-deed-registration'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-flt-10', name: 'Registered Index-II & Sale Deed Copy', isMandatory: true, description: 'Official ownership proof' },
+      { id: 'doc-flt-11', name: 'NOC / Membership Application to Co-op Housing Society (Form 20 & 21)', isMandatory: true, description: 'Society share transfer' },
+      { id: 'doc-flt-12', name: 'Latest Paid Municipal Property Tax Receipt', isMandatory: true, description: 'Zero dues confirmation' }
+    ],
+    fee: { amount: '₹500 (Society transfer fee max under Bye-laws) + ₹100 Municipal mutation fee', description: 'Statutory municipal mutation and society membership tariff' },
+    estimatedTime: '15 - 30 working days',
+    applicationMode: 'Hybrid',
+    applicationUrl: 'https://ptaxportal.mcgm.gov.in/ptax/',
+    source: {
+      id: 'src-bmc-ptax',
+      title: 'BMC Citizen Portal - Property Tax Mutation & Transfer',
+      url: 'https://ptaxportal.mcgm.gov.in/ptax/',
+      department: 'Assessment & Collection Department, BMC',
+      domain: 'mcgm.gov.in',
+      lastChecked: '2026-09-25',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
   }
 ];

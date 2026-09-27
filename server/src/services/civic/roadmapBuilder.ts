@@ -239,7 +239,11 @@ export function buildRoadmap(
   } else if (goal.intent === 'REGISTER_VEHICLE') {
     journeyTitle = `New ${goal.entities.vehicleType || 'Vehicle'} Registration Roadmap — ${goal.location.city}`;
   } else if (goal.intent === 'BUILD_PROPERTY') {
-    journeyTitle = `Residential Property Construction Sanction Roadmap — ${goal.location.city}`;
+    if (goal.domain === 'PROPERTY_ACQUISITION' || goal.activity === 'FLAT_PURCHASE') {
+      journeyTitle = `Residential Flat / Property Purchase & Registration Roadmap — ${goal.location.city}`;
+    } else {
+      journeyTitle = `Residential Property Construction Sanction Roadmap — ${goal.location.city}`;
+    }
   } else if (goal.intent === 'GET_CERTIFICATE') {
     journeyTitle = `Official ${goal.activity.replace(/_/g, ' ')} Issuance Pathway — ${goal.location.city}`;
   }
@@ -259,6 +263,9 @@ export function buildRoadmap(
     readyDocuments: 0,
     lastUpdated: new Date().toISOString().split('T')[0],
     status: 'In Progress',
+    isFallback: goal.isFallback ?? false,
+    engine: goal.engine ?? 'DETERMINISTIC_CIVIC_ENGINE',
+    fallbackReason: goal.fallbackReason,
     steps
   };
 

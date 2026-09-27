@@ -27,6 +27,7 @@ interface CitizenHomeDashboardProps {
 }
 
 export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
+  journey,
   onGoToJourney,
   onGoToTab,
   onSearch,
@@ -145,9 +146,20 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
             <div className="w-10 h-10 rounded-xl bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Compass className="w-5 h-5" />
             </div>
-            <h5 className="text-xs font-extrabold text-[#11261F] dark:text-white group-hover:text-[#1B4D3E] dark:group-hover:text-[#6EE7B7]">
-              My Active Journey
-            </h5>
+            <div className="flex items-center justify-between gap-1">
+              <h5 className="text-xs font-extrabold text-[#11261F] dark:text-white group-hover:text-[#1B4D3E] dark:group-hover:text-[#6EE7B7]">
+                My Active Journey
+              </h5>
+              {journey?.isFallback ? (
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  ⚡ Fallback
+                </span>
+              ) : journey ? (
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  ✨ AI Live
+                </span>
+              ) : null}
+            </div>
             <p className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC] mt-1 leading-relaxed">
               Open the interactive step-by-step flowchart with dependency rules.
             </p>

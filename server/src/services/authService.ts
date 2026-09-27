@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { db } from '../db/database.js';
+import { dbClient } from '../db/database.js';
 import { JWT_SECRET, AuthUser } from '../middleware/authMiddleware.js';
 import { CivicJourney } from '../types.js';
 
@@ -12,24 +12,26 @@ export interface UserRow {
   created_at: string;
 }
 
-export function registerUser(name: string, email: string, password: string): { user: AuthUser; token: string } {
+export async function registerUser(name: string, email: string, password: string): Promise<{ user: AuthUser; token: string }> {
   const normalizedEmail = email.trim().toLowerCase();
   
   // Check if exists
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(normalizedEmail);
-  if (existing) {
+  const existingResult = await dbClient.execute({
+    sql: 'SELECT id FROM users WHERE email = ?',
+    args: [normalizedEmail]
+  });
+  
+  if (existingResult.rows.length > 0) {
     throw new Error('An account with this email address already exists.');
   }
 
   const id = `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const passwordHash = bcrypt.hashSync(password, 10);
 
-  db.prepare('INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)').run(
-    id,
-    name.trim(),
-    normalizedEmail,
-    passwordHash
-  );
+  await dbClient.execute({
+    sql: 'INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)',
+    args: [id, name.trim(), normalizedEmail, passwordHash]
+  });
 
   const user: AuthUser = { id, name: name.trim(), email: normalizedEmail };
   const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
@@ -37,13 +39,18 @@ export function registerUser(name: string, email: string, password: string): { u
   return { user, token };
 }
 
-export function loginUser(email: string, password: string): { user: AuthUser; token: string; savedJourney?: CivicJourney } {
+export async function loginUser(email: string, password: string): Promise<{ user: AuthUser; token: string; savedJourney?: CivicJourney }> {
   const normalizedEmail = email.trim().toLowerCase();
-  const row = db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail) as UserRow | undefined;
+  const result = await dbClient.execute({
+    sql: 'SELECT * FROM users WHERE email = ?',
+    args: [normalizedEmail]
+  });
 
-  if (!row) {
+  if (result.rows.length === 0) {
     throw new Error('Invalid email or password.');
   }
+
+  const row = result.rows[0] as unknown as UserRow;
 
   const isMatch = bcrypt.compareSync(password, row.password_hash);
   if (!isMatch) {
@@ -55,10 +62,15 @@ export function loginUser(email: string, password: string): { user: AuthUser; to
 
   // Hydrate saved journey if present
   let savedJourney: CivicJourney | undefined;
-  const journeyRow = db.prepare('SELECT journey_data FROM user_journeys WHERE user_id = ?').get(row.id) as { journey_data: string } | undefined;
-  if (journeyRow) {
+  const journeyResult = await dbClient.execute({
+    sql: 'SELECT journey_data FROM user_journeys WHERE user_id = ?',
+    args: [row.id]
+  });
+
+  if (journeyResult.rows.length > 0) {
+    const rawData = journeyResult.rows[0].journey_data as string;
     try {
-      savedJourney = JSON.parse(journeyRow.journey_data);
+      savedJourney = JSON.parse(rawData);
     } catch (e) {
       console.error('Failed to parse saved journey for user', row.id);
     }
@@ -67,37 +79,47 @@ export function loginUser(email: string, password: string): { user: AuthUser; to
   return { user, token, savedJourney };
 }
 
-export function saveUserJourney(userId: string, journey: CivicJourney): void {
+export async function saveUserJourney(userId: string, journey: CivicJourney): Promise<void> {
   const journeyJson = JSON.stringify(journey);
-  db.prepare(`
-    INSERT INTO user_journeys (user_id, journey_data, updated_at)
-    VALUES (?, ?, CURRENT_TIMESTAMP)
-    ON CONFLICT(user_id) DO UPDATE SET
-      journey_data = excluded.journey_data,
-      updated_at = CURRENT_TIMESTAMP
-  `).run(userId, journeyJson);
+  await dbClient.execute({
+    sql: `
+      INSERT INTO user_journeys (user_id, journey_data, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(user_id) DO UPDATE SET
+        journey_data = excluded.journey_data,
+        updated_at = CURRENT_TIMESTAMP
+    `,
+    args: [userId, journeyJson]
+  });
 }
 
-export function getUserJourney(userId: string): CivicJourney | null {
-  const row = db.prepare('SELECT journey_data FROM user_journeys WHERE user_id = ?').get(userId) as { journey_data: string } | undefined;
-  if (!row) return null;
+export async function getUserJourney(userId: string): Promise<CivicJourney | null> {
+  const result = await dbClient.execute({
+    sql: 'SELECT journey_data FROM user_journeys WHERE user_id = ?',
+    args: [userId]
+  });
+
+  if (result.rows.length === 0) return null;
   try {
-    return JSON.parse(row.journey_data);
+    return JSON.parse(result.rows[0].journey_data as string);
   } catch {
     return null;
   }
 }
 
 // Seed default demo account if not exists
-export function seedDefaultUser() {
+export async function seedDefaultUser() {
   const email = 'bhumika@dishasaathi.gov.in';
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-  if (!existing) {
-    try {
-      const { user } = registerUser('Bhumika Sharma', email, 'citizen123');
+  try {
+    const existing = await dbClient.execute({
+      sql: 'SELECT id FROM users WHERE email = ?',
+      args: [email]
+    });
+    if (existing.rows.length === 0) {
+      const { user } = await registerUser('Bhumika Sharma', email, 'citizen123');
       console.log('[Auth] Seeded demo user account:', user.email);
-    } catch (err) {
-      // Ignore if exists
     }
+  } catch (err: any) {
+    // Ignore if table not ready or duplicate
   }
 }

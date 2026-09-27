@@ -260,11 +260,28 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                 <circle cx="12" cy="10" r="3"/>
               </svg>
             </div>
-            <h3 className="text-base font-bold text-[#11261F] tracking-tight">
+            <h3 className="text-base font-bold text-[#11261F] dark:text-[#E2ECE7] tracking-tight">
               Interactive Civic Roadmap
             </h3>
+            {journey.isFallback ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60 text-[11px] font-bold shadow-2xs"
+                title="Generated via DishaSaathi Deterministic Statutory Gazette Engine (Offline Direct Mode)"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-pulse" />
+                <span>⚡ Fallback: Statutory Gazette Engine</span>
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60 text-[11px] font-bold shadow-2xs"
+                title="Synthesized live with Gemini Generative AI"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>✨ AI-Powered: Direct Neural Analysis</span>
+              </span>
+            )}
           </div>
-          <p className="text-xs text-[#6C8075] mt-0.5 font-normal">
+          <p className="text-xs text-[#6C8075] dark:text-[#90A79C] mt-0.5 font-normal">
             Understand first. Act second. Synthesized from authoritative regulatory sources.
           </p>
         </div>

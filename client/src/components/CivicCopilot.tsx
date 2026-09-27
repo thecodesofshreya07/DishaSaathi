@@ -20,6 +20,8 @@ interface Message {
   uncertaintyNotice?: string;
   nextActionRecommendation?: string;
   suggestedFollowUps?: string[];
+  isFallback?: boolean;
+  engine?: string;
   timestamp: string;
 }
 
@@ -100,6 +102,8 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
           uncertaintyNotice: data.uncertaintyNotice,
           nextActionRecommendation: data.nextActionRecommendation,
           suggestedFollowUps: data.suggestedFollowUps,
+          isFallback: data.isFallback,
+          engine: data.engine,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         setMessages((prev) => [...prev, assistantMsg]);
@@ -116,6 +120,8 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
       sender: 'assistant',
       text: `For Step ${activeStep?.stepNumber || 1}: ${activeStep?.title}, applications are processed by ${activeStep?.authority || 'the designated department'}. Make sure all required identity and address documents are assembled before submission.`,
       basedOnText: `Based on Step ${activeStep?.stepNumber || 1} (${activeStep?.authority})`,
+      isFallback: true,
+      engine: 'STATUTORY_GAZETTE_FALLBACK',
       evidence: activeStep ? {
         procedureName: activeStep.title,
         authority: activeStep.authority || activeStep.department,
@@ -214,6 +220,26 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
                   : 'bg-white text-[#11261F] border border-[#E2EAE5] rounded-bl-2xs'
               }`}
             >
+              {/* Engine Badge for Assistant */}
+              {m.sender === 'assistant' && (
+                <div className="flex items-center justify-between gap-1 mb-1.5 pb-1 border-b border-black/5">
+                  <span className="font-bold text-[10px] text-[#1B4D3E] flex items-center gap-1">
+                    <Compass className="w-3 h-3 text-[#1B4D3E]" />
+                    DishaSaathi Copilot
+                  </span>
+                  {m.isFallback ? (
+                    <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-800 border border-amber-300">
+                      ⚡ Statutory Fallback
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-0.5">
+                      <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                      ✨ Live AI
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Message text with basic bullet formatting */}
               <div className="whitespace-pre-line space-y-1">
                 {m.text}

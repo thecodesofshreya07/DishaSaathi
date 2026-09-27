@@ -30,6 +30,8 @@ interface ExcerptData {
   exemptionsOrThresholds?: string;
   authorityName?: string;
   portalLink?: string;
+  isFallback?: boolean;
+  engine?: string;
 }
 
 export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
@@ -105,10 +107,16 @@ export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E] flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  AI Verified Rule Extract
-                </span>
+                {excerpt?.isFallback ? (
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-300 flex items-center gap-1">
+                    ⚡ Statutory Fallback Extract
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E] flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-500" />
+                    ✨ AI Verified Rule Extract
+                  </span>
+                )}
                 <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
                   Authoritative
                 </span>

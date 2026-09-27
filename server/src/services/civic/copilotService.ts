@@ -132,7 +132,128 @@ export async function answerCopilotQuery({
     ? `Based on ${activeStep.title} (${activeStep.authority || activeStep.department}).`
     : `Based on your ${journey.title} roadmap.`;
 
-  // 4. "What should I do next?" / "What is my next step?" (NEXT_ACTION)
+  // 4. Live Multi-Model AI Generation (Grok xAI / OpenAI / Google Gemini)
+  const grokKey = process.env.GROK_API_KEY || process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  const stepsSummary = steps.map((s) => 
+    `Step ${s.stepNumber}: ${s.title} (${s.authority || s.department}) | Status: ${s.status} | Mode: ${s.applicationMode} | Fee: ${s.fee.amount} | Time: ${s.processingTime} | Docs: [${s.documents.map(d => d.name + (d.status === 'READY' ? ' [Ready]' : ' [Missing]')).join(', ')}] | Prerequisites: [${s.prerequisites.join(', ')}]`
+  ).join('\n');
+
+  const prompt = `You are DishaSaathi, India's premier AI Civic Companion and Government Service Navigator.
+A citizen is asking a question while navigating their personalized civic roadmap:
+Roadmap: "${journey.title}"
+Location: ${journey.location}
+Category: ${journey.category}
+Active / Focused Step: Step ${activeStep?.stepNumber || 1}: "${activeStep?.title || 'Initial Milestone'}" (${activeStep?.authority || 'Government Authority'})
+Why required: "${activeStep?.whyRequired || 'Statutory legal compliance'}"
+Plain language summary: "${activeStep?.plainLanguageSummary || ''}"
+Official Portal: ${activeStep?.applicationUrl || 'https://india.gov.in'}
+
+All Steps in this Roadmap:
+${stepsSummary}
+
+Citizen Question: "${question}"
+
+GUIDELINES:
+1. Provide a direct, empathetic, and clear response (2-3 concise paragraphs or bullet points).
+2. Answer specifically for their situation, location (${journey.location}), and statutory requirements.
+3. If they ask about documents, next actions, parallel steps, tax, compliance, or portal links, give precise factual details.
+4. Do NOT make up non-existent laws or fake penalties.
+5. Provide 3 short, relevant suggested follow-up questions.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "answer": "Your comprehensive, clear response with markdown formatting (bolding, bullet points)",
+  "responseType": "ANSWER" | "NEXT_ACTION" | "DOCUMENT_GUIDANCE" | "SOURCE_REQUIRED",
+  "uncertaintyNotice": "Optional note if external municipal verification is advised, else omit",
+  "nextActionRecommendation": "Crisp one-sentence next step recommendation",
+  "suggestedFollowUps": ["Question 1", "Question 2", "Question 3"]
+}`;
+
+  // A. Try Grok / OpenAI endpoint if configured
+  if (grokKey) {
+    try {
+      const endpoint = process.env.GROK_API_KEY 
+        ? 'https://api.x.ai/v1/chat/completions' 
+        : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions');
+      const model = process.env.GROK_MODEL || (process.env.GROK_API_KEY ? 'grok-2-latest' : 'gpt-4o-mini');
+
+      const grokRes = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${grokKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: 'You are DishaSaathi Civic Copilot. Output only valid JSON.' },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: 'json_object' }
+        })
+      });
+
+      if (grokRes.ok) {
+        const data: any = await grokRes.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          const parsed = JSON.parse(content);
+          return {
+            answer: parsed.answer,
+            responseType: parsed.responseType || 'ANSWER',
+            evidence,
+            basedOnText,
+            uncertaintyNotice: parsed.uncertaintyNotice,
+            nextActionRecommendation: parsed.nextActionRecommendation,
+            suggestedFollowUps: parsed.suggestedFollowUps || ['What should I do next?', 'What documents am I missing?'],
+            isFallback: false,
+            engine: 'AI_GEN_GEMINI'
+          };
+        }
+      }
+    } catch (grokErr) {
+      console.warn('[DishaSaathi] Grok/OpenAI API call error:', grokErr);
+    }
+  }
+
+  // B. Try Google Gemini API
+  if (geminiKey) {
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
+
+      const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json'
+        }
+      });
+
+      if (response && response.text) {
+        const parsed = JSON.parse(response.text);
+        return {
+          answer: parsed.answer,
+          responseType: parsed.responseType || 'ANSWER',
+          evidence,
+          basedOnText,
+          uncertaintyNotice: parsed.uncertaintyNotice,
+          nextActionRecommendation: parsed.nextActionRecommendation,
+          suggestedFollowUps: parsed.suggestedFollowUps || ['What should I do next?', 'What documents am I missing?'],
+          isFallback: false,
+          engine: 'AI_GEN_GEMINI'
+        };
+      }
+    } catch (aiErr: any) {
+      console.warn('[DishaSaathi] Gemini AI Copilot rate limit or 503 spike, using deterministic civic reasoning:', aiErr?.message || aiErr);
+    }
+  }
+
+  // 5. DETERMINISTIC REASONING FALLBACK (When AI is rate-limited or offline)
+  // "What should I do next?" / "What is my next step?" (NEXT_ACTION)
   if (
     qLower.includes('next') ||
     qLower.includes('what should i do') ||
@@ -364,6 +485,8 @@ export async function answerCopilotQuery({
       : `DishaSaathi is tracking ${journey.totalSteps} steps for "${journey.title}" in ${journey.location}. Ask any question about next steps, documents, or portal links.`,
     evidence,
     basedOnText,
+    isFallback: true,
+    engine: 'STATUTORY_GAZETTE_FALLBACK',
     suggestedFollowUps: [
       'What should I do next?',
       'What documents am I missing?',

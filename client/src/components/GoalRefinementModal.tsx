@@ -51,6 +51,57 @@ export const GoalRefinementModal: React.FC<GoalRefinementModalProps> = ({
     }
   };
 
+  // Dynamic presets based on citizen's goal keywords
+  const getContextPresets = () => {
+    const q = goalText.toLowerCase();
+    if (q.includes('flat') || q.includes('apartment') || q.includes('buy') || q.includes('property') || q.includes('rera') || q.includes('house')) {
+      return [
+        'Ready-to-move resale apartment / flat',
+        'Under-construction MahaRERA developer project',
+        'Direct builder primary booking with home loan',
+        'Co-op housing society flat transfer'
+      ];
+    }
+    if (q.includes('vehicle') || q.includes('bike') || q.includes('car') || q.includes('rto') || q.includes('transport') || q.includes('scooter')) {
+      return [
+        'Brand new personal two-wheeler (Scooter / Bike)',
+        'New four-wheeler passenger vehicle / EV',
+        'Commercial transport / taxi / cargo registration',
+        'Pre-owned vehicle ownership transfer'
+      ];
+    }
+    if (q.includes('build') || q.includes('construct') || q.includes('autodcr') || q.includes('iod') || q.includes('sanction')) {
+      return [
+        'Single-family residential bungalow (< 3 floors)',
+        'Multi-storey residential building development',
+        'Commercial office / retail complex',
+        'Plot layout sanction & boundary wall'
+      ];
+    }
+    if (q.includes('birth') || q.includes('death') || q.includes('income') || q.includes('caste') || q.includes('certificate')) {
+      return [
+        'Standard timely application (< 21 days from event)',
+        'Delayed registration with SDM / Magistrate order',
+        'Name inclusion & digital certificate reissue',
+        'DigiLocker synchronization & apostille'
+      ];
+    }
+    if (q.includes('bakery') || q.includes('food') || q.includes('cafe') || q.includes('restaurant') || q.includes('sweet') || q.includes('kitchen')) {
+      return [
+        'Small / home-based cloud bakery (< ₹12L turnover)',
+        'Commercial dine-in restaurant / cafe with seating',
+        'Large food processing & wholesale factory',
+        'Mobile food truck / street kiosk'
+      ];
+    }
+    return [
+      'Micro / home-based sole proprietorship',
+      'Small commercial retail store / office',
+      'Private Limited startup / LLP venture',
+      'Large commercial or industrial enterprise'
+    ];
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-2xs animate-in fade-in duration-150">
       <div className="bg-white rounded-3xl max-w-xl w-full border border-[#D5E3DB] shadow-2xl overflow-hidden flex flex-col font-sans max-h-[90vh]">
@@ -90,7 +141,7 @@ export const GoalRefinementModal: React.FC<GoalRefinementModalProps> = ({
                   onChange={(e) => setGoalText(e.target.value)}
                   rows={2}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#D5E3DB] text-xs text-[#11261F] focus:outline-hidden focus:ring-2 focus:ring-[#1B4D3E] bg-[#F8FAF9]"
-                  placeholder="e.g., I want to start a home-based cloud bakery in Mumbai."
+                  placeholder="e.g., I want to buy a 2BHK flat in Mumbai."
                   required
                 />
               </div>
@@ -126,26 +177,33 @@ export const GoalRefinementModal: React.FC<GoalRefinementModalProps> = ({
                 <label className="block text-xs font-bold text-[#11261F] mb-1.5">
                   Operating Scale & Premises Context
                 </label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {[
-                    'Small / home-based bakery',
-                    'Commercial kitchen with dine-in',
-                    'Manufacturing unit & wholesale',
-                    'Sole Proprietorship startup'
-                  ].map((preset) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-2.5">
+                  {getContextPresets().map((preset) => (
                     <button
                       type="button"
                       key={preset}
                       onClick={() => setAdditionalContext(preset)}
                       className={`p-2.5 rounded-xl border text-left font-medium transition-all cursor-pointer ${
                         additionalContext === preset
-                          ? 'border-[#1B4D3E] bg-[#EAF2ED] text-[#1B4D3E] font-bold'
+                          ? 'border-[#1B4D3E] bg-[#EAF2ED] text-[#1B4D3E] font-bold shadow-2xs'
                           : 'border-[#E2EAE5] bg-white text-[#4A5D54] hover:bg-[#F8FAF9]'
                       }`}
                     >
                       {preset}
                     </button>
                   ))}
+                </div>
+                <div className="mt-2">
+                  <label className="block text-[11px] font-semibold text-[#556960] mb-1">
+                    Or type your custom operational scale / situation:
+                  </label>
+                  <input
+                    type="text"
+                    value={additionalContext}
+                    onChange={(e) => setAdditionalContext(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-[#D5E3DB] text-xs text-[#11261F] focus:outline-hidden focus:ring-2 focus:ring-[#1B4D3E] bg-[#F8FAF9]"
+                    placeholder="e.g. 2BHK flat in redevelopment project with bank loan"
+                  />
                 </div>
               </div>
 

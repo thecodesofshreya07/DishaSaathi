@@ -52,6 +52,15 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 dark:bg-[#22C55E]/10 text-[#1B4D3E] dark:text-[#6EE7B7]">
                 {t.flowchartBadge || 'Linear & Parallel Dependencies'}
               </span>
+              {journey.isFallback ? (
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60">
+                  ⚡ Statutory Fallback
+                </span>
+              ) : (
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60">
+                  ✨ AI Verified
+                </span>
+              )}
             </h4>
             <p className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC]">
               {t.flowchartDesc || 'Interactive visual flowchart. Click any small step node to inspect statutory obligations.'}

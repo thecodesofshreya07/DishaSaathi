@@ -33,9 +33,10 @@ import {
 
 dotenv.config();
 
-// Initialize SQLite database schema and seed default citizen
-initDatabase();
-seedDefaultUser();
+// Initialize database schema and seed default citizen
+initDatabase().then(() => {
+  seedDefaultUser();
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -63,56 +64,68 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // ============================================================
-// AUTHENTICATION & PERSISTENT ACCOUNTS (SQLite DB)
+// AUTHENTICATION & PERSISTENT ACCOUNTS (Turso Cloud / SQLite DB)
 // ============================================================
 
-app.post('/api/auth/register', (req: Request, res: Response) => {
+app.post('/api/auth/register', async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
   }
   try {
-    const { user, token } = registerUser(name, email, password);
+    const { user, token } = await registerUser(name, email, password);
     res.json({ success: true, user, token });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message || 'Registration failed' });
   }
 });
 
-app.post('/api/auth/login', (req: Request, res: Response) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ success: false, error: 'Email and password are required' });
   }
   try {
-    const { user, token, savedJourney } = loginUser(email, password);
+    const { user, token, savedJourney } = await loginUser(email, password);
     res.json({ success: true, user, token, journey: savedJourney });
   } catch (err: any) {
     res.status(401).json({ success: false, error: err.message || 'Invalid credentials' });
   }
 });
 
-app.get('/api/auth/me', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/auth/me', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ success: false, error: 'Not authenticated' });
   }
-  const journey = getUserJourney(req.user.id);
-  res.json({ success: true, user: req.user, journey });
+  try {
+    const journey = await getUserJourney(req.user.id);
+    res.json({ success: true, user: req.user, journey });
+  } catch (err: any) {
+    res.json({ success: true, user: req.user, journey: null });
+  }
 });
 
 // Journey DB sync endpoints for logged-in citizens
-app.post('/api/user/journey', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+app.post('/api/user/journey', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
   const { journey } = req.body;
   if (!journey) return res.status(400).json({ success: false, error: 'Journey data required' });
-  saveUserJourney(req.user.id, journey);
-  res.json({ success: true, message: 'Journey saved to SQLite database' });
+  try {
+    await saveUserJourney(req.user.id, journey);
+    res.json({ success: true, message: 'Journey saved to cloud database' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to save journey' });
+  }
 });
 
-app.get('/api/user/journey', authMiddleware, (req: AuthenticatedRequest, res: Response) => {
+app.get('/api/user/journey', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) return res.status(401).json({ success: false, error: 'Not authenticated' });
-  const journey = getUserJourney(req.user.id);
-  res.json({ success: true, journey });
+  try {
+    const journey = await getUserJourney(req.user.id);
+    res.json({ success: true, journey });
+  } catch (err: any) {
+    res.json({ success: true, journey: null });
+  }
 });
 
 // 2. Get active civic journey
@@ -242,7 +255,7 @@ Return ONLY a valid JSON object matching this schema:
   "portalLink": "The exact deep application/regulation subpage URL"
 }`;
 
-    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
     let response: any = null;
 
     try {
@@ -284,6 +297,8 @@ Return ONLY a valid JSON object matching this schema:
         }
       }
 
+      excerpt.isFallback = false;
+      excerpt.engine = 'AI_GEN_GEMINI';
       return res.json({ success: true, excerpt });
     }
     throw new Error('Gemini AI returned empty excerpt response.');
@@ -347,7 +362,10 @@ Return ONLY a valid JSON object matching this schema:
         whatIsRequiredOfYou,
         exemptionsOrThresholds,
         authorityName: authority || 'Designated Statutory Authority',
-        portalLink
+        portalLink,
+        isFallback: true,
+        engine: 'STATUTORY_GAZETTE_FALLBACK',
+        fallbackReason: 'Verified Statutory Gazette Notification (Offline Direct)'
       }
     });
   }

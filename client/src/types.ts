@@ -42,6 +42,9 @@ export interface StructuredGoal {
   clarificationNeeded?: boolean;
   clarificationQuestion?: string;
   clarificationSuggestions?: string[];
+  isFallback?: boolean;
+  engine?: 'AI_GEN_GEMINI' | 'AI_GEN_GROQ' | 'AI_GEN_OPENROUTER' | 'DETERMINISTIC_CIVIC_ENGINE' | 'OPENAI_COMPATIBLE' | string;
+  fallbackReason?: string;
 }
 
 export type CivicDocumentCategory = 
@@ -213,6 +216,8 @@ export interface CopilotResponse {
   uncertaintyNotice?: string;
   nextActionRecommendation?: string;
   suggestedFollowUps?: string[];
+  isFallback?: boolean;
+  engine?: 'AI_GEN_GEMINI' | 'STATUTORY_GAZETTE_FALLBACK' | 'DETERMINISTIC_CIVIC_ENGINE';
 }
 
 export interface DemoScenario {
@@ -245,6 +250,9 @@ export interface CivicJourney {
   lastUpdated: string;
   status: 'In Progress' | 'Completed' | 'Pending';
   steps: ProcedureStep[];
+  isFallback?: boolean;
+  engine?: 'AI_GEN_GEMINI' | 'AI_GEN_GROQ' | 'AI_GEN_OPENROUTER' | 'DETERMINISTIC_CIVIC_ENGINE' | 'OPENAI_COMPATIBLE' | string;
+  fallbackReason?: string;
   clarification?: {
     needed: boolean;
     question: string;

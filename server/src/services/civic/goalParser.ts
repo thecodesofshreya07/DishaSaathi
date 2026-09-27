@@ -27,13 +27,16 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
   }
 
   // 1. Vehicle & Transport
+  let result: StructuredGoal;
+
+  // 1. Vehicle & Transport
   if (
     q.includes('vehicle') || q.includes('car') || q.includes('bike') || 
     q.includes('scooter') || q.includes('rto') || q.includes('driving license') || 
     q.includes('dl') || q.includes('hsrp') || q.includes('registration') && q.includes('number plate')
   ) {
     const isBike = q.includes('bike') || q.includes('two wheeler') || q.includes('scooter');
-    return {
+    result = {
       rawGoal: query,
       intent: 'REGISTER_VEHICLE',
       domain: 'TRANSPORT',
@@ -44,15 +47,30 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       confidence: 0.95,
       clarificationNeeded: false
     };
-  }
-
-  // 2. Property & Construction
-  if (
+  } else if (
+    q.includes('flat') || q.includes('apartment') || q.includes('buy house') || 
+    q.includes('buy property') || q.includes('purchase flat') || q.includes('buy flat') || 
+    q.includes('buying') && (q.includes('flat') || q.includes('house') || q.includes('property')) ||
+    q.includes('stamp duty') || q.includes('registry') || q.includes('sale deed') || 
+    q.includes('rera') || q.includes('maharera') || q.includes('resale flat')
+  ) {
+    result = {
+      rawGoal: query,
+      intent: 'BUILD_PROPERTY',
+      domain: 'PROPERTY_ACQUISITION',
+      activity: 'FLAT_PURCHASE',
+      location: { city, state, country: 'India' },
+      context: { scale: 'residential', type: 'residential_flat', additionalNotes: options?.context || '' },
+      entities: { propertyType: 'Residential Flat / Apartment' },
+      confidence: 0.95,
+      clarificationNeeded: false
+    };
+  } else if (
     q.includes('build') || q.includes('construct') || q.includes('house') || 
     q.includes('property') || q.includes('building') || q.includes('sanction') || 
     q.includes('autodcr') || q.includes('iod') || q.includes('cc') || q.includes('naksha')
   ) {
-    return {
+    result = {
       rawGoal: query,
       intent: 'BUILD_PROPERTY',
       domain: 'URBAN_DEVELOPMENT',
@@ -63,10 +81,7 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       confidence: 0.95,
       clarificationNeeded: false
     };
-  }
-
-  // 3. Certificates & Vital Records
-  if (
+  } else if (
     q.includes('certificate') || q.includes('birth') || q.includes('death') || 
     q.includes('income') || q.includes('caste') || q.includes('domicile') || q.includes('marriage')
   ) {
@@ -77,7 +92,7 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
     else if (q.includes('caste')) certType = 'Caste Certificate';
     else if (q.includes('domicile')) certType = 'Domicile Certificate';
 
-    return {
+    result = {
       rawGoal: query,
       intent: 'GET_CERTIFICATE',
       domain: 'VITAL_RECORDS',
@@ -88,15 +103,12 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       confidence: 0.95,
       clarificationNeeded: false
     };
-  }
-
-  // 4. Food Businesses (Bakery, Cafe, Restaurant, etc.)
-  const isFood = q.includes('bakery') || q.includes('cafe') || q.includes('restaurant') || 
-                 q.includes('food') || q.includes('sweet') || q.includes('hotel') || 
-                 q.includes('canteen') || q.includes('cloud kitchen') || q.includes('dhaba');
-
-  if (isFood) {
-    return {
+  } else if (
+    q.includes('bakery') || q.includes('cafe') || q.includes('restaurant') || 
+    q.includes('food') || q.includes('sweet') || q.includes('hotel') || 
+    q.includes('canteen') || q.includes('cloud kitchen') || q.includes('dhaba')
+  ) {
+    result = {
       rawGoal: query,
       intent: 'START_BUSINESS',
       domain: 'FOOD_BUSINESS',
@@ -107,11 +119,8 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       confidence: 0.95,
       clarificationNeeded: false
     };
-  }
-
-  // 5. Licenses (Fire NOC, Trade License, etc.)
-  if (q.includes('fire') || q.includes('trade license') || q.includes('noc')) {
-    return {
+  } else if (q.includes('fire') || q.includes('trade license') || q.includes('noc')) {
+    result = {
       rawGoal: query,
       intent: 'APPLY_FOR_LICENSE',
       domain: 'SAFETY_COMPLIANCE',
@@ -122,20 +131,24 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       confidence: 0.95,
       clarificationNeeded: false
     };
+  } else {
+    result = {
+      rawGoal: query,
+      intent: 'START_BUSINESS',
+      domain: 'COMMERCIAL_ENTERPRISE',
+      activity: 'GENERAL_ENTERPRISE',
+      location: { city, state, country: 'India' },
+      context: { scale: 'small', type: 'commercial', additionalNotes: options?.context || '' },
+      entities: { businessType: query || 'commercial enterprise', scale: 'micro/small' },
+      confidence: 0.90,
+      clarificationNeeded: false
+    };
   }
 
-  // 6. General Business (Retail, Tech, Agency, Clothing, Services, etc.)
-  return {
-    rawGoal: query,
-    intent: 'START_BUSINESS',
-    domain: 'COMMERCIAL_ENTERPRISE',
-    activity: 'GENERAL_ENTERPRISE',
-    location: { city, state, country: 'India' },
-    context: { scale: 'small', type: 'commercial', additionalNotes: options?.context || '' },
-    entities: { businessType: query || 'commercial enterprise', scale: 'micro/small' },
-    confidence: 0.90,
-    clarificationNeeded: false
-  };
+  result.isFallback = true;
+  result.engine = 'DETERMINISTIC_CIVIC_ENGINE';
+  result.fallbackReason = 'Verified Statutory Gazette Fallback (Offline Mode)';
+  return result;
 }
 
 export async function parseCitizenGoal(
@@ -190,33 +203,29 @@ Return ONLY a valid JSON object matching this schema:
   "clarificationNeeded": false
 }`;
 
-    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-    
-    // Make 1 single call to avoid exhausting the user's API quota
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json'
-      }
+    const { callUniversalLlm } = await import('./universalLlm.js');
+    const result = await callUniversalLlm({
+      prompt,
+      jsonMode: true
     });
 
-    if (response && response.text) {
-      const parsed = JSON.parse(response.text) as StructuredGoal;
+    if (result && result.text) {
+      const parsed = JSON.parse(result.text) as StructuredGoal;
       if (parsed.intent) {
         if (options?.locationOverride) {
           const parts = options.locationOverride.split(',').map((p) => p.trim());
           parsed.location.city = parts[0] || parsed.location.city;
           if (parts[1]) parsed.location.state = parts[1];
         }
+        parsed.isFallback = false;
+        parsed.engine = `AI_GEN_${result.provider.toUpperCase().replace(/\s+/g, '_')}`;
         return parsed;
       }
     }
 
     return parseGoalDeterministically(query, options);
   } catch (aiErr: any) {
-    console.warn('[DishaSaathi] Gemini API rate limit / error encountered. Seamlessly using intelligent civic parser without exhausting API key:', aiErr?.message || aiErr);
-    // When 429 (Resource Exhausted) or any network/API error occurs, return deterministic goal immediately without breaking the user flow
+    console.warn('[DishaSaathi] AI parser encountered error. Seamlessly using intelligent civic parser:', aiErr?.message || aiErr);
     return parseGoalDeterministically(query, options);
   }
 }

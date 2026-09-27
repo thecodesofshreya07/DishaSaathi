@@ -59,6 +59,16 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
         return proc.domain === 'TRANSPORT';
 
       case 'BUILD_PROPERTY':
+        if (
+          domain === 'PROPERTY_ACQUISITION' ||
+          activity === 'FLAT_PURCHASE' ||
+          businessType.includes('flat') ||
+          businessType.includes('apartment') ||
+          businessType.includes('buy') ||
+          businessType.includes('purchase')
+        ) {
+          return proc.domain === 'PROPERTY_ACQUISITION';
+        }
         return proc.domain === 'URBAN_DEVELOPMENT';
 
       case 'GET_CERTIFICATE':

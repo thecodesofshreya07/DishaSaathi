@@ -65,12 +65,17 @@ Regulatory Change Detection & Human-in-the-Loop Admin Review
   - `RoadmapContext`: Active journey lifecycle, step/document status toggling, and gazette diff injection.
 - **Backend**:
   - Node.js & Express
-  - TypeScript (compiled via `tsc` to CommonJS / NodeNext)
+  - TypeScript (compiled via `tsc` to NodeNext)
   - CORS middleware
   - Built-in Static File Server (serves compiled `client/dist` in production with SPA fallback)
-- **AI & Grounding**:
-  - Google Gemini API (`@google/genai` / REST)
-  - Canonical Statutory Knowledge Base (18 procedures across FSSAI Act 2006, Maharashtra Act 2017, MMC Act 1888, Central Motor Vehicles Act 1988)
+- **Database & Cloud Persistence**:
+  - **Turso Serverless Cloud Database** (`@libsql/client`) with persistent `users` and `user_journeys` tables.
+  - Zero-maintenance distributed cloud database ready for one-click deployment (Render, Vercel, Railway).
+- **AI & Multi-Provider LLM Engine**:
+  - **Priority 1: Groq Cloud** (`llama-3.3-70b-versatile` / `gpt-oss-120b` — 100% Free, high-speed reasoning)
+  - **Priority 2: OpenRouter Gateway** (Free & multi-model failover)
+  - **Priority 3: Google Gemini API** (`gemini-2.5-flash` via `@google/genai`)
+  - **Priority 4: Canonical Statutory Knowledge Base** (100% deterministic fallback grounded in 18 Indian Acts & Official State Gazettes)
 
 ### Repository Directory Structure
 ```text
