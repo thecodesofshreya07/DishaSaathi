@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, Scale, ShieldAlert, X } from 'lucide-react';
+import { Clock, ArrowLeft, Scale, ShieldAlert, X, Layers } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -19,6 +19,7 @@ import {
   SettingsView
 } from '../components/SidebarPages';
 import { ProcedureSimulatorModal } from '../components/ProcedureSimulatorModal';
+import { CompareProceduresModal } from '../components/CompareProceduresModal';
 import { StepDetailModal } from '../components/StepDetailModal';
 import { ReactFlowGraphModal } from '../components/ReactFlowGraphModal';
 import { ChangeDetectionModal } from '../components/ChangeDetectionModal';
@@ -81,6 +82,7 @@ export const RoadmapPage: React.FC = () => {
   const [selectedExcerptUpdate, setSelectedExcerptUpdate] = useState<GovernmentUpdate | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
   const [blockedStepError, setBlockedStepError] = useState<string | null>(null);
@@ -365,12 +367,21 @@ export const RoadmapPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Procedure Simulator Sandbox Trigger Button */}
-                    <div className="flex items-center gap-2">
+                    {/* Tool Action Buttons: Procedure Check & Compare */}
+                    <div className="flex items-center flex-wrap gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsCompareOpen(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-[#10231C] hover:bg-[#F0F7F4] dark:hover:bg-[#163328] border-2 border-[#1B4D3E]/40 dark:border-[#22C55E]/50 text-[#1B4D3E] dark:text-[#6EE7B7] text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer hover:scale-102 active:scale-98"
+                      >
+                        <Layers className="w-4 h-4 shrink-0 text-[#1B4D3E] dark:text-[#22C55E]" />
+                        <span>Compare Procedures</span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setIsSimulatorOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer hover:scale-102 active:scale-98"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer hover:scale-102 active:scale-98"
                       >
                         <Scale className="w-3.5 h-3.5 shrink-0" />
                         <span>Check What Happens If You Skip a Step</span>
@@ -621,6 +632,16 @@ export const RoadmapPage: React.FC = () => {
           isOpen={isSimulatorOpen}
           onClose={() => setIsSimulatorOpen(false)}
           journey={activeJourney}
+        />
+      )}
+
+      {/* I. Item 73: Side-by-Side Compare Procedures Tool */}
+      {isCompareOpen && (
+        <CompareProceduresModal
+          isOpen={isCompareOpen}
+          onClose={() => setIsCompareOpen(false)}
+          activeJourney={activeJourney}
+          onSwitchJourney={(newJourney) => setJourney(newJourney)}
         />
       )}
     </div>
