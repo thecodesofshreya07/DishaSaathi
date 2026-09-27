@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, AlertTriangle, X, ShieldAlert } from 'lucide-react';
+import { Clock, ArrowLeft, Scale, ShieldAlert, X } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -18,6 +18,7 @@ import {
   SavedView,
   SettingsView
 } from '../components/SidebarPages';
+import { ProcedureSimulatorModal } from '../components/ProcedureSimulatorModal';
 import { StepDetailModal } from '../components/StepDetailModal';
 import { ReactFlowGraphModal } from '../components/ReactFlowGraphModal';
 import { ChangeDetectionModal } from '../components/ChangeDetectionModal';
@@ -79,9 +80,57 @@ export const RoadmapPage: React.FC = () => {
   const [selectedUpdate, setSelectedUpdate] = useState<GovernmentUpdate | null>(null);
   const [selectedExcerptUpdate, setSelectedExcerptUpdate] = useState<GovernmentUpdate | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
   const [blockedStepError, setBlockedStepError] = useState<string | null>(null);
+
+  // Read state for notifications & deadlines so badge '1' disappears once opened/read
+  const [readUpdateIds, setReadUpdateIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('dishasaathi_read_updates');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [hasReadDeadlines, setHasReadDeadlines] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('dishasaathi_read_deadlines') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const markAllUpdatesAsRead = () => {
+    if (updates.length > 0) {
+      const allIds = Array.from(new Set([...readUpdateIds, ...updates.map((u) => u.id)]));
+      setReadUpdateIds(allIds);
+      localStorage.setItem('dishasaathi_read_updates', JSON.stringify(allIds));
+    }
+  };
+
+  const markDeadlinesAsRead = () => {
+    setHasReadDeadlines(true);
+    localStorage.setItem('dishasaathi_read_deadlines', 'true');
+  };
+
+  // When user is on 'updates' tab or opens modal, automatically mark updates as read
+  React.useEffect(() => {
+    if (activeTab === 'updates' || selectedUpdate || selectedExcerptUpdate) {
+      markAllUpdatesAsRead();
+    } else if (activeTab === 'deadlines') {
+      markDeadlinesAsRead();
+    }
+  }, [activeTab, selectedUpdate, selectedExcerptUpdate, updates]);
+
+  // Compute live unread counts
+  const unreadUpdatesCount = activeTab === 'updates' || selectedUpdate || selectedExcerptUpdate
+    ? 0
+    : updates.filter((u) => u.reviewStatus === 'Pending Review' && !readUpdateIds.includes(u.id)).length;
+
+  const unreadDeadlinesCount = activeTab === 'deadlines' || hasReadDeadlines ? 0 : 1;
 
   // Handle Natural Language Search
   const handleSearch = async (goal: string) => {
@@ -179,9 +228,14 @@ export const RoadmapPage: React.FC = () => {
       {/* 1. Global Navigation Bar */}
       <Navbar
         onSearch={handleSearch}
-        unreadCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
+        unreadCount={unreadUpdatesCount}
         onOpenNotifications={() => {
-          if (updates.length > 0) setSelectedUpdate(updates[0]);
+          markAllUpdatesAsRead();
+          if (updates.length > 0) {
+            setSelectedUpdate(updates[0]);
+          } else {
+            setActiveTab('updates');
+          }
         }}
         onOpenAdmin={() => setIsAdminModalOpen(true)}
       />
@@ -194,11 +248,17 @@ export const RoadmapPage: React.FC = () => {
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
-            if (tab === 'updates' && updates.length > 0) {
-              setSelectedExcerptUpdate(updates[0]);
+            if (tab === 'updates') {
+              markAllUpdatesAsRead();
+              if (updates.length > 0) {
+                setSelectedExcerptUpdate(updates[0]);
+              }
+            } else if (tab === 'deadlines') {
+              markDeadlinesAsRead();
             }
           }}
-          updatesCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
+          updatesCount={unreadUpdatesCount}
+          deadlinesCount={unreadDeadlinesCount}
         />
 
         {/* Center Main Stage Content */}
@@ -303,6 +363,18 @@ export const RoadmapPage: React.FC = () => {
                           {activeJourney.location || 'Municipal Guidance'} • {activeJourney.completedSteps || 0} of {activeJourney.totalSteps || 0} steps completed
                         </p>
                       </div>
+                    </div>
+
+                    {/* Procedure Simulator Sandbox Trigger Button */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsSimulatorOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer hover:scale-102 active:scale-98"
+                      >
+                        <Scale className="w-3.5 h-3.5 shrink-0" />
+                        <span>Check What Happens If You Skip a Step</span>
+                      </button>
                     </div>
                   </div>
 
@@ -541,6 +613,15 @@ export const RoadmapPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* H. Item 57: Procedure Simulator & What-If Sandbox Modal */}
+      {isSimulatorOpen && (
+        <ProcedureSimulatorModal
+          isOpen={isSimulatorOpen}
+          onClose={() => setIsSimulatorOpen(false)}
+          journey={activeJourney}
+        />
       )}
     </div>
   );

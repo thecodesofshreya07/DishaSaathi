@@ -11,7 +11,7 @@ interface ParseGoalOptions {
  */
 function parseGoalDeterministically(query: string, options?: ParseGoalOptions): StructuredGoal {
   const q = query.toLowerCase().trim();
-  
+
   // Extract location
   let city = 'Mumbai';
   let state = 'Maharashtra';
@@ -31,8 +31,8 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
 
   // 1. Vehicle & Transport
   if (
-    q.includes('vehicle') || q.includes('car') || q.includes('bike') || 
-    q.includes('scooter') || q.includes('rto') || q.includes('driving license') || 
+    q.includes('vehicle') || q.includes('car') || q.includes('bike') ||
+    q.includes('scooter') || q.includes('rto') || q.includes('driving license') ||
     q.includes('dl') || q.includes('hsrp') || q.includes('registration') && q.includes('number plate')
   ) {
     const isBike = q.includes('bike') || q.includes('two wheeler') || q.includes('scooter');
@@ -48,8 +48,8 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
-    q.includes('rent') || q.includes('lease') || q.includes('tenant') || 
-    q.includes('leave and license') || q.includes('leave & license') || 
+    q.includes('rent') || q.includes('lease') || q.includes('tenant') ||
+    q.includes('leave and license') || q.includes('leave & license') ||
     q.includes('pg') || q.includes('sublet') || q.includes('rental')
   ) {
     result = {
@@ -64,10 +64,10 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
-    q.includes('flat') || q.includes('apartment') || q.includes('buy house') || 
-    q.includes('buy property') || q.includes('purchase flat') || q.includes('buy flat') || 
+    q.includes('flat') || q.includes('apartment') || q.includes('buy house') ||
+    q.includes('buy property') || q.includes('purchase flat') || q.includes('buy flat') ||
     q.includes('buying') && (q.includes('flat') || q.includes('house') || q.includes('property')) ||
-    q.includes('stamp duty') || q.includes('registry') || q.includes('sale deed') || 
+    q.includes('stamp duty') || q.includes('registry') || q.includes('sale deed') ||
     q.includes('rera') || q.includes('maharera') || q.includes('resale flat')
   ) {
     result = {
@@ -82,8 +82,8 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
-    q.includes('build') || q.includes('construct') || q.includes('house') || 
-    q.includes('property') || q.includes('building') || q.includes('sanction') || 
+    q.includes('build') || q.includes('construct') || q.includes('house') ||
+    q.includes('property') || q.includes('building') || q.includes('sanction') ||
     q.includes('autodcr') || q.includes('iod') || q.includes('cc') || q.includes('naksha')
   ) {
     result = {
@@ -98,7 +98,7 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
-    q.includes('certificate') || q.includes('birth') || q.includes('death') || 
+    q.includes('certificate') || q.includes('birth') || q.includes('death') ||
     q.includes('income') || q.includes('caste') || q.includes('domicile') || q.includes('marriage')
   ) {
     let certType = 'Birth Certificate';
@@ -120,8 +120,8 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
-    q.includes('bakery') || q.includes('cafe') || q.includes('restaurant') || 
-    q.includes('food') || q.includes('sweet') || q.includes('hotel') || 
+    q.includes('bakery') || q.includes('cafe') || q.includes('restaurant') ||
+    q.includes('food') || q.includes('sweet') || q.includes('hotel') ||
     q.includes('canteen') || q.includes('cloud kitchen') || q.includes('dhaba')
   ) {
     result = {
@@ -184,7 +184,6 @@ export async function parseCitizenGoal(
   }
 
   try {
-
     const prompt = `You are DishaSaathi's Civic Intent & Entity Recognition Engine for Indian Government Procedures.
 Analyze the user's natural-language civic query: "${query}".
 Location provided by user: "${options?.locationOverride || 'Unspecified'}".
@@ -242,8 +241,8 @@ Return ONLY a valid JSON object matching this schema:
         // Post-processing normalization for high fidelity mapping
         const qLower = query.toLowerCase();
         if (
-          qLower.includes('rent') || qLower.includes('lease') || qLower.includes('tenant') || 
-          qLower.includes('leave and license') || qLower.includes('leave & license') || 
+          qLower.includes('rent') || qLower.includes('lease') || qLower.includes('tenant') ||
+          qLower.includes('leave and license') || qLower.includes('leave & license') ||
           qLower.includes('pg') || qLower.includes('sublet') || qLower.includes('rental')
         ) {
           parsed.intent = 'PROPERTY_RENTAL';
@@ -251,7 +250,7 @@ Return ONLY a valid JSON object matching this schema:
           parsed.activity = 'RENTAL_AGREEMENT';
           parsed.clarificationNeeded = false;
         } else if (
-          (qLower.includes('buy') || qLower.includes('purchase')) && 
+          (qLower.includes('buy') || qLower.includes('purchase')) &&
           (qLower.includes('flat') || qLower.includes('house') || qLower.includes('apartment') || qLower.includes('property'))
         ) {
           parsed.intent = 'BUILD_PROPERTY';

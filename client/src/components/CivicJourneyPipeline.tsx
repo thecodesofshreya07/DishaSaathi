@@ -3,9 +3,7 @@ import {
   Briefcase,
   MapPin,
   Check,
-  Clock,
   Lock,
-  ArrowRight,
   Network,
   FileText,
   Building2,
@@ -15,17 +13,14 @@ import {
   HelpCircle,
   Zap,
   ShieldCheck,
-  Info,
   Eye,
   Sliders,
   BookOpen,
   RefreshCw,
-  Layers,
   CheckCircle2,
-  MessageSquare,
-  AlertTriangle
+  MessageSquare
 } from 'lucide-react';
-import { CivicJourney, ProcedureStep, CivicVerificationStatus } from '../types';
+import { CivicJourney, ProcedureStep } from '../types';
 import { useRoadmap } from '../context/RoadmapContext';
 import { useLanguage } from '../context/LanguageContext';
 import { GoalRefinementModal } from './GoalRefinementModal';

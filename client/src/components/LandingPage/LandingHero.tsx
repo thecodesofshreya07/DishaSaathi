@@ -1,313 +1,314 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, Sparkles, FileCheck2, Send, CheckCircle2, Building2,
-  TrendingUp, Clock, BookOpen, ShieldCheck, ChevronRight, Play
+  ArrowRight,
+  Globe,
+  FileText,
+  Building2,
+  FileSpreadsheet,
+  MapPin,
+  AlertTriangle,
+  ShieldCheck,
+  Calendar,
+  Volume2,
+  UserCheck,
+  Check
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
-
-interface ImpactMetrics {
-  totalProcedures: number;
-  visitsSaved: number;
-  hoursSaved: number;
-  verifiedProcedures: number;
-}
-
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
-
-/* ── Ashoka Chakra SVG watermark ── */
-const AshokaChakaWatermark: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 200 200" className={className} fill="none">
-    <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="6" fill="none"/>
-    <circle cx="100" cy="100" r="14" fill="currentColor"/>
-    <circle cx="100" cy="100" r="72" stroke="currentColor" strokeWidth="3" fill="none"/>
-    {Array.from({ length: 24 }).map((_, i) => {
-      const angle = (i * 360) / 24;
-      const rad = (angle * Math.PI) / 180;
-      const x1 = 100 + 16 * Math.cos(rad);
-      const y1 = 100 + 16 * Math.sin(rad);
-      const x2 = 100 + 70 * Math.cos(rad);
-      const y2 = 100 + 70 * Math.sin(rad);
-      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>;
-    })}
-  </svg>
-);
 
 export const LandingHero: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [metrics, setMetrics] = useState<ImpactMetrics | null>(null);
-  const [activeStep, setActiveStep] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetch(`${API_BASE}/api/metrics/impact`)
-      .then(r => r.json())
-      .then(data => { if (data.success) setMetrics(data.metrics); })
-      .catch(() => setMetrics({ totalProcedures: 18, visitsSaved: 22, hoursSaved: 77, verifiedProcedures: 18 }));
-  }, []);
-
-  // Cycle through pipeline steps for animation
-  useEffect(() => {
-    const id = setInterval(() => setActiveStep(p => (p + 1) % 5), 2200);
-    return () => clearInterval(id);
-  }, []);
-
-  const pipeline = [
-    { label: 'Goal', icon: Sparkles, saffron: true },
-    { label: 'Documents', icon: FileCheck2, saffron: false },
-    { label: 'Apply', icon: Send, saffron: false },
-    { label: 'Approval', icon: Building2, saffron: false },
-    { label: 'Done', icon: CheckCircle2, saffron: false },
+  const sampleQueries = [
+    t.heroPopBirth,
+    t.heroPopBusiness,
+    t.heroPopProperty,
+    t.heroPopWater,
+    t.heroPopTrade
   ];
 
-  const stats = [
-    {
-      value: metrics ? `${metrics.visitsSaved}+` : '22+',
-      label: t.impactVisits,
-      description: t.impactVisitsDesc || 'Avoided redundant trips to municipal ward offices & departments',
-      icon: TrendingUp,
-      color: '#FF9933',
-      bg: '#FFF4E6'
-    },
-    {
-      value: metrics ? `${metrics.hoursSaved}+` : '77+',
-      label: t.impactHours,
-      description: t.impactHoursDesc || 'Estimated citizen time saved navigating confusing queues and paperwork',
-      icon: Clock,
-      color: '#138808',
-      bg: '#E8F5E9'
-    },
-    {
-      value: metrics ? `${metrics.totalProcedures}` : '18',
-      label: t.impactProcedures,
-      description: t.impactProceduresDesc || 'Civic procedures mapped across municipal, state & central ministries',
-      icon: BookOpen,
-      color: '#000080',
-      bg: '#E8EAF6'
-    },
-    {
-      value: metrics ? `${metrics.verifiedProcedures}/${metrics.totalProcedures}` : '18/18',
-      label: t.impactVerified,
-      description: t.impactVerifiedDesc || '100% verified against active gazettes, statutory acts and official .gov.in portals',
-      icon: ShieldCheck,
-      color: '#138808',
-      bg: '#E8F5E9'
-    },
-  ];
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = searchQuery.trim() || t.heroInputPlaceholder;
+    navigate('/create', { state: { initialQuery: query } });
+  };
 
-  const goals = [
-    '"I want to open a restaurant in Pune"',
-    '"I want to register my startup in Delhi"',
-    '"I want a birth certificate in Mumbai"',
-    '"I want a trade license in Bengaluru"',
-  ];
-  const [goalIdx, setGoalIdx] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setGoalIdx(p => (p + 1) % goals.length), 3000);
-    return () => clearInterval(id);
-  }, []);
+  const handleChipClick = (query: string) => {
+    navigate('/create', { state: { initialQuery: `I want to apply for ${query}` } });
+  };
 
   return (
-    <section className="relative overflow-hidden bg-[#FAFCF9]">
-      {/* ── BACKGROUND ── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Subtle Ashoka Chakra watermark */}
-        <AshokaChakaWatermark className="absolute -right-20 top-8 w-[400px] h-[400px] text-[#000080] opacity-[0.03]"/>
-      </div>
-
-      {/* ── TRICOLOR TOP STRIPE ── */}
-      <div className="relative z-10 flex h-[3px]">
-        <div className="flex-1 bg-[#FF9933]"/>
-        <div className="flex-1 bg-white border-y border-[#E2E8E4]"/>
-        <div className="flex-1 bg-[#138808]"/>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8 lg:pt-20 lg:pb-12">
-
-        {/* ────────────────── HERO CENTER TEXT ────────────────── */}
-        <div className="text-center max-w-4xl mx-auto">
-
-          {/* Badge with Ashoka mini-chakra */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#D5E2DB] bg-white mb-7 shadow-xs">
-            <svg viewBox="0 0 20 20" className="w-5 h-5 flex-shrink-0" fill="none">
-              <circle cx="10" cy="10" r="8" stroke="#000080" strokeWidth="1.5"/>
-              <circle cx="10" cy="10" r="2" fill="#000080"/>
-              {Array.from({ length: 24 }).map((_, i) => {
-                const a = (i * 360) / 24, r = (a * Math.PI) / 180;
-                return <line key={i} x1={10 + 2.5 * Math.cos(r)} y1={10 + 2.5 * Math.sin(r)}
-                  x2={10 + 7 * Math.cos(r)} y2={10 + 7 * Math.sin(r)}
-                  stroke="#000080" strokeWidth="0.8" strokeLinecap="round"/>;
-              })}
-            </svg>
-            <span className="text-xs font-bold text-[#1B4D3E] tracking-wide">
-               AI-Powered Civic Guidance for Every Indian Citizen
-            </span>
-            <span className="w-2 h-2 rounded-full bg-[#138808] animate-pulse"/>
-          </div>
-
-          {/* Main headline */}
-          <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-black text-[#0D1F1A] tracking-tight leading-[1.08] mb-6">
-            <span className="block text-[#0D1F1A]">सरकारी काम</span>
-            <span className="block mt-1 text-[#1B4D3E]">
-              आसान हो जाए।
-            </span>
-            <span className="block text-3xl sm:text-4xl lg:text-5xl mt-3 text-[#2D6A4F] font-bold">
-              We'll show you exactly how.
-            </span>
-          </h1>
-
-          {/* Animated goal preview */}
-          <div className="flex items-center justify-center gap-3 mb-7">
-            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-white border border-[#E0E8E4] shadow-xs min-w-[340px] justify-center">
-              <div className="w-2 h-2 rounded-full bg-[#1B4D3E] animate-pulse flex-shrink-0"/>
-              <span className="text-sm font-semibold text-[#1B4D3E] italic transition-all duration-500">
-                {goals[goalIdx]}
-              </span>
+    <section className="relative overflow-hidden bg-[#F9FAF8] pt-8 sm:pt-14 pb-12 sm:pb-16 border-b border-[#E5EAE7]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* ── TOP HERO SPLIT: LEFT TEXT/SEARCH + RIGHT CONNECTED SOURCES CARD ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10 sm:mb-16">
+          {/* Left Column: Heading, Subtitle, Search Console */}
+          <div className="lg:col-span-6 space-y-4 sm:space-y-5 text-left">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#EAF2ED] text-[#1B4D3E] text-xs font-bold border border-[#D1E2D8]">
+              <span>{t.heroBadge}</span>
             </div>
-          </div>
 
-          <p className="text-base sm:text-lg text-[#4A5D54] leading-relaxed font-normal max-w-2xl mx-auto mb-10">
-            DishaSaathi converts your natural-language civic goal into a verified, dependency-aware, jurisdiction-specific roadmap — powered by official .gov.in sources.
-          </p>
+            <h1 className="text-3xl sm:text-4xl lg:text-[3.2rem] font-extrabold text-[#0D1F1A] tracking-tight leading-[1.12]">
+              {t.heroHeadline1}<br />
+              {t.heroHeadline2}
+            </h1>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-            <button onClick={() => navigate('/create')}
-              className="group w-full sm:w-auto px-8 py-4 rounded-full text-white text-base font-bold flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg bg-[#1B4D3E] hover:bg-[#133A2E] active:scale-98 cursor-pointer">
-              <span>Create My Civic Roadmap</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform"/>
-            </button>
+            <p className="text-sm sm:text-base lg:text-lg text-[#4A5D54] leading-relaxed max-w-xl font-normal">
+              {t.heroSubtext}
+            </p>
 
-            <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-              className="w-full sm:w-auto px-7 py-4 rounded-full border border-[#D5E2DB] bg-white text-[#1B4D3E] text-base font-bold flex items-center justify-center gap-2 hover:bg-[#F3F7F5] transition-all cursor-pointer">
-              <Play className="w-4 h-4 fill-[#1B4D3E]"/>
-              <span>See How It Works</span>
-            </button>
-          </div>
+            {/* Search Input Bar Capsule */}
+            <div className="pt-2 max-w-xl">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="p-1.5 bg-white rounded-full border border-[#CBD7D0] shadow-sm focus-within:border-[#1B4D3E] focus-within:ring-2 focus-within:ring-[#1B4D3E]/10 transition-all flex items-center justify-between gap-2"
+              >
+                <div className="flex-1 flex items-center pl-3 sm:pl-4 gap-2 sm:gap-3 min-w-0">
+                  <span className="text-[#1B4D3E] text-base font-bold shrink-0">✦</span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t.heroInputPlaceholder}
+                    className="w-full text-xs sm:text-sm text-[#0D1F1A] placeholder:text-slate-400 focus:outline-hidden bg-transparent font-medium"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center cursor-pointer shrink-0 transition-transform active:scale-95 shadow-xs"
+                  aria-label="Search"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
 
-          {/* Trust dots */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-[#6C8075]">
-            {['No jargon needed', 'Ward-level municipal rules', 'Official .gov.in sources', 'Free · No signup'].map((item, i) => (
-              <span key={i} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: i % 2 === 0 ? '#FF9933' : '#138808' }}/>
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* ────────────────── IMPACT STAT STRIP ────────────────── */}
-        <div className="mt-14 max-w-5xl mx-auto">
-          <div className="rounded-3xl border border-[#E0EBE4] bg-white shadow-md overflow-hidden">
-            {/* Tricolor top strip */}
-            <div className="flex h-1">
-              <div className="flex-1" style={{ background: '#FF9933' }}/>
-              <div className="flex-1 bg-[#000080]"/>
-              <div className="flex-1 bg-[#138808]"/>
-            </div>
-            <div className="px-6 py-5">
-              <p className="text-[11px] font-black uppercase tracking-widest text-center text-[#7C6534] mb-5">
-                 Impact at a Glance 
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {stats.map(s => {
-                  const Icon = s.icon;
-                  return (
-                    <div key={s.label} className="flex flex-col items-center text-center gap-1.5 p-3.5 sm:p-4 rounded-2xl transition-all hover:scale-[1.02] shadow-2xs"
-                      style={{ background: s.bg }}>
-                      <Icon className="w-5 h-5" style={{ color: s.color }}/>
-                      <span className="text-2xl sm:text-3xl font-black leading-none" style={{ color: s.color }}>
-                        {s.value}
-                      </span>
-                      <span className="text-xs font-bold text-[#11261F] leading-tight">
-                        {s.label}
-                      </span>
-                      <p className="text-[10px] sm:text-[11px] text-[#556960] leading-snug font-medium mt-0.5">
-                        {s.description}
-                      </p>
-                    </div>
-                  );
-                })}
+              {/* Try Asking Chips */}
+              <div className="flex items-center gap-1.5 flex-wrap mt-3 text-xs">
+                <span className="text-slate-500 font-medium mr-1 text-[11px] sm:text-xs">{t.heroTryAsking}</span>
+                {sampleQueries.map((q, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleChipClick(q)}
+                    className="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold text-[#3B4D44] bg-white border border-[#D8E2DC] hover:border-[#1B4D3E] hover:text-[#1B4D3E] transition-all cursor-pointer shadow-2xs"
+                  >
+                    {q}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* ────────────────── ANIMATED PIPELINE CARD ────────────────── */}
-        <div className="mt-8 max-w-5xl mx-auto">
-          <div className="rounded-3xl border border-[#E0EBE4] bg-white shadow-xs p-6 sm:p-8 relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-7">
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#7C6534]">
-                  Civic Pipeline
-                </p>
-                <h3 className="text-lg sm:text-xl font-black text-[#0D1F1A] mt-0.5">
-                  Your Goal → Verified Civic Roadmap
-                </h3>
-              </div>
-              <span className="text-xs font-bold px-3 py-1.5 rounded-full border border-[#FF9933]/40 text-[#B85C00] bg-[#FFF4E6] self-start sm:self-auto whitespace-nowrap">
-                5-Stage AI Process
-              </span>
-            </div>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-4 sm:gap-6 pt-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => navigate('/create')}
+                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+              >
+                <span>{t.heroCTA}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
 
-            {/* Animated pipeline steps */}
-            <div className="grid grid-cols-5 gap-2 sm:gap-3">
-              {pipeline.map((step, idx) => {
-                const Icon = step.icon;
-                const isActive = idx === activeStep;
-                const isPast = idx < activeStep;
-                return (
-                  <div key={step.label} className="flex flex-col items-center gap-2 relative">
-                    {/* Connector line */}
-                    {idx < pipeline.length - 1 && (
-                      <div className="absolute top-6 left-[calc(50%+18px)] w-[calc(100%-36px)] h-0.5 rounded-full transition-all duration-500"
-                        style={{ background: isPast ? '#138808' : '#E5ECE8' }}/>
-                    )}
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${
-                      isActive
-                        ? 'scale-115 shadow-md border-[#1B4D3E] bg-[#1B4D3E]'
-                        : isPast
-                          ? 'border-[#138808] bg-[#138808]'
-                          : 'border-[#E2ECE7] bg-[#F5FAF7]'
-                    }`}>
-                      <Icon className={`w-5 h-5 transition-all duration-300 ${
-                        isActive ? 'text-white' : isPast ? 'text-white' : 'text-[#8C9B94]'
-                      }`}/>
-                    </div>
-                    <span className={`text-[11px] font-bold text-center transition-all duration-300 leading-tight ${
-                      isActive ? 'text-[#E07B00]' : isPast ? 'text-[#138808]' : 'text-[#8C9B94]'
-                    }`}>
-                      {step.label}
-                    </span>
-                    <span className={`text-[10px] font-extrabold rounded-full px-1.5 py-0.5 transition-all ${
-                      isActive ? 'bg-[#FFF4E6] text-[#B85C00]' : isPast ? 'bg-[#E8F5E9] text-[#138808]' : 'bg-[#F0F4F2] text-[#8C9B94]'
-                    }`}>
-                      0{idx + 1}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-7 pt-4 border-t border-[#EDF2EE] flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-xs text-[#6C8075] flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#FF9933] animate-pulse"/>
-                <span>Live Engine: <strong className="text-[#0D1F1A]">Statutory Procedure Resolution</strong> → Multi-department sequential dependencies mapped</span>
-              </p>
-              <button onClick={() => navigate('/create')}
-                className="text-xs font-bold text-[#138808] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap">
-                Try your goal <ChevronRight className="w-3.5 h-3.5"/>
+              <button
+                type="button"
+                onClick={() => {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-xs sm:text-sm font-bold text-[#3B4D44] hover:text-[#1B4D3E] transition-colors cursor-pointer py-1"
+              >
+                {t.heroExploreServices}
               </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* ── WAVE DIVIDER (saffron → white) ── */}
-      <div className="relative z-10 w-full overflow-hidden leading-none mt-4" style={{ height: '60px' }}>
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
-          <path d="M0,0 C360,60 1080,0 1440,60 L1440,60 L0,60 Z" fill="#fff"/>
-        </svg>
+          {/* Right Column: Visual Converging Graph Diagram Card */}
+          <div className="lg:col-span-6 relative w-full overflow-hidden">
+            <div className="relative bg-gradient-to-b from-[#F2F7F4] via-[#F8FAF9] to-[#FFFFFF] rounded-3xl border border-[#DCE4DF] p-4 sm:p-7 shadow-xs overflow-hidden">
+              
+              {/* Converging Diagram with Precise Curved Connecting Lines */}
+              <div className="relative z-10 min-h-[280px] sm:min-h-[310px]">
+                {/* SVG Connecting Bezier Paths */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none hidden sm:block stroke-[#7DA294]/60 fill-none"
+                  viewBox="0 0 520 300"
+                  preserveAspectRatio="none"
+                >
+                  {/* 6 Left Paths converging to center (260, 145) */}
+                  <path d="M 180 34 C 220 34, 230 145, 240 145" strokeWidth="1.4" />
+                  <path d="M 180 76 C 220 76, 235 145, 240 145" strokeWidth="1.4" />
+                  <path d="M 180 118 C 215 118, 235 145, 240 145" strokeWidth="1.4" />
+                  <path d="M 180 160 C 215 160, 235 145, 240 145" strokeWidth="1.4" />
+                  <path d="M 180 202 C 220 202, 235 145, 240 145" strokeWidth="1.4" />
+                  <path d="M 180 244 C 220 244, 230 145, 240 145" strokeWidth="1.4" />
+
+                  {/* 5 Right Paths diverging from center (280, 145) to right checklist */}
+                  <path d="M 280 145 C 300 145, 310 40, 345 40" strokeWidth="1.4" />
+                  <path d="M 280 145 C 300 145, 315 88, 345 88" strokeWidth="1.4" />
+                  <path d="M 280 145 C 310 145, 325 136, 345 136" strokeWidth="1.4" />
+                  <path d="M 280 145 C 300 145, 315 184, 345 184" strokeWidth="1.4" />
+                  <path d="M 280 145 C 300 145, 310 232, 345 232" strokeWidth="1.4" strokeDasharray="3,3" />
+                </svg>
+
+                <div className="grid grid-cols-12 gap-1.5 sm:gap-2 items-center relative z-20">
+                  {/* Left Column: 6 Source Pills */}
+                  <div className="col-span-5 space-y-1.5 sm:space-y-2 text-left">
+                    <div className="text-[10px] sm:text-[11px] font-bold text-[#5A6D64] mb-1 sm:mb-2 truncate">
+                      {t.fromManySources}
+                    </div>
+                    {[
+                      { icon: Globe, label: t.srcPortal, sub: t.srcPortalSub, color: 'text-emerald-700' },
+                      { icon: FileText, label: t.srcPdf, sub: t.srcPdfSub, color: 'text-rose-600' },
+                      { icon: Building2, label: t.srcDept, sub: t.srcDeptSub, color: 'text-teal-700' },
+                      { icon: FileSpreadsheet, label: t.srcApp, sub: t.srcAppSub, color: 'text-emerald-800' },
+                      { icon: MapPin, label: t.srcMuni, sub: t.srcMuniSub, color: 'text-emerald-700' },
+                      { icon: AlertTriangle, label: t.srcCirc, sub: t.srcCircSub, color: 'text-amber-600' },
+                    ].map((src, idx) => {
+                      const Icon = src.icon;
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-white border border-[#E0EBE4] shadow-2xs text-left transition-transform hover:scale-[1.02]"
+                        >
+                          <Icon className={`w-3 sm:w-3.5 h-3 sm:h-3.5 ${src.color} shrink-0`} />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[9px] sm:text-[11px] font-bold text-[#2D3E35] leading-tight truncate">{src.label}</div>
+                            <div className="text-[8px] sm:text-[9px] text-[#7A8E85] leading-none mt-0.5 truncate hidden sm:block">{src.sub}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Center Column: Hub Logo Badge */}
+                  <div className="col-span-2 flex flex-col items-center justify-center relative my-auto">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white p-1.5 sm:p-2 flex items-center justify-center shadow-lg relative z-30 border-2 border-[#1B4D3E]/20 ring-2 sm:ring-4 ring-[#1B4D3E]/10">
+                      <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <span className="text-[9px] sm:text-[11px] font-extrabold text-[#1B4D3E] mt-1 tracking-tight text-center">
+                      DishaSaathi
+                    </span>
+                  </div>
+
+                  {/* Right Column: 5 Milestone Checklist Items */}
+                  <div className="col-span-5 space-y-2 sm:space-y-3.5 text-left pl-1 sm:pl-4 relative">
+                    <div className="text-[10px] sm:text-[11px] font-bold text-[#1B4D3E] mb-1 sm:mb-2 truncate">
+                      {t.toClearJourney}
+                    </div>
+
+                    {[
+                      { label: t.stepEligibility, done: true },
+                      { label: t.stepDocs, done: true },
+                      { label: t.stepReg, done: true },
+                      { label: t.stepAppr, done: true },
+                      { label: t.stepComp, done: false },
+                    ].map((step, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 sm:gap-2.5 text-[10px] sm:text-xs font-semibold text-[#2D3E35]">
+                        {step.done ? (
+                          <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <Check className="w-2 sm:w-2.5 h-2 sm:h-2.5 stroke-[3]" />
+                          </div>
+                        ) : (
+                          <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-slate-300 bg-white shrink-0" />
+                        )}
+                        <span className={`truncate ${step.done ? 'text-[#0D1F1A] font-bold' : 'text-slate-500'}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Floating Hand-drawn Note: "Same goal. Less confusion." */}
+                    <div className="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 translate-x-2 text-right pointer-events-none">
+                      <span className="text-[11px] italic font-serif text-[#1B4D3E]/80 whitespace-nowrap block">
+                        {t.sameGoalNote}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Indian Monuments Illustrated Skyline Banner across Card Bottom */}
+              <div className="mt-4 -mx-4 sm:-mx-7 -mb-4 sm:-mb-7 relative h-24 sm:h-32 overflow-hidden border-t border-[#E8ECE9]">
+                <img
+                  src="/images/hero-monuments.jpg"
+                  alt="Indian Heritage Architecture"
+                  className="w-full h-full object-cover object-bottom"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-[#F2F7F4]/15 to-[#F2F7F4]/80" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── TRUST PILLARS RIBBON: "Built around official information" ── */}
+        <div className="pt-6 sm:pt-8 border-t border-[#E5EAE7]">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-center">
+            <div className="md:col-span-3 text-left">
+              <h3 className="text-xs sm:text-sm font-extrabold text-[#0D1F1A] leading-tight">
+                {t.trustTitle}
+              </h3>
+            </div>
+
+            <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 text-left">
+              {/* Pillar 1 */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#0D1F1A]">
+                  <FileText className="w-3.5 h-3.5 text-[#1B4D3E] shrink-0" />
+                  <span className="truncate">{t.trustP1Title}</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-[#5A6D64] leading-tight">
+                  {t.trustP1Desc}
+                </p>
+              </div>
+
+              {/* Pillar 2 */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#0D1F1A]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#1B4D3E] shrink-0" />
+                  <span className="truncate">{t.trustP2Title}</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-[#5A6D64] leading-tight">
+                  {t.trustP2Desc}
+                </p>
+              </div>
+
+              {/* Pillar 3 */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#0D1F1A]">
+                  <Calendar className="w-3.5 h-3.5 text-[#1B4D3E] shrink-0" />
+                  <span className="truncate">{t.trustP3Title}</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-[#5A6D64] leading-tight">
+                  {t.trustP3Desc}
+                </p>
+              </div>
+
+              {/* Pillar 4 */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#0D1F1A]">
+                  <Volume2 className="w-3.5 h-3.5 text-[#1B4D3E] shrink-0" />
+                  <span className="truncate">{t.trustP4Title}</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-[#5A6D64] leading-tight">
+                  {t.trustP4Desc}
+                </p>
+              </div>
+
+              {/* Pillar 5 */}
+              <div className="space-y-1 col-span-2 sm:col-span-1">
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-[#0D1F1A]">
+                  <UserCheck className="w-3.5 h-3.5 text-[#1B4D3E] shrink-0" />
+                  <span className="truncate">{t.trustP5Title}</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-[#5A6D64] leading-tight">
+                  {t.trustP5Desc}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

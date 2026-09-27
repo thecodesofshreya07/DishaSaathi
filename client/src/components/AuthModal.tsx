@@ -66,8 +66,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="p-5 bg-gradient-to-r from-[#1B4D3E] to-[#143B2F] text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center border border-white/20">
-              <ShieldCheck className="w-5 h-5 text-emerald-300" />
+            <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center border border-white/20 overflow-hidden shadow-xs">
+              <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h3 className="font-extrabold text-base tracking-tight">

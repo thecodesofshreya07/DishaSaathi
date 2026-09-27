@@ -86,8 +86,8 @@ export const AuthPage: React.FC = () => {
       {/* Top Header */}
       <header className="bg-white border-b border-[#E2EBE5] px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-[#1B4D3E] flex items-center justify-center text-white font-black text-sm shadow-xs">
-            DS
+          <div className="w-9 h-9 rounded-xl bg-white border border-[#E0EBE4] p-0.5 flex items-center justify-center shadow-xs overflow-hidden">
+            <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="font-extrabold text-base tracking-tight text-[#11261F] block leading-tight">

@@ -3,10 +3,7 @@ import {
   X,
   Send,
   Compass,
-  ExternalLink,
   Layers,
-  Sparkles,
-  ShieldCheck,
   AlertCircle
 } from 'lucide-react';
 import { CivicJourney, CopilotResponse } from '../types';

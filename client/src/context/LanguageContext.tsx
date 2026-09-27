@@ -7,8 +7,11 @@ export interface LanguageStrings {
   brandName: string;
   brandTagline: string;
   navHowItWorks: string;
-  navFeatures: string;
+  navExploreServices: string;
+  navGovUpdates: string;
   navAbout: string;
+  navSignIn: string;
+  navStartJourney: string;
   navViewRoadmap: string;
   navCreateRoadmap: string;
   adminReview: string;
@@ -29,65 +32,141 @@ export interface LanguageStrings {
   sidebarQuoteTitle: string;
   sidebarQuoteDesc: string;
 
-  // Hero Section & Maze Banner
-  heroWelcomeBack: string;
-  heroMazeTitle1: string;
-  heroMazeTitle2: string;
-  heroMazeSubtitle: string;
+  // Hero Section
+  heroBadge: string;
+  heroHeadline1: string;
+  heroHeadline2: string;
+  heroSubtext: string;
   heroInputPlaceholder: string;
-  heroPopularSearches: string;
-  heroTaglinePossibilities: string;
+  heroTryAsking: string;
   heroPopBusiness: string;
   heroPopBirth: string;
   heroPopProperty: string;
   heroPopWater: string;
   heroPopTrade: string;
-
-  heroBadge: string;
-  heroHeadline1: string;
-  heroHeadline2: string;
-  heroSubtext: string;
   heroCTA: string;
-  heroSeekHow: string;
-  heroTrust1: string;
-  heroTrust2: string;
-  heroTrust3: string;
-  heroTrust4: string;
+  heroExploreServices: string;
 
-  // Flowchart
-  flowchartTitle: string;
-  flowchartBadge: string;
-  flowchartDesc: string;
-  flowchartCompleted: string;
-  flowchartCurrent: string;
-  flowchartUpcoming: string;
-  flowchartBlocked: string;
+  // Hero Diagram
+  fromManySources: string;
+  toClearJourney: string;
+  srcPortal: string;
+  srcPortalSub: string;
+  srcPdf: string;
+  srcPdfSub: string;
+  srcDept: string;
+  srcDeptSub: string;
+  srcApp: string;
+  srcAppSub: string;
+  srcMuni: string;
+  srcMuniSub: string;
+  srcCirc: string;
+  srcCircSub: string;
+  stepEligibility: string;
+  stepDocs: string;
+  stepReg: string;
+  stepAppr: string;
+  stepComp: string;
+  sameGoalNote: string;
 
-  // Pipeline
-  pipelineGoal: string;
-  pipelineGoalDesc: string;
-  pipelineDocs: string;
-  pipelineDocsDesc: string;
-  pipelineApp: string;
-  pipelineAppDesc: string;
-  pipelineApproval: string;
-  pipelineApprovalDesc: string;
-  pipelineCompletion: string;
-  pipelineCompletionDesc: string;
-  pipelineTitle: string;
-  pipelineSubtitle: string;
-  pipelineTestBtn: string;
+  // Trust Pillars
+  trustTitle: string;
+  trustP1Title: string;
+  trustP1Desc: string;
+  trustP2Title: string;
+  trustP2Desc: string;
+  trustP3Title: string;
+  trustP3Desc: string;
+  trustP4Title: string;
+  trustP4Desc: string;
+  trustP5Title: string;
+  trustP5Desc: string;
 
-  // Impact Numbers
-  impactVisits: string;
-  impactVisitsDesc: string;
-  impactHours: string;
-  impactHoursDesc: string;
-  impactProcedures: string;
-  impactProceduresDesc: string;
-  impactVerified: string;
-  impactVerifiedDesc: string;
-  impactLabel: string;
+  // Problem & Solution Section
+  problemTitle: string;
+  problemSubtext: string;
+  badgePortals: string;
+  badgeForms: string;
+  badgePdfs: string;
+  badgeNotifs: string;
+  badgeDepts: string;
+  badgeTerms: string;
+  solveTitle: string;
+  solveSub: string;
+  step1Search: string;
+  step1Desc: string;
+  step2Und: string;
+  step2Desc: string;
+  step3Conn: string;
+  step3Desc: string;
+  step4Comp: string;
+  step4Desc: string;
+
+  // Experience Section (4 Cards)
+  expTitle: string;
+  expSubtitle: string;
+  card1Title: string;
+  card1Desc: string;
+  card1Query: string;
+  card2Title: string;
+  card2Desc: string;
+  card2Req: string;
+  card2Loc: string;
+  card2Goal: string;
+  card3Title: string;
+  card3Desc: string;
+  card3Shop: string;
+  card4Title: string;
+  card4Desc: string;
+  card4Alert: string;
+  card4AlertDesc: string;
+  card4Btn: string;
+
+  // Rules Change Section
+  rulesTitle1: string;
+  rulesTitle2: string;
+  rulesSubtitle: string;
+  btnHowItWorks: string;
+  before: string;
+  after: string;
+  reqDocs: string;
+  docIdentity: string;
+  docAddress: string;
+  docBusiness: string;
+  docPhoto: string;
+  newTag: string;
+  newReqAlert: string;
+  photoRequired: string;
+  btnWhatChanged: string;
+
+  // Features Grid
+  featTitle: string;
+  featSubtitle: string;
+  f1Title: string;
+  f1Desc: string;
+  f2Title: string;
+  f2Desc: string;
+  f3Title: string;
+  f3Desc: string;
+  f4Title: string;
+  f4Desc: string;
+  learnMore: string;
+
+  // FAQ Section
+  faqTitle: string;
+  faqSubtitle: string;
+
+  // Call to Action Banner & Footer
+  ctaTitle: string;
+  ctaSubtitle: string;
+  ctaPlaceholder: string;
+  ctaNoForms: string;
+  ctaHandwritten: string;
+  footerDisclaimer: string;
+  footerAccessibility: string;
+  footerPrivacy: string;
+  footerTerms: string;
+  btnSignUp: string;
 
   // Roadmap & Step Details
   yourNextStep: string;
@@ -110,15 +189,13 @@ export interface LanguageStrings {
   processingTime: string;
   applicationMode: string;
 
-  // Filters
+  // Filters & Actions
   filterAll: string;
   filterToDo: string;
   filterCompleted: string;
   filterBlocked: string;
   filterDocuments: string;
   showingSteps: string;
-
-  // Document Checklist & Actions
   docsReady: string;
   applyForDoc: string;
   haveDoc: string;
@@ -137,15 +214,38 @@ export interface LanguageStrings {
   documentReadiness: string;
   backToHome: string;
   resetRoadmap: string;
+
+  // Impact & Flowchart & Hero Banner
+  impactProcedures: string;
+  impactProceduresDesc: string;
+  impactVerified: string;
+  impactVerifiedDesc: string;
+  impactVisits: string;
+  impactVisitsDesc: string;
+  impactHours: string;
+  impactHoursDesc: string;
+  heroTaglinePossibilities: string;
+  heroWelcomeBack: string;
+  heroPopularSearches: string;
+  flowchartTitle: string;
+  flowchartBadge: string;
+  flowchartDesc: string;
+  flowchartCompleted: string;
+  flowchartCurrent: string;
+  flowchartUpcoming: string;
+  flowchartBlocked: string;
 }
 
 const translations: Record<Language, LanguageStrings> = {
   en: {
     brandName: 'DishaSaathi',
     brandTagline: 'Your GPS for Government Services',
-    navHowItWorks: 'How It Works',
-    navFeatures: 'Features',
+    navHowItWorks: 'How it Works',
+    navExploreServices: 'Explore Services',
+    navGovUpdates: 'Government Updates',
     navAbout: 'About',
+    navSignIn: 'Sign In',
+    navStartJourney: 'Start Your Journey',
     navViewRoadmap: 'View Active Roadmap',
     navCreateRoadmap: 'Create My Roadmap',
     adminReview: 'Admin Review',
@@ -165,62 +265,132 @@ const translations: Record<Language, LanguageStrings> = {
     sidebarQuoteTitle: 'Less confusion. More action.',
     sidebarQuoteDesc: 'DishaSaathi simplifies government processes with verified information, clear steps and real-time updates.',
 
-    heroWelcomeBack: 'WELCOME BACK',
-    heroMazeTitle1: 'Government processes',
-    heroMazeTitle2: "shouldn't feel like a maze.",
-    heroMazeSubtitle: "Tell us what you're trying to do. DishaSaathi turns fragmented government information into one clear, verified roadmap.",
-    heroInputPlaceholder: 'What are you trying to accomplish?',
-    heroPopularSearches: 'Popular searches:',
-    heroTaglinePossibilities: 'Simpler Steps. Greater Possibilities.',
-    heroPopBusiness: 'Register a small business',
+    heroBadge: 'Simpler • Faster • Trusted',
+    heroHeadline1: 'Government processes',
+    heroHeadline2: 'shouldn’t feel like a maze.',
+    heroSubtext: 'Tell us what you’re trying to do. DishaSaathi turns fragmented government information into one clear, verified journey.',
+    heroInputPlaceholder: 'I want to start a small business in Mumbai',
+    heroTryAsking: 'Try asking:',
     heroPopBirth: 'Birth Certificate',
-    heroPopProperty: 'Property Title Registration',
-    heroPopWater: 'New Water Connection',
-    heroPopTrade: 'Municipal Trade License',
+    heroPopBusiness: 'Start a Business',
+    heroPopProperty: 'Property Registration',
+    heroPopWater: 'Water Connection',
+    heroPopTrade: 'Trade License',
+    heroCTA: 'Build My Roadmap',
+    heroExploreServices: 'Explore Government Services',
 
-    heroBadge: 'Civic Guidance Engine for Indian Municipal & State Services',
-    heroHeadline1: 'Tell us what you want to do.',
-    heroHeadline2: "We'll show you how to get there.",
-    heroSubtext:
-      'DishaSaathi turns complicated government procedures into a personalized, verified roadmap of actions, required documents, prerequisite dependencies and departmental approvals.',
-    heroCTA: 'Create My Roadmap',
-    heroSeekHow: 'See How It Works',
-    heroTrust1: 'No legal or department jargon needed',
-    heroTrust2: 'Ward-specific municipal rules',
-    heroTrust3: 'Grounded in official .gov.in sources',
-    heroTrust4: 'Free · No signup required',
+    fromManySources: 'From many sources...',
+    toClearJourney: '...to one clear journey',
+    srcPortal: 'Government Portal',
+    srcPortalSub: 'Websites & Portals',
+    srcPdf: 'PDF Notification',
+    srcPdfSub: 'Notices & Circulars',
+    srcDept: 'Department Website',
+    srcDeptSub: 'Information & Forms',
+    srcApp: 'Application Form',
+    srcAppSub: 'Download & Fill',
+    srcMuni: 'Municipal Service',
+    srcMuniSub: 'Local Bodies',
+    srcCirc: 'Government Circular',
+    srcCircSub: 'Policy Updates',
+    stepEligibility: 'Eligibility',
+    stepDocs: 'Documents',
+    stepReg: 'Registration',
+    stepAppr: 'Approval',
+    stepComp: 'Completed',
+    sameGoalNote: 'Same goal. Less confusion.',
 
-    flowchartTitle: 'Civic Procedure Flowchart',
-    flowchartBadge: 'Linear & Parallel Dependencies',
-    flowchartDesc: 'Interactive visual flowchart. Click any small step node to inspect statutory obligations.',
-    flowchartCompleted: 'Completed',
-    flowchartCurrent: 'Current',
-    flowchartUpcoming: 'Upcoming',
-    flowchartBlocked: 'Blocked',
+    trustTitle: 'Built around official information',
+    trustP1Title: 'Official sources',
+    trustP1Desc: 'Direct links to government portals',
+    trustP2Title: 'Source verification',
+    trustP2Desc: 'Trusted & authentic information',
+    trustP3Title: 'Latest updates',
+    trustP3Desc: 'Real-time rule & policy changes',
+    trustP4Title: 'Clear explanations',
+    trustP4Desc: 'Simple, easy to understand',
+    trustP5Title: 'Personalized journeys',
+    trustP5Desc: 'Tailored to your needs',
 
-    pipelineGoal: 'Goal',
-    pipelineGoalDesc: 'Natural language task intake',
-    pipelineDocs: 'Documents',
-    pipelineDocsDesc: 'Prerequisites & checklist verification',
-    pipelineApp: 'Application',
-    pipelineAppDesc: 'Official single-window portal filings',
-    pipelineApproval: 'Approval',
-    pipelineApprovalDesc: 'Municipal NOC & departmental sign-off',
-    pipelineCompletion: 'Completion',
-    pipelineCompletionDesc: 'Lawful license & active compliance',
-    pipelineTitle: 'Interactive Civic Pipeline',
-    pipelineSubtitle: 'How fragmented bureaucracy becomes a structured journey',
-    pipelineTestBtn: 'Test your own goal',
+    problemTitle: "Government information is everywhere. The right path isn't.",
+    problemSubtext: 'Information is scattered across multiple departments, websites, forms and notifications. DishaSaathi brings the relevant information together and turns it into one understandable journey.',
+    badgePortals: 'Multiple websites and portals',
+    badgeForms: 'Various forms',
+    badgePdfs: 'PDFs & circulars',
+    badgeNotifs: 'Notifications & updates',
+    badgeDepts: 'Different departments',
+    badgeTerms: 'Different terminology',
+    solveTitle: 'How DishaSaathi solves it',
+    solveSub: 'One goal. A clear path.',
+    step1Search: 'Search',
+    step1Desc: 'Tell us what you want to do',
+    step2Und: 'Understand',
+    step2Desc: 'We analyze your intent',
+    step3Conn: 'Connect',
+    step3Desc: 'Find relevant government sources',
+    step4Comp: 'Complete',
+    step4Desc: 'Get your step-by-step roadmap',
 
-    impactVisits: 'Visits Saved',
-    impactVisitsDesc: 'Avoided redundant trips to municipal ward offices & government counters',
-    impactHours: 'Hours Saved',
-    impactHoursDesc: 'Estimated citizen time saved navigating confusing queues and paperwork',
-    impactProcedures: 'Procedures Mapped',
-    impactProceduresDesc: 'Government services mapped across municipal, state & central ministries',
-    impactVerified: 'Verified Sources',
-    impactVerifiedDesc: '100% verified against active gazettes, statutory acts and official .gov.in portals',
-    impactLabel: 'What DishaSaathi saves citizens',
+    expTitle: 'The DishaSaathi Experience',
+    expSubtitle: 'From a simple question to a clear, step-by-step journey.',
+    card1Title: 'Tell us what you need',
+    card1Desc: 'Use natural language to share your goal.',
+    card1Query: 'I want to open a small bakery in Mumbai',
+    card2Title: 'DishaSaathi understands',
+    card2Desc: 'We analyze your intent and find the right information.',
+    card2Req: 'Your request: Start Food Business',
+    card2Loc: 'Location: Mumbai',
+    card2Goal: 'Business registration + required permissions',
+    card3Title: 'Your journey is created',
+    card3Desc: 'Get a personalized roadmap with all steps, documents and departments.',
+    card3Shop: 'Shop & Establishment',
+    card4Title: 'Stay updated',
+    card4Desc: 'Get notified when there are changes in rules, fees or documents.',
+    card4Alert: 'Government update detected',
+    card4AlertDesc: 'An additional document is now required for this procedure.',
+    card4Btn: 'Update My Journey',
+
+    rulesTitle1: 'Government rules change.',
+    rulesTitle2: 'Your roadmap should too.',
+    rulesSubtitle: 'Get real-time updates on new rules, fees, documents and procedures — so you never miss an important change.',
+    btnHowItWorks: 'See How It Works',
+    before: 'Before',
+    after: 'After',
+    reqDocs: 'Required documents:',
+    docIdentity: 'Identity Proof',
+    docAddress: 'Address Proof',
+    docBusiness: 'Business Details',
+    docPhoto: 'Photograph',
+    newTag: 'New',
+    newReqAlert: 'New requirement detected',
+    photoRequired: 'Photograph now required for this registration.',
+    btnWhatChanged: 'See What Changed',
+
+    featTitle: 'Powerful features for a smoother journey',
+    featSubtitle: 'Everything you need, in one place.',
+    f1Title: 'Clear Roadmaps',
+    f1Desc: 'Turn complicated procedures into easy visual journeys.',
+    f2Title: 'Verified Information',
+    f2Desc: 'Every requirement connects back to its official source.',
+    f3Title: 'Stay Updated',
+    f3Desc: 'Know when fees, documents, rules or procedures change.',
+    f4Title: 'Your Civic Journey',
+    f4Desc: 'Save, resume, share and track your progress.',
+    learnMore: 'Learn more',
+
+    faqTitle: 'Frequently Asked Questions',
+    faqSubtitle: 'Everything you need to know about how DishaSaathi works and its features.',
+
+    ctaTitle: 'Start with what you need to do.',
+    ctaSubtitle: "Tell DishaSaathi your goal. We'll help you understand the path.",
+    ctaPlaceholder: 'What are you trying to accomplish?',
+    ctaNoForms: 'No complicated forms to begin. Just tell us what you need.',
+    ctaHandwritten: 'Your journey to easier services starts here.',
+    footerDisclaimer: 'Information is provided with links to official sources. Always verify requirements with the relevant government authority before submitting an application.',
+    footerAccessibility: 'Accessibility',
+    footerPrivacy: 'Privacy Policy',
+    footerTerms: 'Terms of Service',
+    btnSignUp: 'Sign Up',
 
     yourNextStep: 'YOUR NEXT STEP',
     whyThisMatters: 'Why this matters:',
@@ -248,7 +418,6 @@ const translations: Record<Language, LanguageStrings> = {
     filterBlocked: 'Blocked',
     filterDocuments: 'Documents',
     showingSteps: 'Showing',
-
     docsReady: 'ready',
     applyForDoc: 'Apply for this document ↗',
     haveDoc: 'I have this document',
@@ -267,14 +436,36 @@ const translations: Record<Language, LanguageStrings> = {
     documentReadiness: 'Document Readiness',
     backToHome: 'Back to Home',
     resetRoadmap: 'Reset Journey',
+
+    impactProcedures: 'Procedures Mapped',
+    impactProceduresDesc: 'Civic procedures mapped across municipal, state & central ministries.',
+    impactVerified: 'Verified Sources',
+    impactVerifiedDesc: '100% verified against active gazettes, statutory acts and official .gov.in portals.',
+    impactVisits: 'Visits Saved',
+    impactVisitsDesc: 'Avoided redundant trips to municipal ward offices & departments.',
+    impactHours: 'Citizen Hours Saved',
+    impactHoursDesc: 'Estimated citizen time saved navigating confusing queues and paperwork.',
+    heroTaglinePossibilities: 'Simpler Steps. Greater Possibilities.',
+    heroWelcomeBack: 'WELCOME BACK',
+    heroPopularSearches: 'Popular searches:',
+    flowchartTitle: 'Civic Procedure Flowchart',
+    flowchartBadge: 'Linear & Parallel Dependencies',
+    flowchartDesc: 'Interactive visual flowchart. Click any small step node to inspect statutory obligations.',
+    flowchartCompleted: 'Completed',
+    flowchartCurrent: 'Current',
+    flowchartUpcoming: 'Upcoming',
+    flowchartBlocked: 'Blocked',
   },
 
   hi: {
     brandName: 'DishaSaathi',
     brandTagline: 'सरकारी सेवाओं के लिए आपका जीपीएस',
     navHowItWorks: 'यह कैसे काम करता है',
-    navFeatures: 'विशेषताएं',
+    navExploreServices: 'सेवाएं देखें',
+    navGovUpdates: 'सरकारी अपडेट',
     navAbout: 'के बारे में',
+    navSignIn: 'साइन इन करें',
+    navStartJourney: 'अपनी यात्रा शुरू करें',
     navViewRoadmap: 'सक्रिय रोडमैप देखें',
     navCreateRoadmap: 'मेरा रोडमैप बनाएं',
     adminReview: 'प्रशासक समीक्षा',
@@ -294,62 +485,132 @@ const translations: Record<Language, LanguageStrings> = {
     sidebarQuoteTitle: 'कम उलझन। अधिक कार्रवाई।',
     sidebarQuoteDesc: 'दिशासाथी सत्यापित जानकारी, स्पष्ट चरणों और वास्तविक समय के अपडेट के साथ सरकारी प्रक्रियाओं को सरल बनाता है।',
 
-    heroWelcomeBack: 'वापसी पर स्वागत है',
-    heroMazeTitle1: 'सरकारी प्रक्रियाएं',
-    heroMazeTitle2: 'भूलभुलैया जैसी नहीं होनी चाहिए।',
-    heroMazeSubtitle: 'हमें बताएं कि आप क्या करने का प्रयास कर रहे हैं। दिशासाथी खंडित सरकारी जानकारी को एक स्पष्ट, सत्यापित रोडमैप में बदलता है।',
-    heroInputPlaceholder: 'आप क्या करना चाहते हैं?',
-    heroPopularSearches: 'लोकप्रिय खोजें:',
-    heroTaglinePossibilities: 'सरल कदम। असीम संभावनाएं।',
-    heroPopBusiness: 'छोटा व्यवसाय पंजीकृत करें',
+    heroBadge: 'सरल • तेज़ • विश्वसनीय',
+    heroHeadline1: 'सरकारी प्रक्रियाएं',
+    heroHeadline2: 'भूलभुलैया जैसी नहीं होनी चाहिए।',
+    heroSubtext: 'हमें बताएं कि आप क्या करने का प्रयास कर रहे हैं। दिशासाथी खंडित सरकारी जानकारी को एक स्पष्ट, सत्यापित यात्रा में बदलता है।',
+    heroInputPlaceholder: 'मुझे मुंबई में छोटा व्यवसाय शुरू करना है',
+    heroTryAsking: 'पूछ कर देखें:',
     heroPopBirth: 'जन्म प्रमाण पत्र',
-    heroPopProperty: 'संपत्ति शीर्षक पंजीकरण',
-    heroPopWater: 'नया पानी कनेक्शन',
-    heroPopTrade: 'नगर निगम व्यापार लाइसेंस',
-
-    heroBadge: 'भारतीय नगर पालिका और राज्य सेवाओं के लिए नागरिक मार्गदर्शन इंजन',
-    heroHeadline1: 'हमें बताएं आप क्या करना चाहते हैं।',
-    heroHeadline2: 'हम आपको रास्ता दिखाएंगे।',
-    heroSubtext:
-      'DishaSaathi जटिल सरकारी प्रक्रियाओं को आपके व्यक्तिगत, सत्यापित रोडमैप में बदलता है — आवश्यक दस्तावेज़, निर्भरताएं और विभागीय अनुमोदन सहित।',
+    heroPopBusiness: 'व्यवसाय शुरू करें',
+    heroPopProperty: 'संपत्ति पंजीकरण',
+    heroPopWater: 'पानी कनेक्शन',
+    heroPopTrade: 'व्यापार लाइसेंस',
     heroCTA: 'मेरा रोडमैप बनाएं',
-    heroSeekHow: 'देखें यह कैसे काम करता है',
-    heroTrust1: 'कोई कानूनी या विभागीय शब्दजाल की जरूरत नहीं',
-    heroTrust2: 'वार्ड-विशिष्ट नगर पालिका नियम',
-    heroTrust3: 'आधिकारिक .gov.in स्रोतों पर आधारित',
-    heroTrust4: 'निःशुल्क · साइनअप की आवश्यकता नहीं',
+    heroExploreServices: 'सरकारी सेवाएं देखें',
 
-    flowchartTitle: 'नागरिक प्रक्रिया फ्लोचार्ट',
-    flowchartBadge: 'रैखिक और समानांतर निर्भरताएं',
-    flowchartDesc: 'संवादात्मक दृश्य फ्लोचार्ट। वैधानिक दायित्वों की जांच करने के लिए किसी भी छोटे चरण नोड पर क्लिक करें।',
-    flowchartCompleted: 'पूर्ण',
-    flowchartCurrent: 'वर्तमान',
-    flowchartUpcoming: 'आगामी',
-    flowchartBlocked: 'अवरुद्ध',
+    fromManySources: 'अनेक स्रोतों से...',
+    toClearJourney: '...एक स्पष्ट यात्रा तक',
+    srcPortal: 'सरकारी पोर्टल',
+    srcPortalSub: 'वेबसाइट्स और पोर्टल',
+    srcPdf: 'पीडीएफ अधिसूचना',
+    srcPdfSub: 'नोटिस व परिपत्रक',
+    srcDept: 'विभागीय वेबसाइट',
+    srcDeptSub: 'जानकारी व फॉर्म',
+    srcApp: 'आवेदन फॉर्म',
+    srcAppSub: 'डाउनलोड और भरें',
+    srcMuni: 'नगर निगम सेवा',
+    srcMuniSub: 'स्थानीय निकाय',
+    srcCirc: 'सरकारी परिपत्रक',
+    srcCircSub: 'नीति अपडेट',
+    stepEligibility: 'पात्रता',
+    stepDocs: 'दस्तावेज़',
+    stepReg: 'पंजीकरण',
+    stepAppr: 'स्वीकृति',
+    stepComp: 'पूर्ण',
+    sameGoalNote: 'वही लक्ष्य। कम उलझन।',
 
-    pipelineGoal: 'लक्ष्य',
-    pipelineGoalDesc: 'सरल भाषा में कार्य सेवन',
-    pipelineDocs: 'दस्तावेज़',
-    pipelineDocsDesc: 'पूर्वापेक्षाएं और जांच सूची',
-    pipelineApp: 'आवेदन',
-    pipelineAppDesc: 'एकल खिड़की पोर्टल',
-    pipelineApproval: 'स्वीकृति',
-    pipelineApprovalDesc: 'NOC और विभागीय हस्ताक्षर',
-    pipelineCompletion: 'पूर्णता',
-    pipelineCompletionDesc: 'वैध लाइसेंस और अनुपालन',
-    pipelineTitle: 'इंटरएक्टिव नागरिक पाइपलाइन',
-    pipelineSubtitle: 'जटिल नौकरशाही एक संरचित यात्रा बन जाती है',
-    pipelineTestBtn: 'अपना लक्ष्य आज़माएं',
+    trustTitle: 'आधिकारिक जानकारी पर आधारित',
+    trustP1Title: 'आधिकारिक स्रोत',
+    trustP1Desc: 'सरकारी पोर्टल्स के सीधे लिंक',
+    trustP2Title: 'स्रोतों का सत्यापन',
+    trustP2Desc: 'विश्वसनीय और प्रामाणिक जानकारी',
+    trustP3Title: 'नवीनतम अपडेट',
+    trustP3Desc: 'नियम और नीतियों में वास्तविक समय बदलाव',
+    trustP4Title: 'स्पष्ट व्याख्या',
+    trustP4Desc: 'सरल और समझने में आसान',
+    trustP5Title: 'व्यक्तिगत यात्राएं',
+    trustP5Desc: 'आपकी आवश्यकताओं के अनुसार',
 
-    impactVisits: 'विज़िट बचाए',
-    impactVisitsDesc: 'नगर निगम और सरकारी कार्यालयों के अनावश्यक चक्करों से मुक्ति',
-    impactHours: 'घंटे बचाए',
-    impactHoursDesc: 'नागरिकों का लंबी कतारों और कागजी कार्रवाई में बर्बाद होने वाला समय बचाया',
-    impactProcedures: 'प्रक्रियाएं मैप की गईं',
-    impactProceduresDesc: 'नगर पालिका, राज्य और केंद्रीय मंत्रालयों में मैप की गई सेवाएं',
-    impactVerified: 'सत्यापित स्रोत',
-    impactVerifiedDesc: '100% आधिकारिक राजपत्रों, अधिनियमों और .gov.in पोर्टल्स से सत्यापित',
-    impactLabel: 'दिशासाथी नागरिकों की क्या बचत करता है',
+    problemTitle: 'सरकारी जानकारी हर जगह है। सही रास्ता नहीं।',
+    problemSubtext: 'जानकारी कई विभागों, वेबसाइटों, फॉर्म और सूचनाओं में बिखरी हुई है। दिशासाथी प्रासंगिक जानकारी को एक साथ लाकर एक समझने योग्य यात्रा बनाता है।',
+    badgePortals: 'अनेक वेबसाइट्स और पोर्टल',
+    badgeForms: 'विभिन्न फॉर्म',
+    badgePdfs: 'पीडीएफ व परिपत्रक',
+    badgeNotifs: 'अधिसूचनाएं और अपडेट',
+    badgeDepts: 'अलग-अलग विभाग',
+    badgeTerms: 'जटिल शब्दजाल',
+    solveTitle: 'दिशासाथी इसे कैसे हल करता है',
+    solveSub: 'एक लक्ष्य। एक स्पष्ट मार्ग।',
+    step1Search: 'खोजें',
+    step1Desc: 'हमें बताएं आप क्या करना चाहते हैं',
+    step2Und: 'समझें',
+    step2Desc: 'हम आपके इरादे का विश्लेषण करते हैं',
+    step3Conn: 'जोड़ें',
+    step3Desc: 'प्रासंगिक सरकारी स्रोत खोजें',
+    step4Comp: 'पूर्ण करें',
+    step4Desc: 'अपना चरण-दर-चरण रोडमैप पाएं',
+
+    expTitle: 'दिशासाथी का अनुभव',
+    expSubtitle: 'एक साधारण प्रश्न से एक स्पष्ट, चरण-दर-चरण यात्रा तक।',
+    card1Title: 'हमें बताएं आपको क्या चाहिए',
+    card1Desc: 'अपने लक्ष्य को साझा करने के लिए सरल भाषा का प्रयोग करें।',
+    card1Query: 'मुझे मुंबई में एक छोटी बेकरी खोलनी है',
+    card2Title: 'दिशासाथी समझता है',
+    card2Desc: 'हम आपके इरादे का विश्लेषण करते हैं और सही जानकारी ढूंढते हैं।',
+    card2Req: 'आपका अनुरोध: खाद्य व्यवसाय शुरू करें',
+    card2Loc: 'स्थान: मुंबई',
+    card2Goal: 'व्यवसाय पंजीकरण + आवश्यक अनुमतियां',
+    card3Title: 'आपकी यात्रा तैयार है',
+    card3Desc: 'सभी चरणों, दस्तावेजों और विभागों के साथ व्यक्तिगत रोडमैप पाएं।',
+    card3Shop: 'दुकान और स्थापना',
+    card4Title: 'अपडेट रहें',
+    card4Desc: 'नियमों, शुल्कों या दस्तावेजों में बदलाव होने पर सूचना पाएं।',
+    card4Alert: 'सरकारी अपडेट का पता चला',
+    card4AlertDesc: 'इस प्रक्रिया के लिए अब एक अतिरिक्त दस्तावेज़ की आवश्यकता है।',
+    card4Btn: 'मेरी यात्रा अपडेट करें',
+
+    rulesTitle1: 'सरकारी नियम बदलते हैं।',
+    rulesTitle2: 'आपका रोडमैप भी बदलना चाहिए।',
+    rulesSubtitle: 'नए नियमों, शुल्कों, दस्तावेजों और प्रक्रियाओं पर वास्तविक समय में अपडेट प्राप्त करें — ताकि आपसे कोई महत्वपूर्ण बदलाव न छूटे।',
+    btnHowItWorks: 'देखें यह कैसे काम करता है',
+    before: 'पहले',
+    after: 'बाद में',
+    reqDocs: 'आवश्यक दस्तावेज़:',
+    docIdentity: 'पहचान प्रमाण',
+    docAddress: 'पते का प्रमाण',
+    docBusiness: 'व्यवसाय विवरण',
+    docPhoto: 'फोटो (पासपोर्ट साइज़)',
+    newTag: 'नया',
+    newReqAlert: 'नई आवश्यकता का पता चला',
+    photoRequired: 'इस पंजीकरण के लिए अब फोटो आवश्यक है।',
+    btnWhatChanged: 'देखें क्या बदला',
+
+    featTitle: 'सुगम यात्रा के लिए शक्तिशाली सुविधाएं',
+    featSubtitle: 'सब कुछ एक ही जगह पर।',
+    f1Title: 'स्पष्ट रोडमैप',
+    f1Desc: 'जटिल प्रक्रियाओं को आसान दृश्य यात्राओं में बदलें।',
+    f2Title: 'सत्यापित जानकारी',
+    f2Desc: 'प्रत्येक आवश्यकता अपने आधिकारिक स्रोत से जुड़ी है।',
+    f3Title: 'अपडेट रहें',
+    f3Desc: 'जानें कि शुल्क, दस्तावेज, नियम या प्रक्रियाएं कब बदलती हैं।',
+    f4Title: 'आपकी नागरिक यात्रा',
+    f4Desc: 'अपनी प्रगति को सहेजें, पुनः आरंभ करें, साझा करें और ट्रैक करें।',
+    learnMore: 'और जानें',
+
+    faqTitle: 'अक्सर पूछे जाने वाले प्रश्न',
+    faqSubtitle: 'दिशासाथी कैसे काम करता है और इसकी विशेषताओं के बारे में सब कुछ।',
+
+    ctaTitle: 'आपको जो करना है उससे शुरुआत करें।',
+    ctaSubtitle: 'दिशासाथी को अपना लक्ष्य बताएं। हम आपको रास्ता समझने में मदद करेंगे।',
+    ctaPlaceholder: 'आप क्या पूरा करना चाहते हैं?',
+    ctaNoForms: 'शुरुआत के लिए कोई जटिल फॉर्म नहीं। बस बताएं आपको क्या चाहिए।',
+    ctaHandwritten: 'सरल सेवाओं की आपकी यात्रा यहीं से शुरू होती है।',
+    footerDisclaimer: 'जानकारी आधिकारिक स्रोतों के लिंक के साथ प्रदान की जाती है। आवेदन जमा करने से पहले हमेशा संबंधित सरकारी प्राधिकरण के साथ आवश्यकताओं को सत्यापित करें।',
+    footerAccessibility: 'सुलभता',
+    footerPrivacy: 'गोपनीयता नीति',
+    footerTerms: 'सेवा की शर्तें',
+    btnSignUp: 'साइन अप करें',
 
     yourNextStep: 'आपका अगला कदम',
     whyThisMatters: 'यह क्यों मायने रखता है:',
@@ -377,7 +638,6 @@ const translations: Record<Language, LanguageStrings> = {
     filterBlocked: 'अवरुद्ध',
     filterDocuments: 'दस्तावेज़',
     showingSteps: 'दिखा रहा है',
-
     docsReady: 'तैयार',
     applyForDoc: 'इस दस्तावेज़ के लिए आवेदन करें ↗',
     haveDoc: 'मेरे पास यह दस्तावेज़ है',
@@ -396,14 +656,36 @@ const translations: Record<Language, LanguageStrings> = {
     documentReadiness: 'दस्तावेज़ तैयारी',
     backToHome: 'होम पर वापस',
     resetRoadmap: 'रोडमॅप रीसेट करें',
+
+    impactProcedures: 'प्रक्रियाएं मैप की गईं',
+    impactProceduresDesc: 'नगरपालिका, राज्य और केंद्रीय मंत्रालयों में मैप की गई नागरिक प्रक्रियाएं।',
+    impactVerified: 'सत्यापित स्रोत',
+    impactVerifiedDesc: 'सक्रिय राजपत्रों और आधिकारिक .gov.in पोर्टलों के विरुद्ध 100% सत्यापित।',
+    impactVisits: 'बचाए गए दौरे',
+    impactVisitsDesc: 'नगरपालिका वार्ड कार्यालयों और विभागों के अनावश्यक चक्करों से बचाव।',
+    impactHours: 'बचाए गए नागरिक घंटे',
+    impactHoursDesc: 'उलझन भरी कतारों और कागजी कार्रवाई से बचा अनुमानित समय।',
+    heroTaglinePossibilities: 'सरल कदम। असीम संभावनाएं।',
+    heroWelcomeBack: 'वापसी पर स्वागत है',
+    heroPopularSearches: 'लोकप्रिय खोजें:',
+    flowchartTitle: 'नागरिक प्रक्रिया फ्लोचार्ट',
+    flowchartBadge: 'रैखिक और समानांतर निर्भरताएं',
+    flowchartDesc: 'इंटरैक्टिव दृश्य फ्लोचार्ट। दायित्वों का निरीक्षण करने के लिए किसी भी चरण पर क्लिक करें।',
+    flowchartCompleted: 'पूर्ण',
+    flowchartCurrent: 'प्रगति में',
+    flowchartUpcoming: 'आगामी',
+    flowchartBlocked: 'अवरुद्ध',
   },
 
   mr: {
     brandName: 'DishaSaathi',
     brandTagline: 'सरकारी सेवांसाठी आपला जीपीएस',
     navHowItWorks: 'हे कसे कार्य करते',
-    navFeatures: 'वैशिष्ट्ये',
+    navExploreServices: 'सेवा शोधा',
+    navGovUpdates: 'सरकारी अद्यतने',
     navAbout: 'माहिती',
+    navSignIn: 'साइन इन',
+    navStartJourney: 'प्रवास सुरू करा',
     navViewRoadmap: 'सक्रिय रोडमॅप पहा',
     navCreateRoadmap: 'माझा रोडमॅप तयार करा',
     adminReview: 'प्रशासक पुनरावलोकन',
@@ -423,62 +705,132 @@ const translations: Record<Language, LanguageStrings> = {
     sidebarQuoteTitle: 'कमी गोंधळ. अधिक कृती.',
     sidebarQuoteDesc: 'दिशासाथी पडताळलेली माहिती, स्पष्ट पावले आणि थेट अद्यतनांसह सरकारी प्रक्रिया सुलभ करते.',
 
-    heroWelcomeBack: 'पुन्हा स्वागत आहे',
-    heroMazeTitle1: 'सरकारी प्रक्रिया',
-    heroMazeTitle2: 'चक्रव्यूहासारख्या वाटू नयेत.',
-    heroMazeSubtitle: 'तुम्ही काय करू इच्छिता ते आम्हाला सांगा. दिशासाथी विखुरलेली सरकारी माहिती एका स्पष्ट, पडताळलेल्या मार्गामध्ये रूपांतरित करते.',
-    heroInputPlaceholder: 'तुम्ही काय साध्य करू इच्छिता?',
-    heroPopularSearches: 'लोकप्रिय शोध:',
-    heroTaglinePossibilities: 'सोपी पावले. अधिक शक्यता.',
-    heroPopBusiness: 'लहान व्यवसाय नोंदणी करा',
+    heroBadge: 'सोपे • जलद • विश्वासार्ह',
+    heroHeadline1: 'सरकारी प्रक्रिया',
+    heroHeadline2: 'चक्रव्यूहासारख्या वाटू नयेत.',
+    heroSubtext: 'तुम्ही काय करू इच्छिता ते सांगा. दिशासाथी विखुरलेली सरकारी माहिती एका स्पष्ट, पडताळलेल्या प्रवासात रूपांतरित करते.',
+    heroInputPlaceholder: 'मला मुंबईत छोटा व्यवसाय सुरू करायचा आहे',
+    heroTryAsking: 'विचारून पहा:',
     heroPopBirth: 'जन्म प्रमाणपत्र',
-    heroPopProperty: 'मालमत्ता शीर्षक नोंदणी',
-    heroPopWater: 'नवीन पाणी जोडणी',
-    heroPopTrade: 'महानगरपालिका व्यवसाय परवाना',
-
-    heroBadge: 'महानगरपालिका आणि राज्य सेवांसाठी नागरी मार्गदर्शन इंजिन',
-    heroHeadline1: 'तुम्हाला काय करायचे आहे ते सांगा.',
-    heroHeadline2: 'आम्ही तुम्हाला अचूक मार्ग दाखवू.',
-    heroSubtext:
-      'DishaSaathi क्लिष्ट सरकारी प्रक्रियांचे रूपांतर आपल्या वैयक्तिक, पडताळलेल्या रोडमॅपमध्ये करते — आवश्यक कागदपत्रे, पूर्वअटी आणि मंजुऱ्यांसह.',
+    heroPopBusiness: 'व्यवसाय सुरू करा',
+    heroPopProperty: 'मालमत्ता नोंदणी',
+    heroPopWater: 'पाणी जोडणी',
+    heroPopTrade: 'व्यवसाय परवाना',
     heroCTA: 'माझा रोडमॅप तयार करा',
-    heroSeekHow: 'हे कसे चालते ते पहा',
-    heroTrust1: 'कोणत्याही कायदेशीर भाषेची गरज नाही',
-    heroTrust2: 'वॉर्डनुसार स्थानिक पालिकेचे नियम',
-    heroTrust3: 'अधिकृत .gov.in स्त्रोतांवर आधारित',
-    heroTrust4: 'विनामूल्य · नोंदणीची सक्ती नाही',
+    heroExploreServices: 'सरकारी सेवा शोधा',
 
-    flowchartTitle: 'नागरी प्रक्रिया प्रवाह तक्ता',
-    flowchartBadge: 'रेषीय आणि समांतर अवलंबित्व',
-    flowchartDesc: 'परस्परसंवादी दृश्य फ्लोचार्ट. वैधानिक बंधने तपासण्यासाठी कोणत्याही छोट्या पायरीवर क्लिक करा.',
-    flowchartCompleted: 'पूर्ण झाले',
-    flowchartCurrent: 'सध्याचे',
-    flowchartUpcoming: 'पुढील',
-    flowchartBlocked: 'अडवलेले',
+    fromManySources: 'अनेक स्त्रोतांतून...',
+    toClearJourney: '...एका स्पष्ट प्रवासात',
+    srcPortal: 'शासकीय पोर्टल',
+    srcPortalSub: 'संकेतस्थळे',
+    srcPdf: 'पीडीएफ अधिसूचना',
+    srcPdfSub: 'सूचना व परिपत्रके',
+    srcDept: 'विभागीय संकेतस्थळ',
+    srcDeptSub: 'माहिती व फॉर्म',
+    srcApp: 'अर्जाचा नमुना',
+    srcAppSub: 'डाऊनलोड व भरा',
+    srcMuni: 'महानगरपालिका सेवा',
+    srcMuniSub: 'स्थानिक स्वराज्य संस्था',
+    srcCirc: 'शासकीय परिपत्रक',
+    srcCircSub: 'धोरण अद्यतने',
+    stepEligibility: 'पात्रता',
+    stepDocs: 'कागदपत्रे',
+    stepReg: 'नोंदणी',
+    stepAppr: 'मंजुरी',
+    stepComp: 'पूर्ण झाले',
+    sameGoalNote: 'तेच उद्दिष्ट। कमी गोंधळ।',
 
-    pipelineGoal: 'उद्दिष्ट',
-    pipelineGoalDesc: 'साध्या भाषेत कार्य स्वीकारणे',
-    pipelineDocs: 'कागदपत्रे',
-    pipelineDocsDesc: 'आवश्यक बाबींची पडताळणी',
-    pipelineApp: 'अर्ज',
-    pipelineAppDesc: 'अधिकृत पोर्टलवर नोंदणी',
-    pipelineApproval: 'मंजुरी',
-    pipelineApprovalDesc: 'पालिकेची एनओसी व मंजुरी',
-    pipelineCompletion: 'यशस्वी पूर्णता',
-    pipelineCompletionDesc: 'अधिकृत परवाना आणि अनुपालन',
-    pipelineTitle: 'परस्परसंवादी नागरी प्रक्रिया',
-    pipelineSubtitle: 'क्लिष्ट सरकारी कामे आता एका सोप्या प्रवासात',
-    pipelineTestBtn: 'तुमचे उद्दिष्ट तपासा',
+    trustTitle: 'अधिकृत माहितीवर आधारित',
+    trustP1Title: 'अधिकृत स्त्रोत',
+    trustP1Desc: 'शासकीय पोर्टल्सच्या थेट लिंक्स',
+    trustP2Title: 'स्त्रोत पडताळणी',
+    trustP2Desc: 'विश्वासार्ह आणि खरी माहिती',
+    trustP3Title: 'थेट अद्यतने',
+    trustP3Desc: 'नियम व धोरणांमधील थेट बदल',
+    trustP4Title: 'सोपे स्पष्टीकरण',
+    trustP4Desc: 'सोपे आणि समजायला सुलभ',
+    trustP5Title: 'वैयक्तिक प्रवास',
+    trustP5Desc: 'आपल्या गरजेनुसार तयार',
 
-    impactVisits: 'वाचलेल्या फेऱ्या',
-    impactVisitsDesc: 'महानगरपालिका आणि सरकारी कार्यालयांच्या नाहक फेऱ्या टळल्या',
-    impactHours: 'वाचलेले तास',
-    impactHoursDesc: 'नागरिकांचा रांगांमध्ये आणि कागदपत्रांमध्ये वाया जाणारा वेळ वाचवला',
-    impactProcedures: 'प्रक्रिया मॅप केल्या',
-    impactProceduresDesc: 'महानगरपालिका, राज्य आणि केंद्रीय मंत्रालयांमधील सेवा एकत्रित',
-    impactVerified: 'सत्यापित स्त्रोत',
-    impactVerifiedDesc: '100% अधिकृत राजपत्र, कायदे आणि .gov.in संकेतस्थळांवरून सत्यापित',
-    impactLabel: 'DishaSaathi नागरिकांची काय बचत करतो',
+    problemTitle: 'सरकारी माहिती सर्वत्र आहे. योग्य मार्ग नाही.',
+    problemSubtext: 'माहिती विविध विभाग, संकेतस्थळे आणि फॉर्ममध्ये विखुरलेली आहे. दिशासाथी ही माहिती एकत्रित करून एक सोपा मार्ग तयार करते.',
+    badgePortals: 'अनेक संकेतस्थळे आणि पोर्टल्स',
+    badgeForms: 'विविध फॉर्म्स',
+    badgePdfs: 'पीडीएफ व परिपत्रके',
+    badgeNotifs: 'सूचना आणि अद्यतने',
+    badgeDepts: 'विविध सरकारी विभाग',
+    badgeTerms: 'क्लिष्ट शब्दरचना',
+    solveTitle: 'दिशासाथी हे कसे सोडवते',
+    solveSub: 'एक उद्दिष्ट। एक स्पष्ट मार्ग.',
+    step1Search: 'शोधा',
+    step1Desc: 'तुम्हाला काय करायचे आहे ते सांगा',
+    step2Und: 'समजून घ्या',
+    step2Desc: 'आम्ही तुमच्या गरजेचा अभ्यास करतो',
+    step3Conn: 'जोडा',
+    step3Desc: 'संबंधित शासकीय स्त्रोत शोधा',
+    step4Comp: 'पूर्ण करा',
+    step4Desc: 'आपला सविस्तर रोडमॅप मिळवा',
+
+    expTitle: 'दिशासाथीचा अनुभव',
+    expSubtitle: 'एका साध्या प्रश्नापासून ते एका स्पष्ट, टप्प्याटप्प्याच्या प्रवासापर्यंत.',
+    card1Title: 'तुम्हाला काय हवे आहे ते सांगा',
+    card1Desc: 'आपले उद्दिष्ट सांगण्यासाठी साध्या भाषेचा वापर करा.',
+    card1Query: 'मला मुंबईत एक लहान बेकरी सुरू करायची आहे',
+    card2Title: 'दिशासाथी समजून घेते',
+    card2Desc: 'आम्ही आपली गरज ओळखून योग्य माहिती शोधतो.',
+    card2Req: 'तुमची विनंती: अन्न व्यवसाय सुरू करा',
+    card2Loc: 'स्थान: मुंबई',
+    card2Goal: 'व्यवसाय नोंदणी + आवश्यक परवानग्या',
+    card3Title: 'आपला प्रवास तयार होतो',
+    card3Desc: 'सर्व टप्पे, कागदपत्रे आणि मंजुऱ्यांसह वैयक्तिक रोडमॅप मिळवा.',
+    card3Shop: 'गुमास्ता / दुकाने व आस्थापना',
+    card4Title: 'अद्ययावत राहा',
+    card4Desc: 'नियम, शुल्क किंवा कागदपत्रांत बदल झाल्यास सूचना मिळवा.',
+    card4Alert: 'शासकीय अद्यतन आढळले',
+    card4AlertDesc: 'या प्रक्रियेसाठी आता एका अतिरिक्त कागदपत्राची आवश्यकता आहे.',
+    card4Btn: 'माझा प्रवास अद्यतन करा',
+
+    rulesTitle1: 'सरकारी नियम बदलतात.',
+    rulesTitle2: 'आपला रोडमॅपही बदलायला हवा.',
+    rulesSubtitle: 'नवीन नियम, शुल्क, कागदपत्रे आणि कार्यपद्धतींवर थेट अद्यतने मिळवा — जेणेकरून कोणताही महत्त्वाचा बदल सुटणार नाही.',
+    btnHowItWorks: 'हे कसे कार्य करते ते पहा',
+    before: 'पूर्वी',
+    after: 'नंतर',
+    reqDocs: 'आवश्यक कागदपत्रे:',
+    docIdentity: 'ओळखपत्र पुरावा',
+    docAddress: 'पत्त्याचा पुरावा',
+    docBusiness: 'व्यवसायाचा तपशील',
+    docPhoto: 'छायाचित्र (पासपोर्ट आकाराचे)',
+    newTag: 'नवीन',
+    newReqAlert: 'नवीन अट समाविष्ट',
+    photoRequired: 'या नोंदणीसाठी आता छायाचित्र आवश्यक आहे.',
+    btnWhatChanged: 'काय बदलले ते पहा',
+
+    featTitle: 'सुलभ प्रवासासाठी शक्तिशाली वैशिष्ट्ये',
+    featSubtitle: 'सर्व काही एकाच ठिकाणी.',
+    f1Title: 'स्पष्ट रोडमॅप',
+    f1Desc: 'क्लिष्ट प्रक्रियांचे सोप्या दृश्य प्रवासात रूपांतर करा.',
+    f2Title: 'पडताळलेली माहिती',
+    f2Desc: 'प्रत्येक आवश्यकता थेट अधिकृत स्त्रोताशी जोडलेली आहे.',
+    f3Title: 'थेट अद्यतने',
+    f3Desc: 'शुल्क, कागदपत्रे किंवा नियमांमध्ये बदल झाल्यास त्वरित माहिती मिळवा.',
+    f4Title: 'आपला नागरी प्रवास',
+    f4Desc: 'आपली प्रगती जतन करा, पुन्हा सुरू करा आणि ट्रॅक करा.',
+    learnMore: 'अधिक जाणून घ्या',
+
+    faqTitle: 'नेहमी विचारले जाणारे प्रश्न',
+    faqSubtitle: 'दिशासाथी कसे कार्य करते आणि त्याची वैशिष्ट्ये याबद्दल सर्व माहिती.',
+
+    ctaTitle: 'तुम्हाला जे करायचे आहे त्यापासून सुरुवात करा.',
+    ctaSubtitle: 'दिशासाथीला आपले उद्दिष्ट सांगा. आम्ही आपल्याला अचूक मार्ग समजावून सांगू.',
+    ctaPlaceholder: 'तुम्ही काय साध्य करू इच्छिता?',
+    ctaNoForms: 'सुरुवातीला कोणतेही कठीण फॉर्म नाहीत. फक्त आपल्याला काय हवे ते सांगा.',
+    ctaHandwritten: 'सुलभ सरकारी सेवांचा आपला प्रवास येथून सुरू होतो.',
+    footerDisclaimer: 'माहिती अधिकृत स्त्रोतांच्या लिंक्ससह दिली आहे. अर्ज सादर करण्यापूर्वी संबंधित शासकीय प्राधिकरणाकडून अटींची खात्री करा.',
+    footerAccessibility: 'सुलभता',
+    footerPrivacy: 'गोपनीयता धोरण',
+    footerTerms: 'सेवा अटी',
+    btnSignUp: 'साइन अप करा',
 
     yourNextStep: 'तुमचे पुढील पाऊल',
     whyThisMatters: 'हे का महत्त्वाचे आहे:',
@@ -506,7 +858,6 @@ const translations: Record<Language, LanguageStrings> = {
     filterBlocked: 'अडचणीत',
     filterDocuments: 'कागदपत्रे',
     showingSteps: 'दाखवत आहे',
-
     docsReady: 'तयार',
     applyForDoc: 'या कागदपत्रासाठी अर्ज करा ↗',
     haveDoc: 'माझ्याकडे हे कागदपत्र आहे',
@@ -525,6 +876,25 @@ const translations: Record<Language, LanguageStrings> = {
     documentReadiness: 'कागदपत्रांची सज्जता',
     backToHome: 'मुख्यपृष्ठ',
     resetRoadmap: 'रोडमॅप रीसेट करा',
+
+    impactProcedures: 'मॅप केलेल्या प्रक्रिया',
+    impactProceduresDesc: 'महानगरपालिका, राज्य आणि केंद्रीय मंत्रालयांमध्ये नकाशाबद्ध केलेल्या नागरी प्रक्रिया.',
+    impactVerified: 'सत्यापित स्त्रोत',
+    impactVerifiedDesc: 'सक्रिय राजपत्रे आणि अधिकृत .gov.in पोर्टल्सवर १००% पडताळलेले.',
+    impactVisits: 'वाचलेल्या फेऱ्या',
+    impactVisitsDesc: 'महानगरपालिका वॉर्ड कार्यालयांच्या अनावश्यक चकरा टळल्या.',
+    impactHours: 'नागरिकांचे वाचलेले तास',
+    impactHoursDesc: 'रांगा आणि कागदपत्रांच्या त्रासातून वाचलेला अंदाजित वेळ.',
+    heroTaglinePossibilities: 'सोपी पावले. अमर्याद संधी.',
+    heroWelcomeBack: 'पुन्हा स्वागत आहे',
+    heroPopularSearches: 'लोकप्रिय शोध:',
+    flowchartTitle: 'नागरी प्रक्रिया फ्लोचार्ट',
+    flowchartBadge: 'अचूक आणि समांतर अवलंबित्वे',
+    flowchartDesc: 'इंटरॅक्टिव्ह व्हिज्युअल फ्लोचार्ट. वैधानिक माहिती पाहण्यासाठी कोणत्याही टप्प्यावर क्लिक करा.',
+    flowchartCompleted: 'पूर्ण झाले',
+    flowchartCurrent: 'सुरू आहे',
+    flowchartUpcoming: 'पुढील',
+    flowchartBlocked: 'थांबलेले',
   },
 };
 

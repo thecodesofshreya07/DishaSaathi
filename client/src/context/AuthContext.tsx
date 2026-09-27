@@ -9,7 +9,7 @@ export interface User {
   aadhaarVerified?: boolean;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -19,7 +19,17 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const defaultAuthValue: AuthContextType = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  login: async () => ({ success: false, error: 'Authentication not initialized' }),
+  register: async () => ({ success: false, error: 'Authentication not initialized' }),
+  logout: () => {},
+  loading: false
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthValue);
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
 
@@ -136,8 +146,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return context || defaultAuthValue;
 };
