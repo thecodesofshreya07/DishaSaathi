@@ -223,7 +223,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => alert('Reminder scheduled!')}
+            onClick={() => {
+              // Non-blocking action
+            }}
             className="flex flex-col items-center justify-center p-2 rounded-xl border border-[#E2EAE5] hover:bg-[#F7F9F8] transition-colors text-center group"
           >
             <div className="w-7 h-7 rounded-lg bg-[#F0F4F2] text-[#4A5D54] flex items-center justify-center mb-1">

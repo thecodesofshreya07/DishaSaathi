@@ -429,13 +429,17 @@ interface DocumentsViewProps {
 export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateDocumentStatus }) => {
   // Aggregate all unique documents from journey steps
   const docMap = new Map<string, { doc: any; step: ProcedureStep }>();
-  journey.steps.forEach((step) => {
-    step.documents.forEach((doc) => {
-      if (!docMap.has(doc.name)) {
-        docMap.set(doc.name, { doc, step });
+  if (journey && Array.isArray(journey.steps)) {
+    journey.steps.forEach((step) => {
+      if (Array.isArray(step.documents)) {
+        step.documents.forEach((doc) => {
+          if (!docMap.has(doc.name)) {
+            docMap.set(doc.name, { doc, step });
+          }
+        });
       }
     });
-  });
+  }
 
   const [activeOfflineDoc, setActiveOfflineDoc] = useState<{
     name: string;
@@ -455,7 +459,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
         <div>
           <h3 className="text-xl font-black text-[#11261F] dark:text-white">Citizen Document Vault</h3>
           <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC]">
-            Track required statutory certificates for "{journey.title}" with instant procurement links and written steps.
+            {journey && journey.title
+              ? `Track required statutory certificates for "${journey.title}" with instant procurement links and written steps.`
+              : 'Track required statutory certificates with instant procurement links and written steps.'}
           </p>
         </div>
 
@@ -464,7 +470,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {docs.length === 0 ? (
+        <div className="p-8 text-center bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] rounded-3xl space-y-3">
+          <FileText className="w-10 h-10 text-[#1B4D3E] dark:text-[#6EE7B7] mx-auto opacity-60" />
+          <h4 className="text-base font-bold text-[#11261F] dark:text-white">No Required Documents Found</h4>
+          <p className="text-xs text-[#5C7066] dark:text-[#A2B9AE] max-w-md mx-auto">
+            Select an active roadmap from your journeys or search a goal to view the exact statutory paperwork required.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {docs.map(({ doc, step }) => {
           const isReady = doc.status === 'READY' || doc.status === 'UPLOADED';
           const proc = getDocumentProcurementInfo(doc.name, doc.sourceUrl);
@@ -561,6 +576,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
           );
         })}
       </div>
+      )}
 
       {/* Centered How to Apply Modal with Written Steps */}
       {howToApplyDoc && (() => {
@@ -602,16 +618,33 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
 interface UpdatesViewProps {
   updates: GovernmentUpdate[];
   onInspectExcerpt: (update: GovernmentUpdate) => void;
+  onViewImpactDiff?: (update: GovernmentUpdate) => void;
+  onOpenAdmin?: () => void;
 }
 
-export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExcerpt }) => {
+export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExcerpt, onViewImpactDiff, onOpenAdmin }) => {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
-      <div>
-        <h3 className="text-xl font-black text-[#11261F] dark:text-white">Government Gazette Updates</h3>
-        <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC]">
-          Real-time statutory notifications and legal amendments tracked across central and municipal gazettes.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-[#173F33] to-[#123126] text-white p-5 rounded-2xl shadow-sm">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-200 text-[10px] font-bold uppercase tracking-wider mb-1">
+            Statutory Intelligence
+          </div>
+          <h3 className="text-lg sm:text-xl font-black text-white">Government Gazette Updates</h3>
+          <p className="text-xs text-white/80 max-w-xl mt-0.5">
+            Real-time statutory notifications and legal amendments tracked across central and municipal gazettes. Inspect impact diffs and evaluate live database synchronization.
+          </p>
+        </div>
+
+        {onOpenAdmin && (
+          <button
+            onClick={onOpenAdmin}
+            className="px-4 py-2 bg-[#E8B931] hover:bg-[#D4A72C] text-[#11261F] text-xs font-black rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4 text-[#11261F]" />
+            <span>Admin Review Console</span>
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -630,7 +663,13 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
                 </span>
               </div>
 
-              <span className="text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7]">
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                update.reviewStatus === 'Approved'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                  : update.reviewStatus === 'Rejected'
+                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+              }`}>
                 {update.reviewStatus}
               </span>
             </div>
@@ -643,19 +682,33 @@ export const UpdatesView: React.FC<UpdatesViewProps> = ({ updates, onInspectExce
               {update.description}
             </p>
 
-            <div className="mt-3 pt-3 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex items-center justify-between">
+            <div className="mt-4 pt-3 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-3">
               <span className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC]">
                 Source: <strong className="text-[#11261F] dark:text-white">{update.sourceUrl || 'The Gazette of India'}</strong>
               </span>
 
-              {/* Item 7: View AI Statutory Excerpt */}
-              <button
-                onClick={() => onInspectExcerpt(update)}
-                className="px-3.5 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <BookOpen className="w-3.5 h-3.5 text-emerald-300" />
-                <span>View Gazette Excerpt </span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* View Impact Diff Modal trigger */}
+                {onViewImpactDiff && (
+                  <button
+                    onClick={() => onViewImpactDiff(update)}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#EAF2ED] dark:bg-[#18392F] hover:bg-[#DEEFE5] dark:hover:bg-[#22C55E]/20 text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold border border-[#CDE3D7] dark:border-[#1E3B32] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="View side-by-side affected steps and roadmap impact diff"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>View Impact Diff (Roadmap Changes)</span>
+                  </button>
+                )}
+
+                {/* View AI Statutory Excerpt */}
+                <button
+                  onClick={() => onInspectExcerpt(update)}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>View Gazette Excerpt</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}

@@ -236,6 +236,8 @@ export function buildRoadmap(
   let journeyTitle = `${goal.activity.replace(/_/g, ' ')} Pathway`;
   if (goal.intent === 'START_BUSINESS') {
     journeyTitle = `${goal.entities.businessType ? goal.entities.businessType.toUpperCase() : 'Business'} Setup Roadmap — ${goal.location.city}`;
+  } else if (goal.intent === 'PROPERTY_RENTAL' || goal.activity === 'RENTAL_AGREEMENT') {
+    journeyTitle = `Residential Rental & Tenant Compliance Roadmap — ${goal.location.city || 'Mumbai'}`;
   } else if (goal.intent === 'REGISTER_VEHICLE') {
     journeyTitle = `New ${goal.entities.vehicleType || 'Vehicle'} Registration Roadmap — ${goal.location.city}`;
   } else if (goal.intent === 'BUILD_PROPERTY') {

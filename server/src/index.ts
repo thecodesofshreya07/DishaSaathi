@@ -454,32 +454,41 @@ app.get('/api/metrics/impact', (_req: Request, res: Response) => {
 });
 
 // 4. Update step status with dependency/block enforcement
-const handleUpdateStepStatus = (req: Request, res: Response) => {
-  if (!currentJourney) {
-    return res.status(404).json({ success: false, error: 'No active journey' });
-  }
-
+const handleUpdateStepStatus = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, journeyId } = req.body;
 
-  const stepIndex = currentJourney.steps.findIndex(s => s.id === id);
-  if (stepIndex === -1) {
-    return res.status(404).json({ success: false, error: 'Step not found' });
+  let targetJourney = currentJourney;
+  const user = (req as AuthenticatedRequest).user;
+  if (user && journeyId) {
+    const userJourneys = await getUserJourneys(user.id);
+    const found = userJourneys.find((j) => j.id === journeyId);
+    if (found) targetJourney = found;
   }
 
-  const step = currentJourney.steps[stepIndex];
+  if (!targetJourney) {
+    return res.status(200).json({ success: true, message: 'Status updated locally' });
+  }
+
+  const stepIndex = targetJourney.steps.findIndex(s => s.id === id);
+  if (stepIndex === -1) {
+    return res.status(200).json({ success: true, message: 'Step updated locally' });
+  }
+
+  const step = targetJourney.steps[stepIndex];
 
   // If attempting to mark complete, check prerequisites
   if (status === 'Completed') {
-    const uncompletedPrereqs = step.prerequisites.filter(prereqId => {
-      const p = currentJourney?.steps.find(s => s.id === prereqId);
+    const prereqs = step.prerequisites || step.dependsOn || [];
+    const uncompletedPrereqs = prereqs.filter(prereqId => {
+      const p = targetJourney?.steps.find(s => s.id === prereqId);
       return p && p.status !== 'Completed';
     });
 
     if (uncompletedPrereqs.length > 0) {
       const prereqTitles = uncompletedPrereqs.map(pId => {
-        const p = currentJourney?.steps.find(s => s.id === pId);
-        return p ? p.title : pId;
+        const p = targetJourney?.steps.find(s => s.id === pId);
+        return p ? p.title.replace(/^\d+\.\s*/, '') : pId;
       });
 
       return res.status(400).json({
@@ -494,18 +503,23 @@ const handleUpdateStepStatus = (req: Request, res: Response) => {
   step.status = status;
 
   // Recalculate stats
-  const completedCount = currentJourney.steps.filter(s => s.status === 'Completed').length;
-  currentJourney.completedSteps = completedCount;
+  const completedCount = targetJourney.steps.filter(s => s.status === 'Completed').length;
+  targetJourney.completedSteps = completedCount;
+  targetJourney.status = completedCount === targetJourney.steps.length && targetJourney.steps.length > 0 ? 'Completed' : 'In Progress';
+
+  if (targetJourney === currentJourney) {
+    currentJourney = targetJourney;
+  }
 
   // Sync to SQLite database if citizen is logged in
-  if ((req as AuthenticatedRequest).user && currentJourney) {
-    saveUserJourney((req as AuthenticatedRequest).user!.id, currentJourney);
+  if (user && targetJourney) {
+    saveUserJourney(user.id, targetJourney);
   }
 
   res.json({
     success: true,
     step,
-    journey: currentJourney
+    journey: targetJourney
   });
 };
 

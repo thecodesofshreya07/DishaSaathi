@@ -10,6 +10,7 @@ export const DATA_VERSION = 1;
 export type CivicIntent = 
   | 'START_BUSINESS'
   | 'BUILD_PROPERTY'
+  | 'PROPERTY_RENTAL'
   | 'REGISTER_VEHICLE'
   | 'GET_CERTIFICATE'
   | 'APPLY_FOR_LICENSE'

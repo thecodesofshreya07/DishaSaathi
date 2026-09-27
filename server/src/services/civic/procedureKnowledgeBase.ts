@@ -709,5 +709,106 @@ export const procedureKnowledgeBase: BaseCivicProcedure[] = [
       verificationStatus: 'Verified'
     },
     verificationStatus: 'VERIFIED'
+  },
+
+  // ==========================================
+  // 6. RESIDENTIAL RENTAL, LEASE & TENANT VERIFICATION
+  // ==========================================
+  {
+    id: 'proc-rent-leave-license',
+    code: 'RENT_LEAVE_LICENSE',
+    title: 'Registered Leave & License Agreement (IGR e-Registration)',
+    plainLanguageSummary: 'Execute and e-register the 11-month or multi-year rental agreement with official 0.25% stamp duty and biometric Aadhaar authentication.',
+    whyRequired: 'Section 55 of Maharashtra Rent Control Act 1999 makes registration of tenancy agreements mandatory in writing; un-registered rent agreements cannot be enforced in court.',
+    authority: 'Department of Registration & Stamps (IGR Maharashtra)',
+    category: 'Tenancy Legal Registration',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_RENTAL',
+    dependsOn: [],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-rnt-1', name: 'Draft Leave & License Agreement (Rent, Deposit & Tenure)', isMandatory: true, description: 'Agreed monthly rental & security terms' },
+      { id: 'doc-rnt-2', name: 'Aadhaar Card & PAN of Landlord (Owner) and Tenant', isMandatory: true, description: 'Biometric identity verification' },
+      { id: 'doc-rnt-3', name: 'Electricity Bill or Property Tax Receipt of Rented Flat', isMandatory: true, description: 'Ownership and address proof' },
+      { id: 'doc-rnt-4', name: 'Two Identifier / Witness Aadhaar Verification', isMandatory: true, description: 'Statutory witness presence' }
+    ],
+    fee: { amount: '0.25% of Total Rent + Deposit + ₹1,000 Reg. Fee', description: 'Statutory Maharashtra e-Registration stamp tariff' },
+    estimatedTime: '1 - 2 business days (Online e-Registration)',
+    applicationMode: 'Online',
+    applicationUrl: 'https://efilingigr.maharashtra.gov.in/ereg/',
+    source: {
+      id: 'src-igr-rent',
+      title: 'IGR Maharashtra e-Registration Portal for Leave & License',
+      url: 'https://efilingigr.maharashtra.gov.in/ereg/',
+      department: 'Department of Registration and Stamps, Government of Maharashtra',
+      domain: 'maharashtra.gov.in',
+      lastChecked: '2026-09-26',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-rent-police-verification',
+    code: 'RENT_POLICE_VERIFICATION',
+    title: 'Online Police Tenant Information Intimation (Police Clearance)',
+    plainLanguageSummary: 'Submit tenant details, workplace info, permanent address, and landlord declaration on the official City Police citizen portal.',
+    whyRequired: 'Mandatory under Section 144 of the Code of Criminal Procedure (CrPC) and Police Commissioner notifications to ensure neighborhood safety.',
+    authority: 'Mumbai Police (Citizen Portal) / Maharashtra State Police',
+    category: 'Security & Police Verification',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_RENTAL',
+    dependsOn: ['proc-rent-leave-license'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-rnt-5', name: 'Registered Leave & License Agreement Copy / Index-II', isMandatory: true, description: 'Proof of lawful tenancy' },
+      { id: 'doc-rnt-6', name: 'Tenant Permanent Address Proof & Passport Photograph', isMandatory: true, description: 'Native address verification' },
+      { id: 'doc-rnt-7', name: 'Tenant Company / College ID Card', isMandatory: true, description: 'Employment or student enrollment proof' }
+    ],
+    fee: { amount: '₹0 (Free of cost)', description: 'Government police online intimation is completely free' },
+    estimatedTime: 'Instant online acknowledgment token',
+    applicationMode: 'Online',
+    applicationUrl: 'https://mumbaipolice.gov.in/',
+    source: {
+      id: 'src-police-tenant',
+      title: 'Mumbai Police Citizen Portal - Tenant Information Submission',
+      url: 'https://mumbaipolice.gov.in/',
+      department: 'Mumbai Police / Home Department, Maharashtra',
+      domain: 'mumbaipolice.gov.in',
+      lastChecked: '2026-09-26',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-rent-society-intimation',
+    code: 'RENT_SOCIETY_NOC',
+    title: 'Co-op Housing Society Tenant Intimation & Move-in Gate Pass',
+    plainLanguageSummary: 'Submit copy of registered agreement and police verification receipt to the Housing Society Office to receive the Move-in Gate Pass.',
+    whyRequired: 'Model Bye-Law No. 43 of Maharashtra Co-operative Housing Societies requires official intimation of sub-letting before tenant takes physical possession.',
+    authority: 'Co-operative Housing Society Managing Committee',
+    category: 'Housing Society Clearance',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'PROPERTY_RENTAL',
+    dependsOn: ['proc-rent-police-verification'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-rnt-8', name: 'Registered Agreement Copy with Index-II', isMandatory: true, description: 'Official agreement' },
+      { id: 'doc-rnt-9', name: 'Police Verification Acknowledgment Receipt', isMandatory: true, description: 'Police portal token' },
+      { id: 'doc-rnt-10', name: 'Society Appendix 27 Subletting Intimation Form', isMandatory: true, description: 'Standard society form' }
+    ],
+    fee: { amount: 'Max ₹100 / month non-occupancy charges', description: 'Statutory ceiling per Maharashtra State Co-op Dept Circular' },
+    estimatedTime: '1 - 3 days',
+    applicationMode: 'Hybrid',
+    applicationUrl: 'https://sahakarayukta.maharashtra.gov.in/',
+    source: {
+      id: 'src-coop-dept',
+      title: 'Department of Co-operation, Marketing & Textiles - Maharashtra',
+      url: 'https://sahakarayukta.maharashtra.gov.in/',
+      department: 'Co-operation Department, Government of Maharashtra',
+      domain: 'maharashtra.gov.in',
+      lastChecked: '2026-09-26',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
   }
 ];

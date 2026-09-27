@@ -74,7 +74,13 @@ export const GoalIntakePage: React.FC = () => {
     try {
       const generated = await generateRoadmap(intake);
       if (generated) {
-        navigate('/roadmap');
+        navigate('/roadmap', {
+          state: {
+            tab: 'journeys',
+            viewMode: 'detail',
+            journeyId: generated.id
+          }
+        });
       }
     } catch (err) {
       console.error('Failed to generate roadmap', err);

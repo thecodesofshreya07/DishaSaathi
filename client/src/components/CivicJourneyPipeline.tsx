@@ -30,6 +30,7 @@ import { useRoadmap } from '../context/RoadmapContext';
 import { useLanguage } from '../context/LanguageContext';
 import { GoalRefinementModal } from './GoalRefinementModal';
 import { SourcesPanelModal } from './SourcesPanelModal';
+import { calculateTotalJourneyCost } from '../utils/costCalculator';
 
 interface CivicJourneyPipelineProps {
   journey: CivicJourney;
@@ -199,6 +200,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
     });
   });
   const docPercent = totalDocs > 0 ? Math.round((readyDocs / totalDocs) * 100) : 0;
+  const costSummary = calculateTotalJourneyCost(steps);
 
   // Determine the dynamic "Your Next Step"
   // The first uncompleted step whose prerequisites are completely satisfied
@@ -395,6 +397,18 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                   style={{ width: `${docPercent}%` }}
                 ></div>
               </div>
+            </div>
+
+            <div className="text-right border-l border-slate-200 dark:border-[#1F3E33] pl-4">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                Total Govt Fees
+              </span>
+              <span className="text-xs font-black text-[#1B4D3E] dark:text-[#6EE7B7] block">
+                {costSummary.label}
+              </span>
+              <span className="text-[10px] text-[#6C8075] dark:text-[#9FB7AC]">
+                Statutory Total
+              </span>
             </div>
           </div>
         </div>

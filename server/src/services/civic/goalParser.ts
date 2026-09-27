@@ -48,6 +48,22 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
+    q.includes('rent') || q.includes('lease') || q.includes('tenant') || 
+    q.includes('leave and license') || q.includes('leave & license') || 
+    q.includes('pg') || q.includes('sublet') || q.includes('rental')
+  ) {
+    result = {
+      rawGoal: query,
+      intent: 'PROPERTY_RENTAL',
+      domain: 'PROPERTY_RENTAL',
+      activity: 'RENTAL_AGREEMENT',
+      location: { city, state, country: 'India' },
+      context: { scale: 'residential', type: 'residential_rental', additionalNotes: options?.context || '' },
+      entities: { propertyType: 'Residential Rental / Tenancy' },
+      confidence: 0.95,
+      clarificationNeeded: false
+    };
+  } else if (
     q.includes('flat') || q.includes('apartment') || q.includes('buy house') || 
     q.includes('buy property') || q.includes('purchase flat') || q.includes('buy flat') || 
     q.includes('buying') && (q.includes('flat') || q.includes('house') || q.includes('property')) ||
@@ -156,16 +172,18 @@ export async function parseCitizenGoal(
   options?: ParseGoalOptions
 ): Promise<StructuredGoal> {
   const query = (rawQuery || '').trim();
-  const apiKey = process.env.GEMINI_API_KEY;
+  const hasLlmKey = !!(
+    (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim()) ||
+    (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()) ||
+    (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY.trim())
+  );
 
-  if (!apiKey) {
-    console.info('[DishaSaathi] No GEMINI_API_KEY found, using deterministic civic intent parser.');
+  if (!hasLlmKey) {
+    console.info('[DishaSaathi] No LLM API keys found, using deterministic civic intent parser.');
     return parseGoalDeterministically(query, options);
   }
 
   try {
-    const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey });
 
     const prompt = `You are DishaSaathi's Civic Intent & Entity Recognition Engine for Indian Government Procedures.
 Analyze the user's natural-language civic query: "${query}".
@@ -173,29 +191,32 @@ Location provided by user: "${options?.locationOverride || 'Unspecified'}".
 Additional context: "${options?.context || 'None'}".
 
 Extract the intent, domain, activity, location, and entities.
-Intents must be one of: START_BUSINESS, BUILD_PROPERTY, REGISTER_VEHICLE, GET_CERTIFICATE, APPLY_FOR_LICENSE, UNKNOWN.
-If the query is too vague (like "hello", "need help"), classify as UNKNOWN.
+Intents must be one of: START_BUSINESS, BUILD_PROPERTY, PROPERTY_RENTAL, REGISTER_VEHICLE, GET_CERTIFICATE, APPLY_FOR_LICENSE, UNKNOWN.
+- For renting/leasing/tenancy/Leave & License/PG, intent is PROPERTY_RENTAL and domain is PROPERTY_RENTAL, activity is RENTAL_AGREEMENT.
+- For buying/purchasing resale flat or apartment, intent is BUILD_PROPERTY and domain is PROPERTY_ACQUISITION, activity is FLAT_PURCHASE.
+- For constructing/building on plot, intent is BUILD_PROPERTY and domain is URBAN_DEVELOPMENT, activity is RESIDENTIAL_CONSTRUCTION.
+- If the query is too vague (like "hello", "need help"), classify as UNKNOWN.
 
 Return ONLY a valid JSON object matching this schema:
 {
   "rawGoal": "${query}",
-  "intent": "START_BUSINESS" | "BUILD_PROPERTY" | "REGISTER_VEHICLE" | "GET_CERTIFICATE" | "APPLY_FOR_LICENSE" | "UNKNOWN",
-  "domain": "e.g. FOOD_BUSINESS, LAND_REVENUE, TRANSPORT, VITAL_RECORDS, etc.",
-  "activity": "e.g. BAKERY, RESIDENTIAL_HOUSE, TWO_WHEELER, BIRTH_CERTIFICATE, etc.",
+  "intent": "START_BUSINESS" | "BUILD_PROPERTY" | "PROPERTY_RENTAL" | "REGISTER_VEHICLE" | "GET_CERTIFICATE" | "APPLY_FOR_LICENSE" | "UNKNOWN",
+  "domain": "e.g. PROPERTY_RENTAL, PROPERTY_ACQUISITION, URBAN_DEVELOPMENT, FOOD_BUSINESS, TRANSPORT, VITAL_RECORDS, etc.",
+  "activity": "e.g. RENTAL_AGREEMENT, FLAT_PURCHASE, RESIDENTIAL_CONSTRUCTION, BAKERY, TWO_WHEELER, BIRTH_CERTIFICATE, etc.",
   "location": {
     "city": "Detected or provided city (default to Mumbai if mentioned, else India)",
     "state": "Detected or provided state (default to Maharashtra if Mumbai, else India)",
     "country": "India"
   },
   "context": {
-    "scale": "small | medium | large | unspecified",
-    "type": "home_based | commercial | personal | unspecified",
+    "scale": "small | medium | large | residential | commercial | personal | unspecified",
+    "type": "residential_rental | flat_purchase | home_based | commercial | personal | unspecified",
     "additionalNotes": "any relevant details"
   },
   "entities": {
     "businessType": "e.g. bakery, retail, tech",
     "vehicleType": "e.g. bike, car, commercial",
-    "propertyType": "e.g. residential plot, flat",
+    "propertyType": "e.g. residential 3bhk flat, residential plot, commercial shop",
     "certificateType": "e.g. birth, death, marriage",
     "scale": "e.g. small, micro"
   },
@@ -217,6 +238,28 @@ Return ONLY a valid JSON object matching this schema:
           parsed.location.city = parts[0] || parsed.location.city;
           if (parts[1]) parsed.location.state = parts[1];
         }
+
+        // Post-processing normalization for high fidelity mapping
+        const qLower = query.toLowerCase();
+        if (
+          qLower.includes('rent') || qLower.includes('lease') || qLower.includes('tenant') || 
+          qLower.includes('leave and license') || qLower.includes('leave & license') || 
+          qLower.includes('pg') || qLower.includes('sublet') || qLower.includes('rental')
+        ) {
+          parsed.intent = 'PROPERTY_RENTAL';
+          parsed.domain = 'PROPERTY_RENTAL';
+          parsed.activity = 'RENTAL_AGREEMENT';
+          parsed.clarificationNeeded = false;
+        } else if (
+          (qLower.includes('buy') || qLower.includes('purchase')) && 
+          (qLower.includes('flat') || qLower.includes('house') || qLower.includes('apartment') || qLower.includes('property'))
+        ) {
+          parsed.intent = 'BUILD_PROPERTY';
+          parsed.domain = 'PROPERTY_ACQUISITION';
+          parsed.activity = 'FLAT_PURCHASE';
+          parsed.clarificationNeeded = false;
+        }
+
         parsed.isFallback = false;
         parsed.engine = `AI_GEN_${result.provider.toUpperCase().replace(/\s+/g, '_')}`;
         return parsed;

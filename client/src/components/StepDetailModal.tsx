@@ -495,34 +495,22 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
           <div className="flex items-center gap-2 ml-auto">
             {step.status !== 'Completed' ? (
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={isBlocked}
-                  onClick={() => {
-                    onUpdateStatus(step.id, 'In Progress');
-                    onClose();
-                  }}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] hover:bg-[#D4E8DC] dark:hover:bg-[#204a3e] border border-[#CDE3D7] dark:border-[#1F3E33] transition-all cursor-pointer"
-                  title="Mark your application as submitted on the official portal"
-                >
-                  {t.markSubmitted || 'Mark as Submitted'}
-                </button>
-                <button
-                  disabled={isBlocked}
-                  onClick={() => {
-                    onUpdateStatus(step.id, 'Completed');
-                    onClose();
-                  }}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ${
-                    isBlocked
-                      ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
-                      : 'bg-[#1B4D3E] hover:bg-[#143B2F] dark:bg-[#22C55E] dark:hover:bg-[#16A34A] text-white dark:text-[#0D1A16] hover:scale-[1.02]'
-                  }`}
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{t.markCompleted || 'Mark as Completed'}</span>
-                </button>
-              </div>
+              <button
+                disabled={isBlocked}
+                onClick={() => {
+                  onUpdateStatus(step.id, 'Completed');
+                  onClose();
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ${
+                  isBlocked
+                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                    : 'bg-[#1B4D3E] hover:bg-[#143B2F] dark:bg-[#22C55E] dark:hover:bg-[#16A34A] text-white dark:text-[#0D1A16] hover:scale-[1.02]'
+                }`}
+                title={isBlocked ? 'Complete prerequisite steps first' : 'Mark this statutory step as completed'}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{t.markCompleted || 'Mark as Completed'}</span>
+              </button>
             ) : (
               <button
                 onClick={() => {

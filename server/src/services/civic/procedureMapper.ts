@@ -55,10 +55,22 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
           );
         }
 
+      case 'PROPERTY_RENTAL':
+        return proc.domain === 'PROPERTY_RENTAL';
+
       case 'REGISTER_VEHICLE':
         return proc.domain === 'TRANSPORT';
 
       case 'BUILD_PROPERTY':
+        if (
+          domain === 'PROPERTY_RENTAL' ||
+          activity === 'RENTAL_AGREEMENT' ||
+          businessType.includes('rent') ||
+          businessType.includes('lease') ||
+          businessType.includes('tenant')
+        ) {
+          return proc.domain === 'PROPERTY_RENTAL';
+        }
         if (
           domain === 'PROPERTY_ACQUISITION' ||
           activity === 'FLAT_PURCHASE' ||
@@ -104,17 +116,34 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
       return false; // Exclude Maharashtra-specific laws for other states
     }
 
-    // C. Municipal-level procedures (e.g. BMC Mumbai Health License, AutoDCR)
+    // C. Municipal-level procedures (e.g. BMC Mumbai Health License, AutoDCR Building Proposal)
     if (procCity) {
       if (isMumbai && procCity === 'mumbai') {
         cityMatched = true;
         return true;
       }
-      return false; // Exclude Mumbai-specific municipal regulations for other cities
+      // If user selected another city or general location, adapt baseline municipal procedure
+      cityMatched = true;
+      return true;
     }
 
     return true;
   });
+
+  // If strict filtering returned empty, retrieve all domain candidates as statutory baseline
+  if (candidates.length === 0) {
+    if (intent === 'PROPERTY_RENTAL' || domain === 'PROPERTY_RENTAL') {
+      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'PROPERTY_RENTAL');
+    } else if (intent === 'BUILD_PROPERTY') {
+      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'URBAN_DEVELOPMENT' || p.domain === 'PROPERTY_ACQUISITION' || p.domain === 'PROPERTY_RENTAL');
+    } else if (intent === 'REGISTER_VEHICLE') {
+      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'TRANSPORT');
+    } else if (intent === 'START_BUSINESS') {
+      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'FOOD_BUSINESS' || p.id === 'proc-pan-entity' || p.id === 'proc-gumasta-shop');
+    } else if (intent === 'GET_CERTIFICATE') {
+      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'VITAL_RECORDS');
+    }
+  }
 
   // 3. Ensure Dependency Closure (respecting jurisdiction boundary)
   const candidateIds = new Set(candidates.map((p) => p.id));
@@ -125,16 +154,8 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
       if (!candidateIds.has(depId)) {
         const prereq = procedureKnowledgeBase.find((p) => p.id === depId);
         if (prereq) {
-          const procState = (prereq.jurisdiction.state || '').toLowerCase().trim();
-          const procCity = (prereq.jurisdiction.city || '').toLowerCase().trim();
-
-          const stateMatches = !procState || (isMaharashtra && procState === 'maharashtra');
-          const cityMatches = !procCity || (isMumbai && procCity === 'mumbai');
-
-          if (stateMatches && cityMatches) {
-            missingPrerequisites.push(prereq);
-            candidateIds.add(depId);
-          }
+          missingPrerequisites.push(prereq);
+          candidateIds.add(depId);
         }
       }
     }

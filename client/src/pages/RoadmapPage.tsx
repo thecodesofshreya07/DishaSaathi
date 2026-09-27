@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Clock, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Clock, ArrowLeft, AlertTriangle, X, ShieldAlert } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -30,8 +31,10 @@ import { useRoadmap } from '../context/RoadmapContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { generateRoadmapPdf } from '../utils/pdfGenerator';
+import { calculateTotalJourneyCost } from '../utils/costCalculator';
 
 export const RoadmapPage: React.FC = () => {
+  const location = useLocation();
   const { t } = useLanguage();
   const { user } = useAuth();
   const {
@@ -55,10 +58,20 @@ export const RoadmapPage: React.FC = () => {
   } = useRoadmap();
 
   // Active Tab: 'home' | 'journeys' | 'services' | 'updates' | 'documents' | 'deadlines' | 'saved' | 'passport' | 'settings'
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState<string>(() => (location.state as any)?.tab || 'home');
   // Journey View Mode: 'cards' (list all journeys) | 'detail' (view current roadmap)
-  const [journeyViewMode, setJourneyViewMode] = useState<'cards' | 'detail'>('cards');
+  const [journeyViewMode, setJourneyViewMode] = useState<'cards' | 'detail'>(() => (location.state as any)?.viewMode || 'cards');
   const [loading, setLoading] = useState(false);
+
+  // Sync state when navigating in with location.state (e.g., from GoalIntakePage or Search)
+  useEffect(() => {
+    if (location.state) {
+      const stateObj = location.state as any;
+      if (stateObj.tab) setActiveTab(stateObj.tab);
+      if (stateObj.viewMode) setJourneyViewMode(stateObj.viewMode);
+      if (stateObj.journeyId) selectJourney(stateObj.journeyId);
+    }
+  }, [location.state]);
 
   // Modals state
   const [selectedStep, setSelectedStep] = useState<ProcedureStep | null>(null);
@@ -68,6 +81,7 @@ export const RoadmapPage: React.FC = () => {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
+  const [blockedStepError, setBlockedStepError] = useState<string | null>(null);
 
   // Handle Natural Language Search
   const handleSearch = async (goal: string) => {
@@ -93,7 +107,7 @@ export const RoadmapPage: React.FC = () => {
   ) => {
     const result = await updateStepStatusContext(stepId, status);
     if (!result.success && result.blocked) {
-      alert(` Step Blocked: ${result.message}`);
+      setBlockedStepError(result.message || 'Prerequisite procedure steps must be completed first.');
       return;
     }
     // Item 9: Close the card after doing submitted
@@ -227,7 +241,7 @@ export const RoadmapPage: React.FC = () => {
               updates={updates}
               onGoToJourney={() => {
                 setActiveTab('journeys');
-                setJourneyViewMode('cards');
+                setJourneyViewMode(journey ? 'detail' : 'cards');
               }}
               onGoToTab={(tab) => setActiveTab(tab)}
               onDownloadPdf={handleDownloadRoadmap}
@@ -280,6 +294,9 @@ export const RoadmapPage: React.FC = () => {
                             {activeJourney.totalSteps > 0
                               ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete`
                               : 'In Progress'}
+                          </span>
+                          <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            Total Fees: {calculateTotalJourneyCost(activeJourney.steps).label}
                           </span>
                         </div>
                         <p className="text-[11px] text-gray-500 dark:text-gray-400">
@@ -348,6 +365,8 @@ export const RoadmapPage: React.FC = () => {
             <UpdatesView
               updates={updates}
               onInspectExcerpt={(u) => setSelectedExcerptUpdate(u)}
+              onViewImpactDiff={(u) => setSelectedUpdate(u)}
+              onOpenAdmin={() => setIsAdminModalOpen(true)}
             />
           )}
 
@@ -481,6 +500,48 @@ export const RoadmapPage: React.FC = () => {
           focusStepId={aiFocusStepId}
         />
       </ErrorBoundary>
+
+      {/* H. Themed In-App Blocked Step Alert Modal */}
+      {blockedStepError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0D1A16] border border-amber-300 dark:border-amber-700/60 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                    Statutory Prerequisite Check
+                  </span>
+                  <h4 className="text-base font-extrabold text-[#11261F] dark:text-white">
+                    Step Cannot Be Marked Ready
+                  </h4>
+                </div>
+              </div>
+              <button
+                onClick={() => setBlockedStepError(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-[#18392F] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#4A5D54] dark:text-[#A2B9AE] leading-relaxed bg-amber-50/70 dark:bg-amber-950/30 p-3.5 rounded-2xl border border-amber-200/60 dark:border-amber-800/40">
+              {blockedStepError}
+            </p>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setBlockedStepError(null)}
+                className="px-5 py-2.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+              >
+                Understood, Review Dependencies
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -405,28 +405,72 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     stepId: string,
     status: StepStatus
   ): Promise<{ success: boolean; blocked?: boolean; message?: string }> => {
-    try {
-      const res = await fetch(`/api/journey/steps/${stepId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+    if (!journey) return { success: false, message: 'No active roadmap' };
+
+    const step = journey.steps.find((s) => s.id === stepId);
+    if (!step) return { success: false, message: 'Step not found' };
+
+    // 1. Client-Side Prerequisite & Dependency Check
+    if (status === 'Completed') {
+      const prereqs = step.prerequisites || step.dependsOn || [];
+      const uncompletedPrereqs = prereqs.filter((prereqId) => {
+        const p = journey.steps.find((s) => s.id === prereqId);
+        return p && p.status !== 'Completed';
       });
 
-      const data = await res.json();
-      if (!res.ok && data.blocked) {
-        return { success: false, blocked: true, message: data.message };
-      }
+      if (uncompletedPrereqs.length > 0) {
+        const prereqTitles = uncompletedPrereqs.map((prereqId) => {
+          const p = journey.steps.find((s) => s.id === prereqId);
+          return p ? p.title.replace(/^\d+\.\s*/, '') : prereqId;
+        });
 
-      if (data.journey) {
-        const updatedJ = data.journey;
-        setJourney(updatedJ);
-        setJourneys((prev) => prev.map((j) => (j.id === updatedJ.id ? updatedJ : j)));
-        return { success: true };
+        return {
+          success: false,
+          blocked: true,
+          message: `Prerequisite steps must be completed first: ${prereqTitles.join(', ')}`
+        };
       }
-      return { success: false, message: 'Step update failed' };
-    } catch (err: any) {
-      return { success: false, message: err.message };
     }
+
+    // 2. Immediate Optimistic State Update
+    const updatedSteps = journey.steps.map((s) => (s.id === stepId ? { ...s, status } : s));
+    const completedCount = updatedSteps.filter((s) => s.status === 'Completed').length;
+    const updatedJourney: CivicJourney = {
+      ...journey,
+      steps: updatedSteps,
+      completedSteps: completedCount,
+      status: completedCount === updatedSteps.length && updatedSteps.length > 0 ? 'Completed' : 'In Progress'
+    };
+
+    setJourney(updatedJourney);
+    setJourneys((prev) => prev.map((j) => (j.id === updatedJourney.id ? updatedJourney : j)));
+
+    try {
+      localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(updatedJourney));
+      if (user?.id) {
+        const userKey = `dishasaathi_journeys_${user.id}`;
+        const currentList = journeys.map((j) => (j.id === updatedJourney.id ? updatedJourney : j));
+        localStorage.setItem(userKey, JSON.stringify(currentList));
+      }
+    } catch (e) {
+      console.warn('Storage sync error:', e);
+    }
+
+    // 3. Sync to Backend in Background
+    try {
+      fetch(`/api/journey/steps/${stepId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status, journeyId: journey.id })
+      }).catch((err) => console.warn('Background status sync:', err));
+    } catch {
+      // Offline fallback
+    }
+
+    return { success: true };
   };
 
   // Phase 4 Document Readiness Checklist State Updater
@@ -516,13 +560,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const resetToDefault = (force?: boolean): boolean => {
-    if (!force) {
-      const confirmed = window.confirm(
-        'Are you sure you want to start a new roadmap? Your current progress will be reset.'
-      );
-      if (!confirmed) return false;
-    }
+  const resetToDefault = (_force?: boolean): boolean => {
     setIntake(defaultIntake);
     sessionStorage.removeItem('dishasaathi_intake');
     return true;
