@@ -75,14 +75,52 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
   }
 
   // =========================================================================
-  // PRIORITY 2: OpenRouter (Backup Multi-Model Gateway)
+  // PRIORITY 2: Google Gemini (Google AI Studio Free Tier)
+  // =========================================================================
+  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0) {
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY.trim() });
+      const geminiCandidateModels = [
+        process.env.GEMINI_MODEL,
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash'
+      ].filter((m) => m && m !== 'gemini-3.8-flash') as string[];
+
+      for (const modelName of geminiCandidateModels) {
+        try {
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: prompt,
+            config: {
+              ...(systemPrompt ? { systemInstruction: systemPrompt } : {}),
+              ...(jsonMode ? { responseMimeType: 'application/json' } : {})
+            }
+          });
+
+          if (response && response.text) {
+            return { text: response.text.trim(), provider: 'Google Gemini', model: modelName };
+          }
+        } catch (subErr) {
+          // Continue to next candidate model
+        }
+      }
+    } catch (e: any) {
+      console.warn('[DishaSaathi LLM] Gemini call failed:', e?.message);
+    }
+  }
+
+  // =========================================================================
+  // PRIORITY 3: OpenRouter (Backup Multi-Model Gateway)
   // =========================================================================
   if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY.trim().length > 0) {
     const openRouterCandidateModels = [
       process.env.OPENROUTER_MODEL,
-      'google/gemma-4-31b-it:free',
-      'qwen/qwen3.8-27b:free',
-      'nvidia/nemotron-3.5-lightning:free'
+      'google/gemini-2.0-flash-exp:free',
+      'meta-llama/llama-3.3-70b-instruct:free',
+      'deepseek/deepseek-r1:free',
+      'qwen/qwen-2.5-72b-instruct:free'
     ].filter(Boolean) as string[];
 
     for (const model of openRouterCandidateModels) {
@@ -121,42 +159,6 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
       } catch (e: any) {
         console.warn(`[DishaSaathi LLM] OpenRouter error (${model}):`, e?.message);
       }
-    }
-  }
-
-  // =========================================================================
-  // PRIORITY 3: Google Gemini (Google AI Studio Free Tier)
-  // =========================================================================
-  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0) {
-    try {
-      const { GoogleGenAI } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY.trim() });
-      const geminiCandidateModels = [
-        process.env.GEMINI_MODEL,
-        'gemini-2.5-flash',
-        'gemini-1.5-flash'
-      ].filter(Boolean) as string[];
-
-      for (const modelName of geminiCandidateModels) {
-        try {
-          const response = await ai.models.generateContent({
-            model: modelName,
-            contents: prompt,
-            config: {
-              ...(systemPrompt ? { systemInstruction: systemPrompt } : {}),
-              ...(jsonMode ? { responseMimeType: 'application/json' } : {})
-            }
-          });
-
-          if (response && response.text) {
-            return { text: response.text.trim(), provider: 'Google Gemini', model: modelName };
-          }
-        } catch (subErr) {
-          // Continue to next candidate model
-        }
-      }
-    } catch (e: any) {
-      console.warn('[DishaSaathi LLM] Gemini call failed:', e?.message);
     }
   }
 

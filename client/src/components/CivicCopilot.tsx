@@ -32,6 +32,76 @@ interface CivicCopilotProps {
   focusStepId?: string;
 }
 
+const FormattedMessageText: React.FC<{ text: string }> = ({ text }) => {
+  // Normalize double-escaped literal \n or raw \n
+  const normalized = (text || '')
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n');
+
+  // Split into paragraphs
+  const paragraphs = normalized.split(/\n\n+/);
+
+  return (
+    <div className="space-y-2 leading-relaxed">
+      {paragraphs.map((para, pIdx) => {
+        const lines = para.split('\n');
+        return (
+          <div key={pIdx} className="space-y-1">
+            {lines.map((line, lIdx) => {
+              const trimmed = line.trim();
+              if (!trimmed) return null;
+
+              const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ');
+              const content = isBullet ? trimmed.replace(/^[-•*]\s*/, '') : trimmed;
+
+              // Parse bold **text** and *italic* and URLs
+              const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|https?:\/\/[^\s)]+)/g);
+
+              return (
+                <div key={lIdx} className={isBullet ? 'flex items-start gap-1.5 pl-1' : ''}>
+                  {isBullet && <span className="text-emerald-600 font-bold shrink-0 mt-0.5">•</span>}
+                  <div className="flex-1">
+                    {parts.map((part, idx) => {
+                      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+                        return (
+                          <strong key={idx} className="font-bold text-slate-900 dark:text-white">
+                            {part.slice(2, -2)}
+                          </strong>
+                        );
+                      }
+                      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+                        return (
+                          <em key={idx} className="italic text-slate-800 dark:text-slate-200">
+                            {part.slice(1, -1)}
+                          </em>
+                        );
+                      }
+                      if (part.startsWith('http://') || part.startsWith('https://')) {
+                        return (
+                          <a
+                            key={idx}
+                            href={part}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#1B4D3E] dark:text-[#6EE7B7] underline font-semibold hover:opacity-80 break-all"
+                          >
+                            {part}
+                          </a>
+                        );
+                      }
+                      return <span key={idx}>{part}</span>;
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export const CivicCopilot: React.FC<CivicCopilotProps> = ({
   journey,
   isOpen,
@@ -233,10 +303,8 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
                 </div>
               )}
 
-              {/* Message text with basic bullet formatting */}
-              <div className="whitespace-pre-line space-y-1">
-                {m.text}
-              </div>
+              {/* Message text with rich formatting & Markdown rendering */}
+              <FormattedMessageText text={m.text} />
 
               {/* Next Action recommendation badge */}
               {m.nextActionRecommendation && (

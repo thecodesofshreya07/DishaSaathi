@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Compass,
   Plus,
@@ -13,12 +14,10 @@ import {
   Briefcase,
   Home,
   Car,
-  FileCheck,
-  ShieldCheck,
-  Layers,
-  Sparkles
+  Layers
 } from 'lucide-react';
 import { CivicJourney } from '../types';
+import { useRoadmap } from '../context/RoadmapContext';
 
 interface JourneyCardsViewProps {
   journeys: CivicJourney[];
@@ -31,14 +30,13 @@ interface JourneyCardsViewProps {
 export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
   journeys,
   onSelectJourney,
-  onCreateNewJourney,
   onDeleteJourney,
   isLoading = false
 }) => {
+  const navigate = useNavigate();
+  const { updateIntakeField } = useRoadmap();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'IN_PROGRESS' | 'COMPLETED'>('ALL');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newGoalInput, setNewGoalInput] = useState('');
 
   // Filter journeys by search & status
   const filteredJourneys = journeys.filter((j) => {
@@ -67,20 +65,10 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
     return Layers;
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGoalInput.trim()) return;
-    onCreateNewJourney(newGoalInput.trim());
-    setNewGoalInput('');
-    setIsCreateModalOpen(false);
+  const handleStartNewJourney = () => {
+    updateIntakeField('goal', '');
+    navigate('/create');
   };
-
-  const sampleQuickGoals = [
-    'Register a Private Limited Company in Mumbai',
-    'Apply for Trade License in Pune',
-    'Birth Certificate Application in Thane',
-    'Commercial Solar Rooftop Subsidy in Maharashtra'
-  ];
 
   return (
     <div className="space-y-6">
@@ -111,7 +99,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleStartNewJourney}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#E8B931] hover:bg-[#D4A72C] text-[#11261F] font-bold text-sm rounded-xl transition-all shadow-md hover:shadow-lg transform active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
@@ -333,7 +321,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
 
         {/* Start New Journey Card Tile */}
         <div
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={handleStartNewJourney}
           className="border-2 border-dashed border-[#E8ECE9] dark:border-[#1E3B32] hover:border-[#1B4D3E] dark:hover:border-[#22C55E] rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 bg-white/50 dark:bg-[#0D1A16]/50 hover:bg-white dark:hover:bg-[#0D1A16] transition-all duration-200 cursor-pointer min-h-[260px] group"
         >
           <div className="w-12 h-12 rounded-2xl bg-[#E6F0EB] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -352,86 +340,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
           </span>
         </div>
       </div>
-
-      {/* Quick Intake Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#0D1A16] border border-[#E8ECE9] dark:border-[#1E3B32] rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#E6F0EB] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] flex items-center justify-center">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-lg text-[#11261F] dark:text-white">
-                  Start a New Civic Journey
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsCreateModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1.5 rounded-lg cursor-pointer"
-              >
-                
-              </button>
-            </div>
-
-            <p className="text-xs text-gray-600 dark:text-gray-300">
-              Enter what you want to achieve in plain English or your local language. DishaSaathi will resolve all department prerequisites and generate an ordered roadmap.
-            </p>
-
-            <form onSubmit={handleCreateSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#11261F] dark:text-gray-200 uppercase tracking-wider mb-1.5">
-                  Your Goal or Task
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Register a private school in Pune or get driving license"
-                  value={newGoalInput}
-                  onChange={(e) => setNewGoalInput(e.target.value)}
-                  autoFocus
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-[#12231E] border border-gray-200 dark:border-[#1E3B32] rounded-xl text-sm text-[#11261F] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]/40"
-                />
-              </div>
-
-              {/* Suggestions */}
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                  Popular Suggestions
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {sampleQuickGoals.map((sample, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setNewGoalInput(sample)}
-                      className="text-[11px] px-2.5 py-1 bg-gray-100 hover:bg-[#E6F0EB] dark:bg-gray-800 dark:hover:bg-[#18392F] text-gray-700 dark:text-gray-300 dark:hover:text-[#6EE7B7] rounded-lg transition-colors text-left cursor-pointer"
-                    >
-                      {sample}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100 dark:border-[#1E3B32]">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!newGoalInput.trim() || isLoading}
-                  className="px-5 py-2.5 bg-[#1B4D3E] hover:bg-[#153D31] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
-                >
-                  {isLoading ? 'Generating Roadmap...' : 'Generate Journey'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+

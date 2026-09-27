@@ -82,44 +82,48 @@ export const GoalIntakePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] flex flex-col justify-between font-sans text-[#11261F]">
+    <div className="min-h-screen bg-[#F8FAF9] dark:bg-[#08120F] flex flex-col justify-between font-sans text-[#11261F] dark:text-[#E8F3EE] transition-colors">
       {/* 1. Header */}
-      <header className="bg-white border-b border-[#E8ECE9] sticky top-0 z-30">
+      <header className="bg-white dark:bg-[#0D1A16] border-b border-[#E8ECE9] dark:border-[#1E3B32] sticky top-0 z-30 transition-colors">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group text-[#4A5D54] hover:text-[#11261F] text-xs font-bold transition-colors">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 group text-[#4A5D54] dark:text-[#9FB7AC] hover:text-[#11261F] dark:hover:text-white text-xs font-bold transition-colors cursor-pointer"
+          >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Home</span>
-          </Link>
+            <span>Back</span>
+          </button>
 
           <Link to="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-xl bg-[#1B4D3E] text-white flex items-center justify-center shadow-2xs">
               <Compass className="w-4 h-4 text-white" />
             </div>
-            <span className="text-base font-black text-[#11261F] tracking-tight">
+            <span className="text-base font-black text-[#11261F] dark:text-white tracking-tight">
               DishaSaathi
             </span>
           </Link>
 
-          <div className="text-xs text-[#6C8075] font-semibold hidden sm:block">
-            Step 1 of 2: Goal Intake
+          <div className="text-xs text-[#6C8075] dark:text-[#9FB7AC] font-semibold hidden sm:block">
+            Procedural Intake & Jurisdiction Mapping
           </div>
         </div>
       </header>
 
       {/* 2. Main Intake Card */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
-        <div className="bg-white rounded-3xl border border-[#D5E3DB] p-6 sm:p-10 shadow-sm relative overflow-hidden">
+        <div className="bg-white dark:bg-[#0D1A16] rounded-3xl border border-[#D5E3DB] dark:border-[#1E3B32] p-6 sm:p-10 shadow-sm relative overflow-hidden transition-colors">
           {/* Header pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF2ED] text-[#1B4D3E] text-[11px] font-bold mb-3 border border-[#CDE3D7]">
-            <Sparkles className="w-3.5 h-3.5 text-[#1B4D3E]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] text-[11px] font-bold mb-3 border border-[#CDE3D7] dark:border-[#1E3B32]">
+            <Sparkles className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7]" />
             <span>Procedural Intake & Jurisdiction Mapping</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#11261F] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#11261F] dark:text-white tracking-tight">
             What do you want to accomplish?
           </h1>
 
-          <p className="mt-2 text-xs sm:text-sm text-[#4A5D54] leading-relaxed font-normal">
+          <p className="mt-2 text-xs sm:text-sm text-[#4A5D54] dark:text-[#9FB7AC] leading-relaxed font-normal">
             You can describe your goal in your own words. No need to know department names, license codes, or government legal terminology.
           </p>
 
@@ -127,10 +131,10 @@ export const GoalIntakePage: React.FC = () => {
             {/* Section 1: Main Goal Input */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="goal-input" className="text-xs font-extrabold uppercase tracking-wider text-[#11261F]">
+                <label htmlFor="goal-input" className="text-xs font-extrabold uppercase tracking-wider text-[#11261F] dark:text-white">
                   Your Civic or Commercial Goal <span className="text-[#C53929]">*</span>
                 </label>
-                <span className="text-[11px] text-[#6C8075]">Natural language</span>
+                <span className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC]">Natural language</span>
               </div>
 
               <div className="relative">
@@ -143,10 +147,10 @@ export const GoalIntakePage: React.FC = () => {
                     if (errors.goal) setErrors((prev) => ({ ...prev, goal: undefined }));
                   }}
                   placeholder="Describe your civic or commercial goal in plain words (e.g. starting a business, property title, trade permits)..."
-                  className={`w-full p-4 rounded-2xl border text-sm sm:text-base font-medium text-[#11261F] placeholder-[#8C9B94] focus:outline-none transition-all resize-none ${
+                  className={`w-full p-4 rounded-2xl border text-sm sm:text-base font-medium text-[#11261F] dark:text-white placeholder-[#8C9B94] dark:placeholder-[#5E7A6E] focus:outline-none transition-all resize-none ${
                     errors.goal
-                      ? 'border-[#C53929] bg-[#FDF0ED]/30 ring-2 ring-[#C53929]/20'
-                      : 'border-[#D0DDD5] bg-[#FAFDFB] focus:border-[#1B4D3E] focus:ring-2 focus:ring-[#1B4D3E]/15'
+                      ? 'border-[#C53929] bg-[#FDF0ED]/30 dark:bg-[#3D1410]/30 ring-2 ring-[#C53929]/20'
+                      : 'border-[#D0DDD5] dark:border-[#1E3B32] bg-[#FAFDFB] dark:bg-[#12231E] focus:border-[#1B4D3E] dark:focus:border-[#6EE7B7] focus:ring-2 focus:ring-[#1B4D3E]/15'
                   }`}
                 />
               </div>
@@ -161,7 +165,7 @@ export const GoalIntakePage: React.FC = () => {
 
               {/* Quick Preset Goal Pills */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-bold text-[#6C8075]">Quick suggestions:</span>
+                <span className="text-[11px] font-bold text-[#6C8075] dark:text-[#9FB7AC]">Quick suggestions:</span>
                 {quickPills.map((pill) => (
                   <button
                     type="button"
@@ -170,7 +174,7 @@ export const GoalIntakePage: React.FC = () => {
                       updateIntakeField('goal', pill);
                       if (errors.goal) setErrors((prev) => ({ ...prev, goal: undefined }));
                     }}
-                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F3F7F5] hover:bg-[#E6F0EB] text-[#1B4D3E] border border-[#D5E3DB] transition-all cursor-pointer"
+                    className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F3F7F5] dark:bg-[#18392F] hover:bg-[#E6F0EB] dark:hover:bg-[#1F4C3E] text-[#1B4D3E] dark:text-[#6EE7B7] border border-[#D5E3DB] dark:border-[#1E3B32] transition-all cursor-pointer"
                   >
                     + {pill}
                   </button>
@@ -179,32 +183,32 @@ export const GoalIntakePage: React.FC = () => {
             </div>
 
             {/* Section 2: Location Selection */}
-            <div className="pt-6 border-t border-[#EDF2EE]">
+            <div className="pt-6 border-t border-[#EDF2EE] dark:border-[#1E3B32]">
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-extrabold uppercase tracking-wider text-[#11261F] flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#1B4D3E]" />
+                <label className="text-xs font-extrabold uppercase tracking-wider text-[#11261F] dark:text-white flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7]" />
                   <span>Where are you planning to do this? <span className="text-[#C53929]">*</span></span>
                 </label>
               </div>
 
-              <p className="text-xs text-[#6C8075] mb-3 leading-relaxed">
+              <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mb-3 leading-relaxed">
                 Civic procedures, ward bylaws, and municipal fees depend heavily on your local jurisdiction.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* State Dropdown */}
                 <div>
-                  <label htmlFor="state-select" className="block text-[11px] font-bold text-[#4A5D54] mb-1">
+                  <label htmlFor="state-select" className="block text-[11px] font-bold text-[#4A5D54] dark:text-[#9FB7AC] mb-1">
                     State
                   </label>
                   <select
                     id="state-select"
                     value={intake.state}
                     onChange={(e) => handleStateChange(e.target.value)}
-                    className="w-full p-3 rounded-2xl border border-[#D0DDD5] bg-[#FAFDFB] text-xs sm:text-sm font-semibold text-[#11261F] focus:outline-none focus:border-[#1B4D3E] focus:ring-2 focus:ring-[#1B4D3E]/15 cursor-pointer"
+                    className="w-full p-3 rounded-2xl border border-[#D0DDD5] dark:border-[#1E3B32] bg-[#FAFDFB] dark:bg-[#12231E] text-xs sm:text-sm font-semibold text-[#11261F] dark:text-white focus:outline-none focus:border-[#1B4D3E] dark:focus:border-[#6EE7B7] focus:ring-2 focus:ring-[#1B4D3E]/15 cursor-pointer"
                   >
                     {Object.keys(stateCityMap).map((st) => (
-                      <option key={st} value={st}>
+                      <option key={st} value={st} className="dark:bg-[#12231E]">
                         {st}
                       </option>
                     ))}
@@ -213,7 +217,7 @@ export const GoalIntakePage: React.FC = () => {
 
                 {/* City Dropdown */}
                 <div>
-                  <label htmlFor="city-select" className="block text-[11px] font-bold text-[#4A5D54] mb-1">
+                  <label htmlFor="city-select" className="block text-[11px] font-bold text-[#4A5D54] dark:text-[#9FB7AC] mb-1">
                     City / Municipal Corporation
                   </label>
                   <select
@@ -223,10 +227,10 @@ export const GoalIntakePage: React.FC = () => {
                       updateIntakeField('city', e.target.value);
                       if (errors.location) setErrors((prev) => ({ ...prev, location: undefined }));
                     }}
-                    className="w-full p-3 rounded-2xl border border-[#D0DDD5] bg-[#FAFDFB] text-xs sm:text-sm font-semibold text-[#11261F] focus:outline-none focus:border-[#1B4D3E] focus:ring-2 focus:ring-[#1B4D3E]/15 cursor-pointer"
+                    className="w-full p-3 rounded-2xl border border-[#D0DDD5] dark:border-[#1E3B32] bg-[#FAFDFB] dark:bg-[#12231E] text-xs sm:text-sm font-semibold text-[#11261F] dark:text-white focus:outline-none focus:border-[#1B4D3E] dark:focus:border-[#6EE7B7] focus:ring-2 focus:ring-[#1B4D3E]/15 cursor-pointer"
                   >
                     {(stateCityMap[intake.state] || ['Mumbai']).map((ct) => (
-                      <option key={ct} value={ct}>
+                      <option key={ct} value={ct} className="dark:bg-[#12231E]">
                         {ct}
                       </option>
                     ))}
@@ -243,15 +247,15 @@ export const GoalIntakePage: React.FC = () => {
             </div>
 
             {/* Section 3: Optional Context */}
-            <div className="pt-6 border-t border-[#EDF2EE]">
+            <div className="pt-6 border-t border-[#EDF2EE] dark:border-[#1E3B32]">
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="context-input" className="text-xs font-extrabold uppercase tracking-wider text-[#11261F]">
-                  Anything else we should know? <span className="text-[#6C8075] text-[10px] font-semibold">(Optional)</span>
+                <label htmlFor="context-input" className="text-xs font-extrabold uppercase tracking-wider text-[#11261F] dark:text-white">
+                  Anything else we should know? <span className="text-[#6C8075] dark:text-[#9FB7AC] text-[10px] font-semibold">(Optional)</span>
                 </label>
-                <span className="text-[11px] text-[#6C8075]">Minimum input → maximum guidance</span>
+                <span className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC]">Minimum input → maximum guidance</span>
               </div>
 
-              <p className="text-xs text-[#6C8075] mb-2 leading-relaxed">
+              <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mb-2 leading-relaxed">
                 Mention details like estimated staff count, home-based vs commercial premises, or specific licenses you already hold.
               </p>
 
@@ -261,14 +265,14 @@ export const GoalIntakePage: React.FC = () => {
                 value={intake.additionalContext || ''}
                 onChange={(e) => updateIntakeField('additionalContext', e.target.value)}
                 placeholder="Provide any additional specifications (e.g. premise details, staff size, or current registrations held)..."
-                className="w-full p-3.5 rounded-2xl border border-[#D0DDD5] bg-[#FAFDFB] text-xs sm:text-sm font-medium text-[#11261F] placeholder-[#8C9B94] focus:outline-none focus:border-[#1B4D3E] focus:ring-2 focus:ring-[#1B4D3E]/15 transition-all resize-none"
+                className="w-full p-3.5 rounded-2xl border border-[#D0DDD5] dark:border-[#1E3B32] bg-[#FAFDFB] dark:bg-[#12231E] text-xs sm:text-sm font-medium text-[#11261F] dark:text-white placeholder-[#8C9B94] dark:placeholder-[#5E7A6E] focus:outline-none focus:border-[#1B4D3E] dark:focus:border-[#6EE7B7] focus:ring-2 focus:ring-[#1B4D3E]/15 transition-all resize-none"
               />
             </div>
 
             {/* Section 4: Primary CTA Button */}
-            <div className="pt-6 border-t border-[#EDF2EE] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs text-[#6C8075]">
-                <CheckCircle2 className="w-4 h-4 text-[#1B4D3E]" />
+            <div className="pt-6 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-xs text-[#6C8075] dark:text-[#9FB7AC]">
+                <CheckCircle2 className="w-4 h-4 text-[#1B4D3E] dark:text-[#6EE7B7]" />
                 <span>Zero signup required • Free instant roadmap generation</span>
               </div>
 
@@ -286,7 +290,7 @@ export const GoalIntakePage: React.FC = () => {
       </main>
 
       {/* 3. Footer */}
-      <footer className="py-6 border-t border-[#E8ECE9] text-center text-xs text-[#6C8075] bg-white">
+      <footer className="py-6 border-t border-[#E8ECE9] dark:border-[#1E3B32] text-center text-xs text-[#6C8075] dark:text-[#9FB7AC] bg-white dark:bg-[#0D1A16] transition-colors">
         DishaSaathi • Municipal & State Civic Path Visualizer • Verified Procedural Guidance
       </footer>
 
@@ -304,3 +308,4 @@ export const GoalIntakePage: React.FC = () => {
 };
 
 export default GoalIntakePage;
+

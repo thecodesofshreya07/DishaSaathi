@@ -6,6 +6,7 @@ import {
   CopilotResponseType
 } from '../../types.js';
 import { getNextAction } from './adaptiveEngine.js';
+import { callUniversalLlm } from './universalLlm.js';
 
 interface CopilotContext {
   question: string;
@@ -37,16 +38,16 @@ function isPromptSafe(query: string): boolean {
 function isUnrelatedQuery(query: string): boolean {
   const qLower = query.toLowerCase();
   const unrelatedTopics = [
-    'weather',
+    'weather in ',
     'bitcoin',
     'crypto',
     'stock market',
     'spaceship',
     'joke',
     'movie',
-    'sports',
-    'cricket',
-    'football',
+    'sports score',
+    'cricket score',
+    'football match',
     'dating'
   ];
   return unrelatedTopics.some((t) => qLower.includes(t));
@@ -132,124 +133,109 @@ export async function answerCopilotQuery({
     ? `Based on ${activeStep.title} (${activeStep.authority || activeStep.department}).`
     : `Based on your ${journey.title} roadmap.`;
 
-  // 4. Live Multi-Model AI Generation (Grok xAI / OpenAI / Google Gemini)
-  const grokKey = process.env.GROK_API_KEY || process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-
+  // 4. Multi-Provider LLM Call via Universal LLM Client (Groq / Gemini / OpenRouter)
   const stepsSummary = steps.map((s) => 
     `Step ${s.stepNumber}: ${s.title} (${s.authority || s.department}) | Status: ${s.status} | Mode: ${s.applicationMode} | Fee: ${s.fee.amount} | Time: ${s.processingTime} | Docs: [${s.documents.map(d => d.name + (d.status === 'READY' ? ' [Ready]' : ' [Missing]')).join(', ')}] | Prerequisites: [${s.prerequisites.join(', ')}]`
   ).join('\n');
 
-  const prompt = `You are DishaSaathi, India's premier AI Civic Companion and Government Service Navigator.
-A citizen is asking a question while navigating their personalized civic roadmap:
-Roadmap: "${journey.title}"
-Location: ${journey.location}
-Category: ${journey.category}
-Active / Focused Step: Step ${activeStep?.stepNumber || 1}: "${activeStep?.title || 'Initial Milestone'}" (${activeStep?.authority || 'Government Authority'})
-Why required: "${activeStep?.whyRequired || 'Statutory legal compliance'}"
-Plain language summary: "${activeStep?.plainLanguageSummary || ''}"
-Official Portal: ${activeStep?.applicationUrl || 'https://india.gov.in'}
+  const prompt = `You are DishaSaathi, India's premier AI Civic Journey Companion and Government Service Navigator.
+A citizen is asking a question in real-time while viewing their personalized civic roadmap:
 
-All Steps in this Roadmap:
+CURRENT ROADMAP DETAILS:
+- Registered Goal: "${journey.title}"
+- Location / City: ${journey.location || 'India'}
+- Category: ${journey.category || 'Civic Procedure'}
+- Active Step (in focus): Step ${activeStep?.stepNumber || 1}: "${activeStep?.title || 'Initial Milestone'}" (${activeStep?.authority || 'Government Authority'})
+- Active Step Purpose: "${activeStep?.whyRequired || 'Statutory legal compliance'}"
+- Active Step Summary: "${activeStep?.plainLanguageSummary || activeStep?.description || ''}"
+- Official Application Portal: ${activeStep?.applicationUrl || 'https://india.gov.in'}
+- Completed: ${journey.completedSteps} of ${journey.totalSteps} Steps
+
+ALL STEPS IN ROADMAP:
 ${stepsSummary}
 
-Citizen Question: "${question}"
+CITIZEN QUESTION: "${question}"
 
-GUIDELINES:
-1. Provide a direct, empathetic, and clear response (2-3 concise paragraphs or bullet points).
-2. Answer specifically for their situation, location (${journey.location}), and statutory requirements.
-3. If they ask about documents, next actions, parallel steps, tax, compliance, or portal links, give precise factual details.
-4. Do NOT make up non-existent laws or fake penalties.
-5. Provide 3 short, relevant suggested follow-up questions.
+GUIDELINES & INSTRUCTIONS:
+1. If the user asks general or greeting questions like "who are you", "what are you", "what is DishaSaathi", or "how can you help me", introduce yourself clearly as DishaSaathi, explain that you are an AI civic assistant for statutory and municipal processes in India, and explain how you can help with their active roadmap "${journey.title}".
+2. If the user asks about specific steps, missing documents, fees, dependencies, parallel filings, or portals, give specific, actionable, and verified advice tailored to ${journey.location || 'India'}.
+3. Format your response cleanly using markdown (bold headings, bullet points).
+4. Always provide 2-3 relevant follow-up questions for the citizen.
 
 Return ONLY a valid JSON object matching this schema:
 {
-  "answer": "Your comprehensive, clear response with markdown formatting (bolding, bullet points)",
+  "answer": "Your direct, helpful, formatted response in markdown",
   "responseType": "ANSWER" | "NEXT_ACTION" | "DOCUMENT_GUIDANCE" | "SOURCE_REQUIRED",
-  "uncertaintyNotice": "Optional note if external municipal verification is advised, else omit",
+  "uncertaintyNotice": "Optional note if external municipal verification is advised, otherwise leave empty string",
   "nextActionRecommendation": "Crisp one-sentence next step recommendation",
   "suggestedFollowUps": ["Question 1", "Question 2", "Question 3"]
 }`;
 
-  // A. Try Grok / OpenAI endpoint if configured
-  if (grokKey) {
-    try {
-      const endpoint = process.env.GROK_API_KEY 
-        ? 'https://api.x.ai/v1/chat/completions' 
-        : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions');
-      const model = process.env.GROK_MODEL || (process.env.GROK_API_KEY ? 'grok-2-latest' : 'gpt-4o-mini');
+  try {
+    const llmResult = await callUniversalLlm({
+      prompt,
+      systemPrompt: 'You are DishaSaathi Civic Copilot, India\'s AI Civic Companion and Government Bureaucracy Navigator. Always output a valid JSON object matching the requested schema.',
+      jsonMode: true,
+      temperature: 0.2
+    });
 
-      const grokRes = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${grokKey}`
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: 'You are DishaSaathi Civic Copilot. Output only valid JSON.' },
-            { role: 'user', content: prompt }
-          ],
-          response_format: { type: 'json_object' }
-        })
-      });
-
-      if (grokRes.ok) {
-        const data: any = await grokRes.json();
-        const content = data.choices?.[0]?.message?.content;
-        if (content) {
-          const parsed = JSON.parse(content);
-          return {
-            answer: parsed.answer,
-            responseType: parsed.responseType || 'ANSWER',
-            evidence,
-            basedOnText,
-            uncertaintyNotice: parsed.uncertaintyNotice,
-            nextActionRecommendation: parsed.nextActionRecommendation,
-            suggestedFollowUps: parsed.suggestedFollowUps || ['What should I do next?', 'What documents am I missing?'],
-            isFallback: false,
-            engine: 'AI_GEN_GEMINI'
-          };
-        }
+    if (llmResult && llmResult.text) {
+      let cleaned = llmResult.text.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
       }
-    } catch (grokErr) {
-      console.warn('[DishaSaathi] Grok/OpenAI API call error:', grokErr);
-    }
-  }
+      const parsed = JSON.parse(cleaned);
+      if (parsed.answer) {
+        // Clean double-escaped newlines if returned by the LLM
+        const cleanAnswer = typeof parsed.answer === 'string' 
+          ? parsed.answer.replace(/\\n/g, '\n').trim()
+          : String(parsed.answer);
 
-  // B. Try Google Gemini API
-  if (geminiKey) {
-    try {
-      const { GoogleGenAI } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey: geminiKey });
-
-      const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-      const response = await ai.models.generateContent({
-        model: modelName,
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json'
-        }
-      });
-
-      if (response && response.text) {
-        const parsed = JSON.parse(response.text);
         return {
-          answer: parsed.answer,
+          answer: cleanAnswer,
           responseType: parsed.responseType || 'ANSWER',
           evidence,
           basedOnText,
-          uncertaintyNotice: parsed.uncertaintyNotice,
-          nextActionRecommendation: parsed.nextActionRecommendation,
-          suggestedFollowUps: parsed.suggestedFollowUps || ['What should I do next?', 'What documents am I missing?'],
+          uncertaintyNotice: parsed.uncertaintyNotice || undefined,
+          nextActionRecommendation: parsed.nextActionRecommendation || undefined,
+          suggestedFollowUps: parsed.suggestedFollowUps || [
+            'What should I do next?',
+            'What documents am I missing?',
+            'What can I do in parallel?'
+          ],
           isFallback: false,
-          engine: 'AI_GEN_GEMINI'
+          engine: `${llmResult.provider} (${llmResult.model})`
         };
       }
-    } catch (aiErr: any) {
-      console.warn('[DishaSaathi] Gemini AI Copilot rate limit or 503 spike, using deterministic civic reasoning:', aiErr?.message || aiErr);
     }
+  } catch (llmErr) {
+    console.warn('[DishaSaathi Copilot] LLM processing error, falling back to deterministic civic reasoning:', llmErr);
+  }
+
+  // 5. DETERMINISTIC REASONING FALLBACK (When AI is rate-limited or offline)
+  // Conversational questions: "who are you", "what can you do", "help me"
+  if (
+    qLower.includes('who are you') ||
+    qLower.includes('what are you') ||
+    qLower.includes('who r u') ||
+    qLower.includes('your name') ||
+    qLower.includes('hello') ||
+    qLower.includes('hi') ||
+    qLower.includes('hey') ||
+    qLower.includes('what can you do') ||
+    qLower.includes('help me')
+  ) {
+    return {
+      responseType: 'ANSWER',
+      answer: `Hello! I am **DishaSaathi**, your AI Civic Journey Companion.\n\nI help citizens navigate complex Indian municipal, state, and central government procedures. For your active roadmap (**${journey.title}** in ${journey.location || 'India'}), I can:\n\n• **Recommend your next best action** and detect prerequisite blockers.\n• **Audit your documents checklist** to identify missing certificates.\n• **Highlight parallel steps** you can execute simultaneously.\n• **Provide official portal links** and statutory gazette citations.\n\nHow can I assist you with your roadmap today?`,
+      evidence,
+      basedOnText,
+      suggestedFollowUps: [
+        'What should I do next?',
+        'What documents am I missing?',
+        'What can I do in parallel?'
+      ]
+    };
   }
 
   // 5. DETERMINISTIC REASONING FALLBACK (When AI is rate-limited or offline)

@@ -216,7 +216,7 @@ export interface CopilotResponse {
   nextActionRecommendation?: string;
   suggestedFollowUps?: string[];
   isFallback?: boolean;
-  engine?: 'AI_GEN_GEMINI' | 'STATUTORY_GAZETTE_FALLBACK' | 'DETERMINISTIC_CIVIC_ENGINE';
+  engine?: string;
 }
 
 export interface DemoScenario {
