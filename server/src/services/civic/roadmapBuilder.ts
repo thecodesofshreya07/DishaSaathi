@@ -331,7 +331,7 @@ GUIDELINES:
 - If uncertain or asked something not covered in the data, state: "I don't have enough verified information to answer that confidently. Here is what we know: ... What you should verify: ..."`;
 
       const response = await ai.models.generateContent({
-        model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
         contents: prompt
       });
 

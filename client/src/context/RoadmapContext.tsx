@@ -260,7 +260,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error('Error during roadmap generation:', err);
       setGenerationStages((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
       setIsGenerating(false);
-      return journey;
+      return null;
     } finally {
       clearTimeout(timer1);
       clearTimeout(timer2);

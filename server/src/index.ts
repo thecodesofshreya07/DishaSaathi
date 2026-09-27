@@ -242,26 +242,17 @@ Return ONLY a valid JSON object matching this schema:
   "portalLink": "The exact deep application/regulation subpage URL"
 }`;
 
-    const modelName = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     let response: any = null;
-    let lastErr: any = null;
 
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        response = await ai.models.generateContent({
-          model: modelName,
-          contents: prompt,
-          config: { responseMimeType: 'application/json' }
-        });
-        if (response && response.text) break;
-      } catch (err: any) {
-        lastErr = err;
-        if (attempt < 3 && (err?.message?.includes('503') || err?.message?.includes('high demand') || err?.message?.includes('429'))) {
-          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
-          continue;
-        }
-        throw err;
-      }
+    try {
+      response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: { responseMimeType: 'application/json' }
+      });
+    } catch (apiErr: any) {
+      console.warn('[DishaSaathi] Gemini API rate limit / error in excerpt extraction. Falling back gracefully:', apiErr?.message || apiErr);
     }
 
     if (response && response.text) {
