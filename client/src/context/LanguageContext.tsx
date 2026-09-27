@@ -155,7 +155,7 @@ const translations: Record<Language, LanguageStrings> = {
     sidebarHome: 'Home',
     sidebarJourneys: 'My Journeys',
     sidebarExplore: 'Explore',
-    sidebarServices: 'Explore Services',
+    sidebarServices: 'Services',
     sidebarUpdates: 'Government Updates',
     sidebarDocuments: 'Documents',
     sidebarDeadlines: 'Deadlines',
@@ -562,7 +562,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
-  setLanguage: () => {},
+  setLanguage: () => { },
   t: translations.en,
 });
 

@@ -39,28 +39,28 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
   };
 
   return (
-    <div className="mb-6 rounded-2xl bg-white border border-[#D5E3DB] p-5 shadow-xs overflow-hidden">
+    <div className="mb-6 rounded-2xl bg-white dark:bg-[#0E1E19] border border-[#D5E3DB] dark:border-[#1F3E33] p-5 shadow-xs overflow-hidden transition-colors">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[#EDF2EE]">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[#EDF2EE] dark:border-[#1F3E33]">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center font-bold">
+          <div className="w-8 h-8 rounded-xl bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] flex items-center justify-center font-bold">
             <GitBranch className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-extrabold text-[#11261F] flex items-center gap-2">
+            <h4 className="text-sm font-extrabold text-[#11261F] dark:text-white flex items-center gap-2">
               <span>{t.flowchartTitle || 'Civic Procedure Flowchart'}</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E]">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 dark:bg-[#22C55E]/10 text-[#1B4D3E] dark:text-[#6EE7B7]">
                 {t.flowchartBadge || 'Linear & Parallel Dependencies'}
               </span>
             </h4>
-            <p className="text-[11px] text-[#6C8075]">
+            <p className="text-[11px] text-[#6C8075] dark:text-[#9FB7AC]">
               {t.flowchartDesc || 'Interactive visual flowchart. Click any small step node to inspect statutory obligations.'}
             </p>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-3 text-[11px] font-semibold text-[#4A5D54]">
+        <div className="flex items-center gap-3 text-[11px] font-semibold text-[#4A5D54] dark:text-[#9FB7AC]">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> {t.flowchartCompleted || 'Completed'}
           </span>
@@ -68,7 +68,7 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span> {t.flowchartCurrent || 'Current'}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span> {t.flowchartUpcoming || 'Upcoming'}
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span> {t.flowchartUpcoming || 'Upcoming'}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span> {t.flowchartBlocked || 'Blocked'}
@@ -87,30 +87,30 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
             const isLast = idx === steps.length - 1;
             const cleanTitle = step.title.replace(/^\d+\.\s*/, '');
 
-            let cardBorder = 'border-slate-200 hover:border-[#1B4D3E]';
-            let cardBg = 'bg-[#F9FBFA]';
-            let badgeBg = 'bg-slate-200 text-slate-700';
+            let cardBorder = 'border-slate-200 dark:border-[#1F3E33] hover:border-[#1B4D3E] dark:hover:border-[#34D399]';
+            let cardBg = 'bg-[#F9FBFA] dark:bg-[#12241E]';
+            let badgeBg = 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
             let statusText = t.flowchartUpcoming || 'Upcoming';
 
             if (isCompleted) {
-              cardBorder = 'border-emerald-500/80 hover:border-emerald-600';
-              cardBg = 'bg-[#F0F8F4]';
+              cardBorder = 'border-emerald-500/80 dark:border-emerald-600/80 hover:border-emerald-600';
+              cardBg = 'bg-[#F0F8F4] dark:bg-[#122A21]';
               badgeBg = 'bg-emerald-600 text-white';
               statusText = t.flowchartCompleted || 'Completed';
             } else if (isInProgress) {
-              cardBorder = 'border-amber-400 hover:border-amber-500 ring-2 ring-amber-300/60';
-              cardBg = 'bg-[#FFFBF2]';
+              cardBorder = 'border-amber-400 dark:border-amber-500 hover:border-amber-500 ring-2 ring-amber-300/60 dark:ring-amber-500/30';
+              cardBg = 'bg-[#FFFBF2] dark:bg-[#232014]';
               badgeBg = 'bg-amber-500 text-white';
               statusText = t.flowchartCurrent || 'In Progress';
             } else if (isBlocked) {
-              cardBorder = 'border-rose-200/90 bg-slate-50';
-              cardBg = 'bg-slate-50';
-              badgeBg = 'bg-rose-100 text-rose-700';
+              cardBorder = 'border-rose-200/90 dark:border-rose-800/60 bg-slate-50 dark:bg-[#201518]';
+              cardBg = 'bg-slate-50 dark:bg-[#201518]';
+              badgeBg = 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300';
               statusText = t.flowchartBlocked || 'Blocked';
             }
 
             if (isSelected) {
-              cardBorder += ' ring-2 ring-[#1B4D3E] border-[#1B4D3E]';
+              cardBorder += ' ring-2 ring-[#1B4D3E] dark:ring-[#34D399] border-[#1B4D3E] dark:border-[#34D399]';
             }
 
             return (
@@ -128,44 +128,44 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
 
                     <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                       isCompleted
-                        ? 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
                         : isInProgress
-                        ? 'bg-amber-100 text-amber-900 animate-pulse'
+                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 animate-pulse'
                         : isBlocked
-                        ? 'bg-rose-100 text-rose-700'
-                        : 'bg-slate-100 text-slate-600'
+                        ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                     }`}>
                       {statusText}
                     </span>
                   </div>
 
                   {/* Title */}
-                  <h5 className="text-xs font-bold text-[#11261F] line-clamp-2 leading-snug group-hover:text-[#1B4D3E] transition-colors" title={cleanTitle}>
+                  <h5 className="text-xs font-bold text-[#11261F] dark:text-white line-clamp-2 leading-snug group-hover:text-[#1B4D3E] dark:group-hover:text-[#6EE7B7] transition-colors" title={cleanTitle}>
                     {step.stepNumber}. {cleanTitle}
                   </h5>
 
                   {/* Department & Documents */}
-                  <div className="mt-2 pt-2 border-t border-[#E8ECE9] flex items-center justify-between text-[10px] text-[#5C7066]">
+                  <div className="mt-2 pt-2 border-t border-[#E8ECE9] dark:border-[#1F3E33] flex items-center justify-between text-[10px] text-[#5C7066] dark:text-[#9FB7AC]">
                     <span className="flex items-center gap-1 font-medium truncate max-w-[110px]" title={step.authority || step.department}>
                       <Building2 className="w-3 h-3 text-[#7E9388] shrink-0" />
                       <span className="truncate">{step.authority || step.department}</span>
                     </span>
 
-                    <span className="flex items-center gap-1 font-semibold text-[#11261F] shrink-0">
+                    <span className="flex items-center gap-1 font-semibold text-[#11261F] dark:text-white shrink-0">
                       <FileText className="w-3 h-3 text-[#7E9388]" />
                       <span>{step.documents.length} docs</span>
                     </span>
                   </div>
 
                   {/* Fee & Time Pill */}
-                  <div className="mt-1.5 flex items-center justify-between text-[10px] font-bold text-[#1B4D3E] bg-white/70 px-2 py-1 rounded-lg border border-[#E5EBE7]">
-                    <span className="text-[#4A5D54] font-medium">{step.processingTime || '1-2 weeks'}</span>
+                  <div className="mt-1.5 flex items-center justify-between text-[10px] font-bold text-[#1B4D3E] dark:text-[#6EE7B7] bg-white/70 dark:bg-[#0D1A16]/70 px-2 py-1 rounded-lg border border-[#E5EBE7] dark:border-[#1F3E33]">
+                    <span className="text-[#4A5D54] dark:text-[#9FB7AC] font-medium">{step.processingTime || '1-2 weeks'}</span>
                     <span>{step.fee?.amount || 'Free'}</span>
                   </div>
 
                   {/* Blocked dependency badge */}
                   {isBlocked && (
-                    <div className="mt-1.5 text-[9px] font-bold text-rose-600 flex items-center gap-1">
+                    <div className="mt-1.5 text-[9px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
                       <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
                       <span>Requires prior approvals</span>
                     </div>
@@ -174,10 +174,10 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
 
                 {/* Arrow Connector */}
                 {!isLast && (
-                  <div className="flex-shrink-0 flex items-center px-1 text-slate-300">
+                  <div className="flex-shrink-0 flex items-center px-1 text-slate-300 dark:text-slate-600">
                     <div className="flex items-center">
-                      <div className={`h-0.5 w-4 sm:w-6 ${isCompleted ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                      <ArrowRight className={`w-4 h-4 -ml-1 ${isCompleted ? 'text-emerald-600' : 'text-slate-400'}`} />
+                      <div className={`h-0.5 w-4 sm:w-6 ${isCompleted ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                      <ArrowRight className={`w-4 h-4 -ml-1 ${isCompleted ? 'text-emerald-600' : 'text-slate-400 dark:text-slate-600'}`} />
                     </div>
                   </div>
                 )}

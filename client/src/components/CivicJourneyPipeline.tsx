@@ -337,16 +337,16 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
       )}
 
       {/* Main Roadmap Container Card */}
-      <div className="rounded-2xl bg-white border border-[#E2EAE5] p-5 md:p-6 shadow-2xs">
+      <div className="rounded-2xl bg-white dark:bg-[#0E1E19] border border-[#E2EAE5] dark:border-[#1F3E33] p-5 md:p-6 shadow-2xs transition-colors">
         {/* Dynamic Journey Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-5 border-b border-[#EDF2EE]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-5 border-b border-[#EDF2EE] dark:border-[#1F3E33]">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-[#EAF2ED] border border-[#D5E3DB] flex items-center justify-center text-[#1B4D3E]">
+            <div className="w-11 h-11 rounded-xl bg-[#EAF2ED] dark:bg-[#18392F] border border-[#D5E3DB] dark:border-[#1F3E33] flex items-center justify-center text-[#1B4D3E] dark:text-[#6EE7B7]">
               <Briefcase className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-sm sm:text-base font-extrabold text-[#11261F]">
+                <h4 className="text-sm sm:text-base font-extrabold text-[#11261F] dark:text-white">
                   {journey.title}
                 </h4>
                 {/* Journey Health Status Badge (Section 17) */}
@@ -354,10 +354,10 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                   <span
                     className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       adaptiveRecommendation.journeyHealth === 'ON_TRACK'
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                         : adaptiveRecommendation.journeyHealth === 'BLOCKER_NEEDS_ATTENTION'
-                        ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                        : 'bg-blue-50 text-blue-800 border border-blue-200'
+                        ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                        : 'bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
@@ -371,9 +371,9 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-[11px] text-[#6C8075] font-medium mt-0.5">
+              <div className="flex items-center gap-2 text-[11px] text-[#6C8075] dark:text-[#9FB7AC] font-medium mt-0.5">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#8C9B94]" />
+                  <MapPin className="w-3 h-3 text-[#8C9B94] dark:text-[#6C8075]" />
                   <span>{journey.location || 'India'}</span>
                 </span>
                 <span>•</span>
@@ -385,30 +385,30 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
           {/* Progress Summary (Section 15 & 16) */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="text-right">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                 Steps Progress
               </span>
-              <span className="text-xs font-bold text-[#1B4D3E]">
+              <span className="text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7]">
                 {completedCount} / {steps.length} completed ({progressPercent}%)
               </span>
-              <div className="w-28 sm:w-36 h-1.5 bg-[#EDF3EF] rounded-full overflow-hidden border border-[#DCE6E1] mt-1">
+              <div className="w-28 sm:w-36 h-1.5 bg-[#EDF3EF] dark:bg-[#1A3329] rounded-full overflow-hidden border border-[#DCE6E1] dark:border-[#234538] mt-1">
                 <div
-                  className="h-full bg-[#1B4D3E] rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-[#1B4D3E] dark:bg-[#34D399] rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 ></div>
               </div>
             </div>
 
-            <div className="text-right border-l border-slate-200 pl-4">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+            <div className="text-right border-l border-slate-200 dark:border-[#1F3E33] pl-4">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
                 Document Readiness
               </span>
-              <span className="text-xs font-bold text-[#2A5C4B]">
+              <span className="text-xs font-bold text-[#2A5C4B] dark:text-[#A7D7C5]">
                 {readyDocs} / {totalDocs} ready ({docPercent}%)
               </span>
-              <div className="w-28 sm:w-36 h-1.5 bg-[#EDF3EF] rounded-full overflow-hidden border border-[#DCE6E1] mt-1">
+              <div className="w-28 sm:w-36 h-1.5 bg-[#EDF3EF] dark:bg-[#1A3329] rounded-full overflow-hidden border border-[#DCE6E1] dark:border-[#234538] mt-1">
                 <div
-                  className="h-full bg-emerald-600 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-emerald-600 dark:bg-emerald-500 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${docPercent}%` }}
                 ></div>
               </div>
@@ -418,7 +418,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
 
         {/* SECTION 10 & 11: ADAPTIVE NEXT BEST ACTION CARD */}
         {nextActionableStep && (
-          <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#EAF4EF] via-[#F2F8F5] to-[#EAF4EF] border-2 border-[#1B4D3E]/30 shadow-xs relative overflow-hidden">
+          <div className="mb-5 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#EAF4EF] via-[#F2F8F5] to-[#EAF4EF] dark:from-[#132A21] dark:via-[#17352A] dark:to-[#132A21] border-2 border-[#1B4D3E]/30 dark:border-[#34D399]/30 shadow-xs relative overflow-hidden">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3.5 flex-1">
                 <div className="w-10 h-10 rounded-2xl bg-[#1B4D3E] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
@@ -436,7 +436,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                       </span>
                     )}
                   </div>
-                  <h4 className="text-base sm:text-lg font-black text-[#11261F] leading-snug">
+                  <h4 className="text-base sm:text-lg font-black text-[#11261F] dark:text-white leading-snug">
                     Step {adaptiveRecommendation?.primaryAction.stepNumber || nextActionableStep.stepNumber}: {(adaptiveRecommendation?.primaryAction.title || nextActionableStep.title).replace(/^\d+\.\s*/, '')}
                   </h4>
                   <p className="text-xs sm:text-sm text-[#3C4F46] mt-1 leading-relaxed">
@@ -550,17 +550,17 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
             const stepTotalDocs = step.documents.length;
             const stepReadyDocs = step.documents.filter((d) => d.status === 'READY' || d.status === 'UPLOADED').length;
 
-            let cardBg = 'bg-white border-[#E2ECE7] hover:border-[#1B4D3E]/50';
+            let cardBg = 'bg-white dark:bg-[#0E1E19] border-[#E2ECE7] dark:border-[#1F3E33] hover:border-[#1B4D3E]/50 dark:hover:border-[#34D399]/50';
             if (isCompleted) {
-              cardBg = 'bg-[#F2F8F5] border-[#C2DFD0]';
+              cardBg = 'bg-[#F2F8F5] dark:bg-[#122A21] border-[#C2DFD0] dark:border-[#245241]';
             } else if (isCurrent) {
-              cardBg = 'bg-[#FEF9EE] border-[#F5DC9E] ring-2 ring-[#E8BD65]/80 shadow-xs';
+              cardBg = 'bg-[#FEF9EE] dark:bg-[#232014] border-[#F5DC9E] dark:border-[#524424] ring-2 ring-[#E8BD65]/80 shadow-xs';
             } else if (isBlocked) {
-              cardBg = 'bg-slate-50/80 border-slate-200 text-slate-500';
+              cardBg = 'bg-slate-50/80 dark:bg-[#1A181C] border-slate-200 dark:border-[#2C2630] text-slate-500 dark:text-slate-400';
             }
 
             if (isSelected) {
-              cardBg += ' ring-2 ring-[#1B4D3E] border-[#1B4D3E]';
+              cardBg += ' ring-2 ring-[#1B4D3E] dark:ring-[#34D399] border-[#1B4D3E] dark:border-[#34D399]';
             }
 
             return (
@@ -582,11 +582,11 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                         {step.stepNumber}
                       </div>
                     ) : isBlocked ? (
-                      <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center" title="Blocked by prerequisites">
+                      <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center" title="Blocked by prerequisites">
                         <Lock className="w-4 h-4" />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#EDF3EF] text-[#6C8075] flex items-center justify-center text-xs font-bold" title="Upcoming">
+                      <div className="w-8 h-8 rounded-full bg-[#EDF3EF] dark:bg-[#1A3329] text-[#6C8075] dark:text-[#9FB7AC] flex items-center justify-center text-xs font-bold" title="Upcoming">
                         {step.stepNumber}
                       </div>
                     )}
@@ -595,39 +595,39 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Clear State Badge: COMPLETED | CURRENT | UPCOMING | BLOCKED */}
                         {isCompleted && (
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                             {t.stepCompleted || 'COMPLETED'}
                           </span>
                         )}
                         {isCurrent && (
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 border border-amber-400 animate-pulse">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-200 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-400 dark:border-amber-700 animate-pulse">
                             {t.stepCurrent || 'CURRENT'}
                           </span>
                         )}
                         {isBlocked && (
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 border border-slate-300">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
                             {t.stepBlocked || 'BLOCKED'}
                           </span>
                         )}
                         {isUpcoming && (
-                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                             {t.stepUpcoming || 'UPCOMING'}
                           </span>
                         )}
 
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6C8075]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6C8075] dark:text-[#9FB7AC]">
                           Step {step.stepNumber} • {step.category}
                         </span>
                         {renderVerificationBadge(step.verificationStatus)}
                       </div>
-                      <h4 className="text-sm sm:text-base font-extrabold text-[#11261F] leading-snug mt-0.5">
+                      <h4 className="text-sm sm:text-base font-extrabold text-[#11261F] dark:text-white leading-snug mt-0.5">
                         {cleanTitle}
                       </h4>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EAF2ED] text-[#1B4D3E] border border-[#D5E3DB]">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] border border-[#D5E3DB] dark:border-[#1F3E33]">
                       {step.processingTime || '1 - 2 weeks'}
                     </span>
                     <ChevronRight className="w-4 h-4 text-[#8C9B94]" />
@@ -635,18 +635,18 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                 </div>
 
                 {/* Plain-Language Explanation: What this means */}
-                <div className="mt-2 text-xs sm:text-[13px] text-[#3A4D45] leading-relaxed">
-                  <strong className="font-semibold text-[#11261F]">{t.whatThisMeans || 'What this means:'} </strong>
+                <div className="mt-2 text-xs sm:text-[13px] text-[#3A4D45] dark:text-[#A1B8AD] leading-relaxed">
+                  <strong className="font-semibold text-[#11261F] dark:text-white">{t.whatThisMeans || 'What this means:'} </strong>
                   {step.plainLanguageSummary || step.description}
                 </div>
 
                 {/* Why You Need It Callout */}
                 {step.whyRequired && (
-                  <div className="mt-2.5 p-2.5 rounded-xl bg-[#EAF4EF]/70 border border-[#D4E8DC] text-xs text-[#2A5C4B]">
+                  <div className="mt-2.5 p-2.5 rounded-xl bg-[#EAF4EF]/70 dark:bg-[#142C23] border border-[#D4E8DC] dark:border-[#1F4536] text-xs text-[#2A5C4B] dark:text-[#A7D7C5]">
                     <div className="flex items-start gap-1.5">
-                      <HelpCircle className="w-3.5 h-3.5 text-[#1B4D3E] flex-shrink-0 mt-0.5" />
+                      <HelpCircle className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7] flex-shrink-0 mt-0.5" />
                       <div>
-                        <strong className="font-bold text-[#143B2F]">{t.whyYouNeedIt || 'Why you need it:'} </strong>
+                        <strong className="font-bold text-[#143B2F] dark:text-white">{t.whyYouNeedIt || 'Why you need it:'} </strong>
                         <span>{step.whyRequired}</span>
                       </div>
                     </div>

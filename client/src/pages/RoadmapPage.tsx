@@ -154,7 +154,7 @@ export const RoadmapPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans text-[#11261F] antialiased">
+    <div className="min-h-screen bg-[#F8FAF9] dark:bg-[#08120F] font-sans text-[#11261F] dark:text-[#E8F3EE] antialiased transition-colors">
       {/* 1. Global Navigation Bar */}
       <Navbar
         onSearch={handleSearch}
@@ -184,19 +184,19 @@ export const RoadmapPage: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 max-w-7xl mx-auto">
           {/* Phase 4 Resume Experience Banner */}
           {hasSavedProgress && activeTab === 'home' && (
-            <div className="mb-5 bg-[#EAF2ED] border-2 border-[#1B4D3E]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="mb-5 bg-[#EAF2ED] dark:bg-[#10271F] border-2 border-[#1B4D3E]/30 dark:border-[#22C55E]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#1B4D3E] text-white flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[#1B4D3E] dark:bg-[#1B4D3E] text-white flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-[#11261F] text-sm flex items-center gap-1.5">
+                  <h4 className="font-bold text-[#11261F] dark:text-white text-sm flex items-center gap-1.5">
                     Continue your saved progress
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E] font-bold">
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 dark:bg-[#22C55E]/10 text-[#1B4D3E] dark:text-[#6EE7B7] font-bold">
                       Saved
                     </span>
                   </h4>
-                  <p className="text-xs text-[#4A5D54]">
+                  <p className="text-xs text-[#4A5D54] dark:text-[#9FB7AC]">
                     You completed {activeJourney.completedSteps} of {activeJourney.totalSteps} steps and have {activeJourney.readyDocuments || 0} of {activeJourney.totalDocuments || 0} documents ready.
                   </p>
                 </div>

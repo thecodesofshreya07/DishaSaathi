@@ -13,11 +13,14 @@ import {
   BookOpen,
   Filter,
   Award,
-  Sparkles
+  Sparkles,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, CivicDocumentStatus } from '../types';
 import { getOfficialDocumentApplicationUrl, getDocumentProcurementInfo, OfflineOfficeDetails } from '../utils/documentSources';
 import { OfflineDocModal } from './OfflineDocModal';
+import { useTheme } from '../context/ThemeContext';
 
 // ----------------------------------------------------
 // 0. EXPLORE VIEW (Civic Categories & Government Guide)
@@ -777,41 +780,85 @@ export const SavedView: React.FC<{
 export const SettingsView: React.FC<{
   onResetRoadmap: () => void;
 }> = ({ onResetRoadmap }) => {
+  const { setTheme, isDarkMode } = useTheme();
+
   return (
     <div className="space-y-5 animate-in fade-in duration-200 max-w-2xl">
       <div>
-        <h3 className="text-xl font-black text-[#11261F]">Citizen Portal Settings</h3>
-        <p className="text-xs text-[#6C8075]">
-          Manage localization, AI engine preferences, and local cache.
+        <h3 className="text-xl font-black text-[#11261F] dark:text-white">Citizen Portal Settings</h3>
+        <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC]">
+          Manage appearance theme, AI engine configuration, and local state.
         </p>
       </div>
 
-      <div className="p-5 rounded-2xl bg-white border border-[#DCE8E1] shadow-2xs space-y-4">
+      <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1E19] border border-[#DCE8E1] dark:border-[#1F3E33] shadow-2xs space-y-5">
+        {/* Appearance & Theme Selector */}
         <div>
-          <h4 className="text-xs font-extrabold text-[#11261F] uppercase tracking-wider mb-2">
+          <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-2.5">
+            Display Appearance & Theme
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setTheme('light')}
+              className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${
+                !isDarkMode
+                  ? 'border-[#1B4D3E] bg-[#EAF2ED] text-[#1B4D3E] shadow-2xs font-bold'
+                  : 'border-[#DCE8E1] dark:border-[#1F3E33] bg-[#F6FAF8] dark:bg-[#12241E] text-[#4A5D54] dark:text-[#9FB7AC] hover:bg-[#EDF5F1] dark:hover:bg-[#172D25]'
+              }`}
+            >
+              <Sun className={`w-5 h-5 ${!isDarkMode ? 'text-[#1B4D3E]' : 'text-amber-500'}`} />
+              <div className="text-left">
+                <div className="text-xs font-bold">Light Mode</div>
+                <div className="text-[10px] opacity-80">Day sage palette & Gateway day monument</div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTheme('dark')}
+              className={`p-3.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${
+                isDarkMode
+                  ? 'border-[#34D399] bg-[#18392F] text-[#6EE7B7] shadow-2xs font-bold'
+                  : 'border-[#DCE8E1] dark:border-[#1F3E33] bg-[#F6FAF8] dark:bg-[#12241E] text-[#4A5D54] dark:text-[#9FB7AC] hover:bg-[#EDF5F1] dark:hover:bg-[#172D25]'
+              }`}
+            >
+              <Moon className={`w-5 h-5 ${isDarkMode ? 'text-[#6EE7B7]' : 'text-[#1B4D3E]'}`} />
+              <div className="text-left">
+                <div className="text-xs font-bold">Dark Mode</div>
+                <div className="text-[10px] opacity-80">Night emerald & Gateway illuminated night</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* AI Engine */}
+        <div className="pt-3 border-t border-[#EDF2EE] dark:border-[#1F3E33]">
+          <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-2">
             AI Engine Configuration
           </h4>
-          <div className="p-3.5 rounded-xl bg-[#F6FAF8] border border-[#DCEAE2] text-xs space-y-1">
-            <div className="flex items-center justify-between font-bold text-[#1B4D3E]">
+          <div className="p-3.5 rounded-xl bg-[#F6FAF8] dark:bg-[#12241E] border border-[#DCEAE2] dark:border-[#1F3E33] text-xs space-y-1">
+            <div className="flex items-center justify-between font-bold text-[#1B4D3E] dark:text-[#6EE7B7]">
               <span>Google Gemini API</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px]">Active</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px]">Active</span>
             </div>
-            <p className="text-[#5C7066] text-[11px] leading-relaxed">
-              Configured via server <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-[#D5E3DB]">GEMINI_API_KEY</code> for real-time goal interpretation and statutory gazette rule extraction.
+            <p className="text-[#5C7066] dark:text-[#9FB7AC] text-[11px] leading-relaxed">
+              Configured via server <code className="font-mono bg-white dark:bg-[#0D1A16] px-1.5 py-0.5 rounded border border-[#D5E3DB] dark:border-[#1F3E33]">GEMINI_API_KEY</code> for real-time goal interpretation and statutory gazette rule extraction.
             </p>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-[#EDF2EE]">
-          <h4 className="text-xs font-extrabold text-[#11261F] uppercase tracking-wider mb-2">
+        {/* Reset Data */}
+        <div className="pt-3 border-t border-[#EDF2EE] dark:border-[#1F3E33]">
+          <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-2">
             Reset Data & Clear Cache
           </h4>
-          <p className="text-xs text-[#5C7066] mb-3 leading-relaxed">
+          <p className="text-xs text-[#5C7066] dark:text-[#9FB7AC] mb-3 leading-relaxed">
             Reset your current civic roadmap back to initial baseline or clear local progress.
           </p>
           <button
             onClick={onResetRoadmap}
-            className="px-4 py-2 rounded-xl bg-white text-rose-700 hover:bg-rose-50 border border-rose-200 text-xs font-bold transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-white dark:bg-[#12241E] text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs font-bold transition-all cursor-pointer"
           >
             Reset Active Roadmap
           </button>
