@@ -96,28 +96,35 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
 
         {/* Core USP Headline */}
         <h2
-          className={`text-2xl sm:text-3xl md:text-[34px] font-extrabold tracking-tight leading-[1.18] font-sans ${
+          className={`text-2xl sm:text-3xl md:text-[32px] font-extrabold tracking-tight leading-[1.2] font-sans ${
             isDarkMode ? 'text-white' : 'text-[#11261F]'
           }`}
         >
-          {t.heroMazeTitle1 || 'Government processes'}<br />
-          {t.heroMazeTitle2 || "shouldn't feel like a maze."}
+          What do you want to accomplish?
         </h2>
 
         {/* Supporting message */}
         <p
-          className={`text-xs sm:text-sm mt-2.5 leading-relaxed font-normal max-w-lg ${
+          className={`text-xs sm:text-sm mt-2 leading-relaxed font-normal max-w-lg ${
             isDarkMode ? 'text-[#A2B9AE]' : 'text-[#4A5D54]'
           }`}
         >
-          {t.heroMazeSubtitle ||
-            "Tell us what you're trying to do. DishaSaathi turns fragmented government information into one clear, verified roadmap."}
+          You can describe your goal in your own words. No need to know department names, license codes, or government legal terminology.
         </p>
 
         {/* Natural Language Task Input Box */}
-        <form onSubmit={handleSubmit} className="mt-5 relative max-w-lg">
+        <form onSubmit={handleSubmit} className="mt-4 relative max-w-lg">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <label className={`text-[11px] font-extrabold uppercase tracking-wider ${isDarkMode ? 'text-emerald-400' : 'text-[#1B4D3E]'}`}>
+              YOUR CIVIC OR COMMERCIAL GOAL *
+            </label>
+            <span className={`text-[10px] font-semibold ${isDarkMode ? 'text-[#7A988B]' : 'text-[#6C8075]'}`}>
+              Natural language
+            </span>
+          </div>
+
           <div
-            className={`relative flex items-center shadow-xs rounded-full border transition-all ${
+            className={`relative flex items-center shadow-xs rounded-2xl border transition-all ${
               isDarkMode
                 ? 'bg-[#152721] border-[#254237] focus-within:border-[#388E3C] focus-within:ring-2 focus-within:ring-emerald-500/20'
                 : 'bg-white border-[#D0DDD5] focus-within:border-[#1B4D3E] focus-within:ring-2 focus-within:ring-[#1B4D3E]/15'
@@ -133,8 +140,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={t.heroInputPlaceholder || 'What are you trying to accomplish?'}
-              className={`w-full pl-3 pr-14 py-3 bg-transparent rounded-full text-xs sm:text-sm font-medium focus:outline-none ${
+              placeholder="e.g. I want to buy a new flat in Mumbai or open a bakery"
+              className={`w-full pl-3 pr-14 py-3.5 bg-transparent text-xs sm:text-sm font-medium focus:outline-none ${
                 isDarkMode ? 'text-white placeholder-[#6E857B]' : 'text-[#11261F] placeholder-[#8C9B94]'
               }`}
             />
@@ -142,10 +149,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
               type="submit"
               disabled={isLoading}
               aria-label="Submit search query"
-              className="absolute right-1.5 w-8 h-8 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+              className="absolute right-2 w-9 h-9 rounded-xl bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
             >
               {isLoading ? (
-                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <ArrowRight className="w-4 h-4" />
               )}
@@ -159,12 +166,18 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
             {t.heroPopularSearches || 'Popular searches:'}
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {popularSearches.map((item) => (
+            {[
+              { key: 'flat', label: 'Buy a New Flat in Mumbai', query: 'I want to buy a new flat in Mumbai' },
+              { key: 'business', label: 'Register a small business', query: 'Register a small business' },
+              { key: 'license', label: 'Driving License', query: 'I want a driving license' },
+              { key: 'birth', label: 'Birth Certificate', query: 'Birth Certificate' },
+              { key: 'vehicle', label: 'New Vehicle Registration', query: 'New Vehicle Registration' }
+            ].map((item) => (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => handlePillClick(item.query)}
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all border cursor-pointer ${
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all border cursor-pointer ${
                   isDarkMode
                     ? 'bg-[#152822] text-[#C5D7CE] border-[#243F35] hover:bg-[#1D362E] hover:text-white'
                     : 'bg-white/80 hover:bg-white text-[#2C4A3E] border-[#D0DDD5] hover:border-[#1B4D3E]'

@@ -81,7 +81,7 @@ export const LandingNavbar: React.FC = () => {
               {/* Language toggle */}
               <div className="relative">
                 <button onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#DCE4DF] text-xs font-bold text-[#4A5D54] hover:bg-[#F3F7F5] transition-colors">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#DCE4DF] text-xs font-bold text-[#4A5D54] hover:bg-[#F3F7F5] transition-colors cursor-pointer">
                   <Globe className="w-3.5 h-3.5 text-[#5A6D64]"/>
                   <span>{LANG_LABELS[language]}</span>
                   <ChevronDown className={`w-3 h-3 text-[#7A8E85] transition-transform ${langDropdownOpen ? 'rotate-180' : ''}`}/>
@@ -99,13 +99,9 @@ export const LandingNavbar: React.FC = () => {
                 )}
               </div>
 
-              <Link to="/roadmap" className="px-4 py-2 rounded-full text-xs font-bold text-[#4A5D54] hover:bg-[#F3F7F5] border border-[#DCE4DF] transition-all">
-                {t.navViewRoadmap}
-              </Link>
-              <button onClick={() => navigate('/create')}
-                className="px-5 py-2.5 rounded-full text-sm font-bold text-white flex items-center gap-2 transition-all shadow-sm hover:shadow-md bg-[#1B4D3E] hover:bg-[#133A2E] active:scale-98">
-                <span>{t.navCreateRoadmap}</span>
-                <ArrowRight className="w-4 h-4"/>
+              <button onClick={() => navigate('/login')}
+                className="px-4 py-2 rounded-full text-xs font-bold text-[#1B4D3E] hover:bg-[#EAF2ED] border border-[#1B4D3E]/30 transition-all cursor-pointer">
+                Sign In
               </button>
             </div>
 

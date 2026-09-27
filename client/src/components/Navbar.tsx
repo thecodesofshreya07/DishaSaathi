@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Bell, Globe, ChevronDown, ShieldCheck, LogIn, LogOut, Sun, Moon } from 'lucide-react';
+import { Bell, Globe, ChevronDown, ShieldCheck, LogIn, LogOut, Sun, Moon } from 'lucide-react';
 import { useLanguage, Language } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -9,36 +9,27 @@ const LANG_LABELS: Record<Language, string> = { en: 'EN', hi: 'हि', mr: 'म
 const LANG_NAMES: Record<Language, string> = { en: 'English', hi: 'हिन्दी', mr: 'मराठी' };
 
 interface NavbarProps {
-  onSearch: (query: string) => void;
+  onSearch?: (query: string) => void;
   unreadCount?: number;
   onOpenNotifications?: () => void;
   onOpenAdmin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  onSearch,
   unreadCount = 3,
   onOpenNotifications,
   onOpenAdmin
 }) => {
-  const [searchInput, setSearchInput] = useState('');
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const { user, isAuthenticated, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchInput.trim()) {
-      onSearch(searchInput.trim());
-    }
-  };
-
   return (
     <header className="sticky top-0 z-40 w-full bg-white dark:bg-[#0D1A16] border-b border-[#E8ECE9] dark:border-[#1E3B32] px-6 lg:px-8 py-3.5 flex items-center justify-between gap-6 shadow-2xs transition-colors">
       {/* Brand Logo */}
-      <Link to="/" className="flex items-center gap-3 min-w-[220px]">
+      <Link to="/" className="flex items-center gap-3">
         {/* Stylized organic leaf icon */}
         <div className="w-9 h-9 flex items-center justify-center text-[#1E3E37]">
           <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8">
@@ -69,27 +60,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </p>
         </div>
       </Link>
-
-      {/* Center Search Input */}
-      <form onSubmit={handleSubmit} className="flex-1 max-w-2xl relative">
-        <div className="relative flex items-center">
-          <Search className="w-4 h-4 text-[#8C9B94] dark:text-[#6E857B] absolute left-4 pointer-events-none" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder={t.searchPlaceholder}
-            className="w-full pl-11 pr-14 py-2.5 bg-white dark:bg-[#12241E] text-sm text-[#11261F] dark:text-white placeholder-[#8C9B94] dark:placeholder-[#6E857B] rounded-full border border-[#DCE4DF] dark:border-[#1F3E33] focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]/20 dark:focus:ring-emerald-500/20 focus:border-[#1B4D3E] dark:focus:border-[#2E6B56] transition-all shadow-2xs font-normal"
-          />
-          <button
-            type="submit"
-            aria-label="Search"
-            className="absolute right-1.5 w-8 h-8 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm"
-          >
-            <span className="text-sm font-bold">→</span>
-          </button>
-        </div>
-      </form>
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 lg:gap-5">
