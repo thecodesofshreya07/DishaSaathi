@@ -5,19 +5,16 @@ import {
   ExternalLink,
   CheckCircle2,
   Lock,
-  Clock,
   Building,
   FileText,
   HelpCircle,
   ArrowRight,
   Zap,
   Sparkles,
-  Info,
   Check,
-  Eye,
-  Scale
+  Eye
 } from 'lucide-react';
-import { ProcedureStep, CivicJourney, CivicVerificationStatus, CivicDocument, CivicDocumentStatus, CivicDocumentCategory } from '../types';
+import { ProcedureStep, CivicJourney, CivicDocument, CivicDocumentStatus, CivicDocumentCategory } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { getDocumentProcurementInfo, getDocumentApplicationUrl, OfflineOfficeDetails } from '../utils/documentSources';
 import { SourceExcerptModal } from './SourceExcerptModal';

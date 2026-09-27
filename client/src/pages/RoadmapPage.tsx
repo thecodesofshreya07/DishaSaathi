@@ -69,6 +69,53 @@ export const RoadmapPage: React.FC = () => {
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
 
+  // Read state for notifications & deadlines so badge '1' disappears once opened/read
+  const [readUpdateIds, setReadUpdateIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('dishasaathi_read_updates');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [hasReadDeadlines, setHasReadDeadlines] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('dishasaathi_read_deadlines') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const markAllUpdatesAsRead = () => {
+    if (updates.length > 0) {
+      const allIds = Array.from(new Set([...readUpdateIds, ...updates.map((u) => u.id)]));
+      setReadUpdateIds(allIds);
+      localStorage.setItem('dishasaathi_read_updates', JSON.stringify(allIds));
+    }
+  };
+
+  const markDeadlinesAsRead = () => {
+    setHasReadDeadlines(true);
+    localStorage.setItem('dishasaathi_read_deadlines', 'true');
+  };
+
+  // When user is on 'updates' tab or opens modal, automatically mark updates as read
+  React.useEffect(() => {
+    if (activeTab === 'updates' || selectedUpdate || selectedExcerptUpdate) {
+      markAllUpdatesAsRead();
+    } else if (activeTab === 'deadlines') {
+      markDeadlinesAsRead();
+    }
+  }, [activeTab, selectedUpdate, selectedExcerptUpdate, updates]);
+
+  // Compute live unread counts
+  const unreadUpdatesCount = activeTab === 'updates' || selectedUpdate || selectedExcerptUpdate
+    ? 0
+    : updates.filter((u) => u.reviewStatus === 'Pending Review' && !readUpdateIds.includes(u.id)).length;
+
+  const unreadDeadlinesCount = activeTab === 'deadlines' || hasReadDeadlines ? 0 : 1;
+
   // Handle Natural Language Search
   const handleSearch = async (goal: string) => {
     setLoading(true);
@@ -165,9 +212,14 @@ export const RoadmapPage: React.FC = () => {
       {/* 1. Global Navigation Bar */}
       <Navbar
         onSearch={handleSearch}
-        unreadCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
+        unreadCount={unreadUpdatesCount}
         onOpenNotifications={() => {
-          if (updates.length > 0) setSelectedUpdate(updates[0]);
+          markAllUpdatesAsRead();
+          if (updates.length > 0) {
+            setSelectedUpdate(updates[0]);
+          } else {
+            setActiveTab('updates');
+          }
         }}
         onOpenAdmin={() => setIsAdminModalOpen(true)}
       />
@@ -180,11 +232,17 @@ export const RoadmapPage: React.FC = () => {
           activeTab={activeTab}
           onTabChange={(tab) => {
             setActiveTab(tab);
-            if (tab === 'updates' && updates.length > 0) {
-              setSelectedExcerptUpdate(updates[0]);
+            if (tab === 'updates') {
+              markAllUpdatesAsRead();
+              if (updates.length > 0) {
+                setSelectedExcerptUpdate(updates[0]);
+              }
+            } else if (tab === 'deadlines') {
+              markDeadlinesAsRead();
             }
           }}
-          updatesCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
+          updatesCount={unreadUpdatesCount}
+          deadlinesCount={unreadDeadlinesCount}
         />
 
         {/* Center Main Stage Content */}

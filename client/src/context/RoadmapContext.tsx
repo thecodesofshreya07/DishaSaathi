@@ -12,6 +12,7 @@ import {
 } from '../types';
 
 import { useAuth } from './AuthContext';
+import { initialDefaultJourneys } from '../data/defaultJourneys';
 
 interface RoadmapContextType {
   intake: GoalIntake;
@@ -62,17 +63,16 @@ const RoadmapContext = createContext<RoadmapContextType | undefined>(undefined);
 
 function validateStoredJourney(data: any): CivicJourney | null {
   if (!data || typeof data !== 'object') return null;
-  if (data.dataVersion !== DATA_VERSION) {
-    return null;
-  }
   if (!data.id || !data.title || !Array.isArray(data.steps) || data.steps.length === 0) {
     return null;
   }
-  return data as CivicJourney;
+  return { ...data, dataVersion: DATA_VERSION } as CivicJourney;
 }
 
 export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, token } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user || null;
+  const token = auth?.token || null;
 
   // Load intake from localStorage or sessionStorage or default
   const [intake, setIntake] = useState<GoalIntake>(() => {
@@ -92,20 +92,25 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          return parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+          const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+          if (valid.length > 0) return valid;
         }
       }
     } catch (e) {
       console.warn('Could not load user journeys from local cache', e);
     }
-    return [];
+    return initialDefaultJourneys;
   });
 
   // Active Journey ID
-  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
+  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(() => {
+    return initialDefaultJourneys.length > 0 ? initialDefaultJourneys[0].id : null;
+  });
 
   // Currently active journey
-  const [journey, setJourney] = useState<CivicJourney | null>(null);
+  const [journey, setJourney] = useState<CivicJourney | null>(() => {
+    return initialDefaultJourneys.length > 0 ? initialDefaultJourneys[0] : null;
+  });
 
   const [updates, setUpdates] = useState<GovernmentUpdate[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -145,8 +150,8 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed)) {
             const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
-            setJourneys(valid);
             if (valid.length > 0) {
+              setJourneys(valid);
               setActiveJourneyId(valid[0].id);
               setJourney(valid[0]);
             }
@@ -166,23 +171,47 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         })
         .then((data) => {
           const loadedJourneys = (data.success && Array.isArray(data.journeys)) ? data.journeys : [];
-          setJourneys(loadedJourneys);
-          localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(loadedJourneys));
-
           if (loadedJourneys.length > 0) {
-            setActiveJourneyId(loadedJourneys[0].id);
-            setJourney(loadedJourneys[0]);
+            const valid = loadedJourneys.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+            setJourneys(valid);
+            localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(valid));
+            setActiveJourneyId(valid[0].id);
+            setJourney(valid[0]);
           } else {
-            setActiveJourneyId(null);
-            setJourney(null);
+            setJourneys(initialDefaultJourneys);
+            localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(initialDefaultJourneys));
+            if (initialDefaultJourneys.length > 0) {
+              setActiveJourneyId(initialDefaultJourneys[0].id);
+              setJourney(initialDefaultJourneys[0]);
+            }
           }
         })
         .catch((err) => console.warn('Backend user journeys sync:', err));
     } else {
-      // User logged out or guest: reset state
-      setJourneys([]);
-      setActiveJourneyId(null);
-      setJourney(null);
+      // Guest mode: load from guest cache or default journeys
+      try {
+        const guestRaw = localStorage.getItem('dishasaathi_guest_journeys');
+        if (guestRaw) {
+          const parsed = JSON.parse(guestRaw);
+          if (Array.isArray(parsed)) {
+            const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+            if (valid.length > 0) {
+              setJourneys(valid);
+              setActiveJourneyId(valid[0].id);
+              setJourney(valid[0]);
+              return;
+            }
+          }
+        }
+      } catch {}
+      setJourneys(initialDefaultJourneys);
+      if (initialDefaultJourneys.length > 0) {
+        setActiveJourneyId(initialDefaultJourneys[0].id);
+        setJourney(initialDefaultJourneys[0]);
+      } else {
+        setActiveJourneyId(null);
+        setJourney(null);
+      }
     }
   }, [user?.id, token]);
 
@@ -623,10 +652,39 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 };
 
+const defaultRoadmapValue: RoadmapContextType = {
+  intake: defaultIntake,
+  setIntake: () => {},
+  updateIntakeField: () => {},
+  journey: initialDefaultJourneys[0] || null,
+  setJourney: () => {},
+  journeys: initialDefaultJourneys,
+  setJourneys: () => {},
+  activeJourneyId: initialDefaultJourneys[0]?.id || null,
+  setActiveJourneyId: () => {},
+  selectJourney: () => {},
+  deleteJourney: async () => {},
+  updates: [],
+  setUpdates: () => {},
+  isGenerating: false,
+  activeStageIndex: 0,
+  generationStages: defaultStages,
+  generateRoadmap: async () => null,
+  updateStepStatus: async () => ({ success: false }),
+  updateDocumentStatus: async () => ({ success: false }),
+  applyUpdate: async () => {},
+  resetToDefault: () => false,
+  hasSavedProgress: false,
+  resumeSavedProgress: () => {},
+  adaptiveRecommendation: null,
+  refineGoal: async () => ({ success: false }),
+  recheckRoadmap: async () => ({ success: false, message: '' }),
+  isCopilotOpen: false,
+  setIsCopilotOpen: () => {}
+};
+
 export const useRoadmap = () => {
   const context = useContext(RoadmapContext);
-  if (!context) {
-    throw new Error('useRoadmap must be used within a RoadmapProvider');
-  }
-  return context;
+  return context || defaultRoadmapValue;
 };
+

@@ -24,8 +24,8 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
-  updatesCount = 3,
-  deadlinesCount = 1
+  updatesCount = 0,
+  deadlinesCount = 0
 }) => {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();

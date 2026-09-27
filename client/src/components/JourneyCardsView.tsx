@@ -31,7 +31,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
   journeys,
   onSelectJourney,
   onDeleteJourney,
-  isLoading = false
+  isLoading: _isLoading = false
 }) => {
   const navigate = useNavigate();
   const { updateIntakeField } = useRoadmap();

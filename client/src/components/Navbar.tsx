@@ -16,7 +16,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  unreadCount = 3,
+  unreadCount = 0,
   onOpenNotifications,
   onOpenAdmin
 }) => {
@@ -30,26 +30,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-40 w-full bg-white dark:bg-[#0D1A16] border-b border-[#E8ECE9] dark:border-[#1E3B32] px-6 lg:px-8 py-3.5 flex items-center justify-between gap-6 shadow-2xs transition-colors">
       {/* Brand Logo */}
       <Link to="/" className="flex items-center gap-3">
-        {/* Stylized organic leaf icon */}
-        <div className="w-9 h-9 flex items-center justify-center text-[#1E3E37]">
-          <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8">
-            <path
-              d="M8 28C8 18 16 8 28 8C28 18 20 28 8 28Z"
-              fill={isDarkMode ? '#22C55E' : '#1B4D3E'}
-            />
-            <path
-              d="M10 26C15 22 22 17 26 10"
-              stroke={isDarkMode ? '#0D1A16' : '#A8D5C2'}
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M14 28C14 23 18 19 22 17"
-              stroke={isDarkMode ? '#0D1A16' : '#A8D5C2'}
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
+        {/* Official Logo */}
+        <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-[#E0EBE4] dark:border-slate-700 p-1 flex items-center justify-center shadow-2xs overflow-hidden">
+          <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-[#11261F] dark:text-white font-sans leading-none">

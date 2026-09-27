@@ -156,17 +156,19 @@ export async function parseCitizenGoal(
   options?: ParseGoalOptions
 ): Promise<StructuredGoal> {
   const query = (rawQuery || '').trim();
-  const apiKey = process.env.GEMINI_API_KEY;
+  const hasLlmKey = !!(
+    process.env.GROQ_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.OPENROUTER_API_KEY ||
+    process.env.GROK_API_KEY
+  );
 
-  if (!apiKey) {
-    console.info('[DishaSaathi] No GEMINI_API_KEY found, using deterministic civic intent parser.');
+  if (!hasLlmKey) {
+    console.info('[DishaSaathi] No LLM API key found, using deterministic civic intent parser.');
     return parseGoalDeterministically(query, options);
   }
 
   try {
-    const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey });
-
     const prompt = `You are DishaSaathi's Civic Intent & Entity Recognition Engine for Indian Government Procedures.
 Analyze the user's natural-language civic query: "${query}".
 Location provided by user: "${options?.locationOverride || 'Unspecified'}".

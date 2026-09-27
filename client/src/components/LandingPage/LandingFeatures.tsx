@@ -1,145 +1,213 @@
 import React from 'react';
-import { Network, ShieldCheck, Building, RefreshCw, FileText, Clock } from 'lucide-react';
-
-const features = [
-  {
-    title: 'Prerequisite Dependency Trees',
-    description: 'Never get rejected due to missing prior approvals. DishaSaathi sequences steps so you know what comes before what.',
-    icon: Network,
-    color: '#FF9933',
-    bg: '#FFF8F0',
-    border: '#FFD199',
-    tag: 'Core Intelligence'
-  },
-  {
-    title: 'Official .gov.in Verification',
-    description: 'Every step links directly to verified national and state portals (FoSCoS, Udyam, GSTN, MCA) with gazette citations.',
-    icon: ShieldCheck,
-    color: '#138808',
-    bg: '#F0FFF0',
-    border: '#A8D5A8',
-    tag: 'Trust Layer'
-  },
-  {
-    title: 'Ward-Level Municipal Precision',
-    description: 'Handles BMC Mumbai, Delhi MCD, Bengaluru BBMP, Pune PMC and all state statutory nuances in one engine.',
-    icon: Building,
-    color: '#000080',
-    bg: '#F0F2FF',
-    border: '#C5C9F0',
-    tag: 'Jurisdiction AI'
-  },
-  {
-    title: 'Regulatory Change Detection',
-    description: 'When official fees, forms or requirements change, your active roadmap updates automatically in real time.',
-    icon: RefreshCw,
-    color: '#FF9933',
-    bg: '#FFF8F0',
-    border: '#FFD199',
-    tag: 'Live Updates'
-  },
-  {
-    title: 'Actionable Document Checklists',
-    description: 'Get comprehensive document checklists before any ward office visit, eliminating costly repeat trips.',
-    icon: FileText,
-    color: '#138808',
-    bg: '#F0FFF0',
-    border: '#A8D5A8',
-    tag: 'Docs Engine'
-  },
-  {
-    title: 'Realistic Turnaround Timelines',
-    description: 'Understand statutory Right-to-Service SLA timelines and government fees for realistic planning.',
-    icon: Clock,
-    color: '#000080',
-    bg: '#F0F2FF',
-    border: '#C5C9F0',
-    tag: 'Time Planner'
-  },
-];
+import { useNavigate } from 'react-router-dom';
+import {
+  ArrowRight,
+  Building2,
+  GitFork,
+  Bell,
+  FileText
+} from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const LandingFeatures: React.FC = () => {
-  return (
-    <section id="features" className="py-20 sm:py-28 relative overflow-hidden bg-[#FAFCF9]">
-      {/* Decorative diagonal tricolor block */}
-      <div className="absolute top-0 left-0 right-0 h-1 flex">
-        <div className="flex-1 bg-[#FF9933]"/>
-        <div className="flex-1 bg-[#000080]"/>
-        <div className="flex-1 bg-[#138808]"/>
-      </div>
+  const navigate = useNavigate();
+  const { t } = useLanguage();
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#000080]/30 bg-[#F0F2FF] text-xs font-bold text-[#000080] mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#000080]"/>
-            Why DishaSaathi
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-black text-[#0D1F1A] tracking-tight mt-2">
-            Engineered for{' '}
-            <span className="relative text-[#1B4D3E]">
-              Indian Civic Realities
-              {/* Underline */}
-              <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 300 6" fill="none">
-                <path d="M0 5 C75 0 225 10 300 5" stroke="#FF9933" strokeWidth="2.5" strokeLinecap="round"/>
-              </svg>
-            </span>
+  return (
+    <section id="features" className="py-14 sm:py-24 bg-[#F9FAF8] relative overflow-hidden border-b border-[#E5EAE7]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-left max-w-3xl mb-10 sm:mb-12">
+          <h2 className="text-2xl sm:text-4xl lg:text-[2.5rem] font-extrabold text-[#0D1F1A] tracking-tight">
+            {t.featTitle}
           </h2>
-          <p className="mt-5 text-base text-[#4A5D54] leading-relaxed max-w-2xl mx-auto">
-            Government information shouldn't require hiring an agent. DishaSaathi bridges the gap with intelligent civic technology built for India.
+          <p className="mt-2 text-sm sm:text-lg text-[#5A6D64]">
+            {t.featSubtitle}
           </p>
         </div>
 
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map(feat => {
-            const Icon = feat.icon;
-            return (
-              <div key={feat.title}
-                className="group relative p-7 rounded-3xl border hover:shadow-md transition-all duration-300 cursor-default overflow-hidden bg-white"
-                style={{ borderColor: feat.border }}>
-                <div className="flex items-start justify-between mb-5">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center border"
-                    style={{ background: `${feat.color}15`, borderColor: `${feat.color}40` }}>
-                    <Icon className="w-6 h-6" style={{ color: feat.color }}/>
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border"
-                    style={{ color: feat.color, borderColor: `${feat.color}40`, background: `${feat.color}10` }}>
-                    {feat.tag}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-black text-[#0D1F1A] tracking-tight mb-2.5">
-                  {feat.title}
-                </h3>
-                <p className="text-sm text-[#4A5D54] leading-relaxed">
-                  {feat.description}
-                </p>
-
-                {/* Bottom color bar */}
-                <div className="mt-6 h-0.5 rounded-full opacity-30 group-hover:opacity-70 transition-opacity"
-                  style={{ background: feat.color }}/>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bottom banner */}
-        <div className="mt-16 rounded-3xl overflow-hidden shadow-lg bg-[#11261F] border border-[#1B4D3E]/30 text-white">
-          <div className="px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+        {/* 4 Feature Cards Grid (4 Columns) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {/* Card 1: Clear Roadmaps */}
+          <div className="bg-white rounded-3xl p-5 border border-[#DCE4DF] shadow-xs flex flex-col justify-between text-left hover:border-[#1B4D3E]/40 transition-all">
             <div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mb-1.5">
-                Ready to navigate your civic journey?
+              <div className="w-8 h-8 rounded-full bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center font-bold text-xs mb-3">
+                <GitFork className="w-4 h-4" />
+              </div>
+
+              <h3 className="text-base font-extrabold text-[#0D1F1A] mb-1">
+                {t.f1Title}
               </h3>
-              <p className="text-sm text-[#A8D5C2] max-w-lg">
-                Join thousands of citizens who have already simplified their government procedures with DishaSaathi.
+              <p className="text-xs text-[#5A6D64] leading-relaxed mb-4">
+                {t.f1Desc}
               </p>
+
+              {/* Visual Flowchart Mockup */}
+              <div className="bg-[#F8FAF9] rounded-2xl p-3 border border-[#E0EBE4] mb-4">
+                <div className="flex items-center justify-between text-[10px] font-bold text-[#2D3E35] relative">
+                  <div className="flex flex-col items-center">
+                    <div className="w-4 h-4 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center text-[8px]">✓</div>
+                    <span className="text-[8px] text-slate-500 mt-0.5">Start</span>
+                  </div>
+                  <div className="h-[1px] bg-[#1B4D3E] flex-1 mx-1" />
+                  <div className="flex flex-col items-center">
+                    <div className="w-4 h-4 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center text-[8px]">✓</div>
+                    <span className="text-[8px] text-slate-500 mt-0.5">Eligibility</span>
+                  </div>
+                  <div className="h-[1px] bg-[#1B4D3E] flex-1 mx-1" />
+                  <div className="flex flex-col items-center">
+                    <div className="w-4 h-4 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center text-[8px]">✓</div>
+                    <span className="text-[8px] text-slate-500 mt-0.5">Docs</span>
+                  </div>
+                  <div className="h-[1px] bg-slate-300 flex-1 mx-1" />
+                  <div className="flex flex-col items-center">
+                    <div className="w-4 h-4 rounded-full border border-slate-300 bg-white" />
+                    <span className="text-[8px] text-slate-400 mt-0.5">Approval</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <a href="/create"
-              className="flex-shrink-0 flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-white text-[#11261F] text-sm font-bold shadow-md hover:bg-[#F3F7F5] transition-all">
-              <span>Start Free</span>
-              <span className="text-lg">→</span>
-            </a>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => navigate('/create')}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
+              >
+                <span>{t.learnMore}</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: Verified Information */}
+          <div className="bg-white rounded-3xl p-5 border border-[#DCE4DF] shadow-xs flex flex-col justify-between text-left hover:border-[#1B4D3E]/40 transition-all">
+            <div>
+              <div className="w-8 h-8 rounded-full bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center font-bold text-xs mb-3">
+                <Building2 className="w-4 h-4" />
+              </div>
+
+              <h3 className="text-base font-extrabold text-[#0D1F1A] mb-1">
+                {t.f2Title}
+              </h3>
+              <p className="text-xs text-[#5A6D64] leading-relaxed mb-4">
+                {t.f2Desc}
+              </p>
+
+              {/* Visual Official Source Card Mockup */}
+              <div className="bg-[#F8FAF9] rounded-2xl p-3 border border-[#E0EBE4] mb-4 space-y-1 text-[10px]">
+                <div className="font-bold text-[#0D1F1A]">Food License</div>
+                <div className="text-[9px] text-[#5A6D64] truncate">Ministry of Health & Family Welfare</div>
+                <div className="text-[8px] text-slate-400">Official Portal: FoSCoS</div>
+                <div className="text-[9px] font-bold text-[#1B4D3E] pt-1 flex items-center gap-0.5 cursor-pointer">
+                  <span>Verified Source</span>
+                  <ArrowRight className="w-2.5 h-2.5" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => navigate('/create')}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
+              >
+                <span>{t.learnMore}</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 3: Stay Updated */}
+          <div className="bg-white rounded-3xl p-5 border border-[#DCE4DF] shadow-xs flex flex-col justify-between text-left hover:border-[#1B4D3E]/40 transition-all">
+            <div>
+              <div className="w-8 h-8 rounded-full bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center font-bold text-xs mb-3">
+                <Bell className="w-4 h-4" />
+              </div>
+
+              <h3 className="text-base font-extrabold text-[#0D1F1A] mb-1">
+                {t.f3Title}
+              </h3>
+              <p className="text-xs text-[#5A6D64] leading-relaxed mb-4">
+                {t.f3Desc}
+              </p>
+
+              {/* Visual Alert Mockup */}
+              <div className="bg-[#FFF9F2] rounded-2xl p-3 border border-[#FFE6CC] mb-4 space-y-1 text-[10px]">
+                <div className="font-bold text-[#B85C00] flex items-center gap-1">
+                  <span>⚠️</span>
+                  <span>Fee Update Notice</span>
+                </div>
+                <div className="text-[9px] text-[#7A4B1A] leading-tight">
+                  Application fee structure updated for current financial year.
+                </div>
+                <div className="text-[8px] text-[#B85C00]/80 pt-0.5">Central Gazette Notification</div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => navigate('/create')}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
+              >
+                <span>{t.learnMore}</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 4: Your Civic Journey */}
+          <div className="bg-white rounded-3xl p-5 border border-[#DCE4DF] shadow-xs flex flex-col justify-between text-left hover:border-[#1B4D3E]/40 transition-all">
+            <div>
+              <div className="w-8 h-8 rounded-full bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center font-bold text-xs mb-3">
+                <FileText className="w-4 h-4" />
+              </div>
+
+              <h3 className="text-base font-extrabold text-[#0D1F1A] mb-1">
+                {t.f4Title}
+              </h3>
+              <p className="text-xs text-[#5A6D64] leading-relaxed mb-4">
+                {t.f4Desc}
+              </p>
+
+              {/* Visual Step Dots Mockup */}
+              <div className="bg-[#F8FAF9] rounded-2xl p-3 border border-[#E0EBE4] mb-4">
+                <div className="flex items-center justify-between text-[8px] text-slate-600 font-semibold">
+                  <div className="flex flex-col items-center">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center text-[7px]">✓</div>
+                    <span className="mt-0.5">Eligibility</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center text-[7px]">✓</div>
+                    <span className="mt-0.5">Docs</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#1B4D3E] text-white flex items-center justify-center text-[7px]">✓</div>
+                    <span className="mt-0.5">App</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-3.5 h-3.5 rounded-full border border-slate-300 text-slate-400 flex items-center justify-center text-[7px]">▷</div>
+                    <span className="mt-0.5">Approval</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-3.5 h-3.5 rounded-full border border-slate-300" />
+                    <span className="mt-0.5">Done</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => navigate('/create')}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
+              >
+                <span>{t.learnMore}</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
