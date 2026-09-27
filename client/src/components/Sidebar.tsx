@@ -10,6 +10,7 @@ import {
   Award,
   Settings
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SidebarProps {
   activeTab: string;
@@ -24,16 +25,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   updatesCount = 3,
   deadlinesCount = 1
 }) => {
+  const { t } = useLanguage();
+
   const menuItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'journeys', label: 'My Journeys', icon: Compass },
-    { id: 'services', label: 'Explore Services', icon: Search },
-    { id: 'updates', label: 'Government Updates', icon: Bell, badge: updatesCount },
-    { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'deadlines', label: 'Deadlines', icon: Calendar, badge: deadlinesCount },
-    { id: 'saved', label: 'Saved', icon: Bookmark },
-    { id: 'passport', label: 'Civic Passport', icon: Award },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'home', label: t.sidebarHome || 'Home', icon: Home },
+    { id: 'journeys', label: t.sidebarJourneys || 'My Journeys', icon: Compass },
+    { id: 'services', label: t.sidebarServices || 'Explore Services', icon: Search },
+    { id: 'updates', label: t.sidebarUpdates || 'Government Updates', icon: Bell, badge: updatesCount },
+    { id: 'documents', label: t.sidebarDocuments || 'Documents', icon: FileText },
+    { id: 'deadlines', label: t.sidebarDeadlines || 'Deadlines', icon: Calendar, badge: deadlinesCount },
+    { id: 'saved', label: t.sidebarSaved || 'Saved', icon: Bookmark },
+    { id: 'passport', label: t.sidebarPassport || 'Civic Passport', icon: Award },
+    { id: 'settings', label: t.sidebarSettings || 'Settings', icon: Settings },
   ];
 
   return (
@@ -48,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                 isActive
                   ? 'bg-[#E6F0EB] text-[#1B4D3E] font-bold shadow-2xs'
                   : 'text-[#4A5D54] hover:bg-[#F3F7F5] hover:text-[#11261F]'
@@ -86,13 +89,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <div className="px-1">
           <h4 className="text-xs font-extrabold text-[#11261F] leading-tight">
-            Less confusion.<br />More action.
+            {t.sidebarQuoteTitle || 'Less confusion. More action.'}
           </h4>
           <p className="text-[11px] text-[#63756E] mt-1.5 leading-relaxed font-normal">
-            DishaSaathi simplifies government processes with verified information, clear steps and real-time updates.
+            {t.sidebarQuoteDesc || 'DishaSaathi simplifies government processes with verified information, clear steps and real-time updates.'}
           </p>
         </div>
       </div>
     </aside>
   );
 };
+
+export default Sidebar;

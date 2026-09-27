@@ -8,6 +8,7 @@ import {
   Check
 } from 'lucide-react';
 import { GovernmentUpdate } from '../types';
+import { useLanguage } from '../context/LanguageContext';
 
 interface RightSidebarProps {
   completedSteps: number;
@@ -28,6 +29,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onDownloadRoadmap,
   onExploreServices
 }) => {
+  const { t } = useLanguage();
   const total = totalSteps > 0 ? totalSteps : 5;
   const completed = Math.min(completedSteps || 0, total);
   const percentage = Math.round((completed / total) * 100);
@@ -54,7 +56,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     <aside className="w-80 min-w-[300px] bg-white border-l border-[#E8ECE9] min-h-[calc(100vh-65px)] p-5 hidden xl:flex flex-col gap-5">
       {/* 1. My Journey Progress */}
       <div className="bg-[#FAFDFB] border border-[#E2EAE5] rounded-2xl p-4 shadow-2xs">
-        <h3 className="text-xs font-bold text-[#11261F] mb-3">My Journey Progress</h3>
+        <h3 className="text-xs font-bold text-[#11261F] mb-3">{t.stepsProgress || 'My Journey Progress'}</h3>
         <div className="flex items-center gap-4">
           {/* Radial Circular Progress */}
           <div className="relative w-18 h-18 flex-shrink-0 flex items-center justify-center">

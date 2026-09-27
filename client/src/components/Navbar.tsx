@@ -1,9 +1,11 @@
-﻿import React, { useState } from 'react';
-import { Search, Bell, Globe, ChevronDown, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Search, Bell, Globe, ChevronDown, ShieldCheck, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { useLanguage, Language } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
-const LANG_LABELS: Record<Language, string> = { en: 'EN', hi: 'à¤¹à¤¿', mr: 'à¤®' };
-const LANG_NAMES: Record<Language, string> = { en: 'English', hi: 'à¤¹à¤¿à¤¨à¥à¤¦à¥€', mr: 'à¤®à¤°à¤¾à¤ à¥€' };
+const LANG_LABELS: Record<Language, string> = { en: 'EN', hi: 'हि', mr: 'म' };
+const LANG_NAMES: Record<Language, string> = { en: 'English', hi: 'हिन्दी', mr: 'मराठी' };
 
 interface NavbarProps {
   onSearch: (query: string) => void;
@@ -20,7 +22,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [searchInput, setSearchInput] = useState('');
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const { language, setLanguage } = useLanguage();
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b border-[#E8ECE9] px-6 lg:px-8 py-3.5 flex items-center justify-between gap-6 shadow-2xs">
-      {/* Brand Logo - identical to mockup leaf badge */}
-      <div className="flex items-center gap-3 min-w-[220px]">
+      {/* Brand Logo */}
+      <Link to="/" className="flex items-center gap-3 min-w-[220px]">
         {/* Stylized organic leaf icon */}
         <div className="w-9 h-9 flex items-center justify-center text-[#1E3E37]">
           <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8">
@@ -56,13 +60,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-[#11261F] font-sans leading-none">
-            DishaSaathi
+            {t.brandName || 'DishaSaathi'}
           </h1>
           <p className="text-[11px] text-[#63756E] font-medium mt-1 leading-none">
-            Your GPS for Government Services
+            {t.brandTagline || 'Your GPS for Government Services'}
           </p>
         </div>
-      </div>
+      </Link>
 
       {/* Center Search Input */}
       <form onSubmit={handleSubmit} className="flex-1 max-w-2xl relative">
@@ -72,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder='What are you trying to do? (e.g. "I want to start a small business")'
+            placeholder={t.searchPlaceholder}
             className="w-full pl-11 pr-14 py-2.5 bg-white text-sm text-[#11261F] placeholder-[#8C9B94] rounded-full border border-[#DCE4DF] focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]/20 focus:border-[#1B4D3E] transition-all shadow-2xs font-normal"
           />
           <button
@@ -80,21 +84,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             aria-label="Search"
             className="absolute right-1.5 w-8 h-8 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm"
           >
-            <span className="text-sm font-bold">â†’</span>
+            <span className="text-sm font-bold">→</span>
           </button>
         </div>
       </form>
 
       {/* Right Controls */}
       <div className="flex items-center gap-4 lg:gap-6">
-        {/* Admin Console trigger for Judges */}
+        {/* Admin Console trigger */}
         <button
           onClick={onOpenAdmin}
           title="Open Human-in-the-Loop Admin Validation"
           className="hidden md:flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#FAF3E8] text-[#8C6422] border border-[#EED9B3] hover:bg-[#F5EAD4] transition-colors"
         >
           <ShieldCheck className="w-3.5 h-3.5 text-[#8C6422]" />
-          <span>Admin Review</span>
+          <span>{t.adminReview || 'Admin Review'}</span>
         </button>
 
         {/* Notifications */}
@@ -111,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        {/* Language selector â€” functional toggle */}
+        {/* Language selector — functional toggle */}
         <div className="relative">
           <button
             onClick={() => setLangDropdownOpen(!langDropdownOpen)}
@@ -138,21 +142,56 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* User profile with Bhumika photo avatar */}
-        <div className="flex items-center gap-2.5 pl-3 border-l border-[#E2E8E4] cursor-pointer">
-          <img
-            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces&q=80"
-            alt="Bhumika"
-            className="w-9 h-9 rounded-full object-cover ring-2 ring-emerald-600/20"
-          />
-          <div className="hidden lg:block text-left">
-            <div className="text-xs font-bold text-[#11261F]">Bhumika</div>
-            <div className="text-[10px] text-[#7A8E85] font-medium leading-none mt-0.5">Citizen</div>
+        {/* User profile / Authentication button (Item 10) */}
+        {isAuthenticated && user ? (
+          <div className="relative">
+            <button
+              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+              className="flex items-center gap-2.5 pl-3 border-l border-[#E2E8E4] cursor-pointer hover:opacity-90"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#1B4D3E] text-white font-bold text-xs flex items-center justify-center ring-2 ring-emerald-600/20">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="hidden lg:block text-left">
+                <div className="text-xs font-bold text-[#11261F] max-w-[100px] truncate">{user.name}</div>
+                <div className="text-[10px] text-[#7A8E85] font-medium leading-none mt-0.5">Citizen</div>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-[#7A8E85] hidden lg:block" />
+            </button>
+
+            {userDropdownOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl border border-[#DCE6E0] shadow-xl p-2 z-50 animate-in fade-in">
+                <div className="px-3 py-2 border-b border-[#EDF2EE]">
+                  <p className="text-xs font-bold text-[#11261F] truncate">{user.name}</p>
+                  <p className="text-[10px] text-[#6C8075] truncate">{user.email}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setUserDropdownOpen(false);
+                  }}
+                  className="w-full mt-1 flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
-          <ChevronDown className="w-3.5 h-3.5 text-[#7A8E85] hidden lg:block" />
-        </div>
+        ) : (
+          <div className="pl-3 border-l border-[#E2E8E4]">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );
 };
 
+export default Navbar;

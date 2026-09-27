@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { CivicJourney, ProcedureStep, CivicVerificationStatus } from '../types';
 import { useRoadmap } from '../context/RoadmapContext';
+import { useLanguage } from '../context/LanguageContext';
 import { GoalRefinementModal } from './GoalRefinementModal';
 import { SourcesPanelModal } from './SourcesPanelModal';
 
@@ -49,6 +50,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
   selectedStepId,
   onQuickSearch
 }) => {
+  const { t } = useLanguage();
   const { 
     adaptiveRecommendation, 
     recheckRoadmap, 
@@ -455,7 +457,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#1B4D3E] text-white flex items-center gap-1.5 shadow-2xs">
                       <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                      YOUR NEXT STEP
+                      {t.yourNextStep || 'YOUR NEXT STEP'}
                     </span>
                     {adaptiveRecommendation?.primaryAction.isParallelAlternative && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
@@ -476,7 +478,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
 
                   {/* Why this matters callout */}
                   <div className="mt-2.5 p-2.5 rounded-xl bg-white/80 border border-[#CDE3D7] text-xs text-[#2A5C4B]">
-                    <strong className="font-extrabold text-[#11261F] block mb-0.5">Why this matters:</strong>
+                    <strong className="font-extrabold text-[#11261F] block mb-0.5">{t.whyThisMatters || 'Why this matters:'}</strong>
                     <span>
                       {adaptiveRecommendation?.primaryAction.reason ||
                         'These documents and statutory clearances are prerequisites before subsequent licensing stages can be sanctioned.'}
@@ -493,7 +495,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                 }}
                 className="w-full sm:w-auto px-5 py-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer hover:scale-102 active:scale-98"
               >
-                <span>{adaptiveRecommendation?.primaryAction.ctaText || 'View Requirements'}</span>
+                <span>{adaptiveRecommendation?.primaryAction.ctaText || t.viewRequirements || 'View Requirements'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -536,23 +538,29 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
         {/* SECTION 17: LIGHTWEIGHT ROADMAP FILTERS */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#EDF2EE]">
           <div className="flex items-center gap-1.5 overflow-x-auto">
-            {(['All', 'To Do', 'Completed', 'Blocked', 'Documents'] as FilterType[]).map((f) => (
+            {([
+              { key: 'All', label: t.filterAll || 'All' },
+              { key: 'To Do', label: t.filterToDo || 'To Do' },
+              { key: 'Completed', label: t.filterCompleted || 'Completed' },
+              { key: 'Blocked', label: t.filterBlocked || 'Blocked' },
+              { key: 'Documents', label: t.filterDocuments || 'Documents' }
+            ] as const).map(({ key, label }) => (
               <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
+                key={key}
+                onClick={() => setActiveFilter(key as FilterType)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                  activeFilter === f
+                  activeFilter === key
                     ? 'bg-[#1B4D3E] text-white shadow-2xs'
                     : 'bg-[#F3F6F4] text-[#4A5D54] hover:bg-[#EAEFEA]'
                 }`}
               >
-                {f}
+                {label}
               </button>
             ))}
           </div>
 
           <span className="text-xs text-[#6C8075] font-medium">
-            Showing {filteredSteps.length} of {steps.length} steps
+            {t.showingSteps || 'Showing'} {filteredSteps.length} of {steps.length} {t.impactProcedures || 'steps'}
           </span>
         </div>
 
@@ -617,22 +625,22 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                         {/* Clear State Badge: COMPLETED | CURRENT | UPCOMING | BLOCKED */}
                         {isCompleted && (
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            COMPLETED
+                            {t.stepCompleted || 'COMPLETED'}
                           </span>
                         )}
                         {isCurrent && (
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 border border-amber-400 animate-pulse">
-                            CURRENT
+                            {t.stepCurrent || 'CURRENT'}
                           </span>
                         )}
                         {isBlocked && (
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 border border-slate-300">
-                            BLOCKED
+                            {t.stepBlocked || 'BLOCKED'}
                           </span>
                         )}
                         {isUpcoming && (
                           <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
-                            UPCOMING
+                            {t.stepUpcoming || 'UPCOMING'}
                           </span>
                         )}
 
@@ -657,7 +665,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
 
                 {/* Plain-Language Explanation: What this means */}
                 <div className="mt-2 text-xs sm:text-[13px] text-[#3A4D45] leading-relaxed">
-                  <strong className="font-semibold text-[#11261F]">What this means: </strong>
+                  <strong className="font-semibold text-[#11261F]">{t.whatThisMeans || 'What this means:'} </strong>
                   {step.plainLanguageSummary || step.description}
                 </div>
 
@@ -667,7 +675,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                     <div className="flex items-start gap-1.5">
                       <HelpCircle className="w-3.5 h-3.5 text-[#1B4D3E] flex-shrink-0 mt-0.5" />
                       <div>
-                        <strong className="font-bold text-[#143B2F]">Why you need it: </strong>
+                        <strong className="font-bold text-[#143B2F]">{t.whyYouNeedIt || 'Why you need it:'} </strong>
                         <span>{step.whyRequired}</span>
                       </div>
                     </div>
@@ -689,7 +697,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                         : 'bg-[#F3F6F4] text-[#4A5D54] border-[#E2E6E4]'
                     }`}>
                       <FileText className="w-3 h-3" />
-                      <span>Docs: {stepReadyDocs} / {stepTotalDocs} ready</span>
+                      <span>Docs: {stepReadyDocs} / {stepTotalDocs} {t.docsReady || 'ready'}</span>
                     </span>
 
                     {/* Parallel execution indicator */}
@@ -719,7 +727,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                       className="inline-flex items-center gap-1 text-xs font-semibold text-[#6C8075] hover:text-[#11261F] hover:underline"
                     >
                       <Eye className="w-3 h-3" />
-                      <span>Why am I seeing this?</span>
+                      <span>{t.whyAmISeeingThis || 'Why am I seeing this?'}</span>
                     </button>
 
                     {/* Contextual Ask DishaSaathi link */}
@@ -732,7 +740,7 @@ export const CivicJourneyPipeline: React.FC<CivicJourneyPipelineProps> = ({
                         className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:text-[#143B2F] hover:underline"
                       >
                         <Sparkles className="w-3 h-3 text-amber-500" />
-                        <span>Ask DishaSaathi</span>
+                        <span>{t.askDishaSaathi || 'Ask DishaSaathi'}</span>
                       </button>
                     )}
                   </div>

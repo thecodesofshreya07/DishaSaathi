@@ -61,10 +61,38 @@ export const LandingHero: React.FC = () => {
   ];
 
   const stats = [
-    { value: metrics ? `${metrics.visitsSaved}+` : '22+', label: 'Visits Saved', icon: TrendingUp, color: '#FF9933', bg: '#FFF4E6' },
-    { value: metrics ? `${metrics.hoursSaved}+` : '77+', label: 'Hours Saved', icon: Clock, color: '#138808', bg: '#E8F5E9' },
-    { value: metrics ? `${metrics.totalProcedures}` : '18', label: 'Procedures', icon: BookOpen, color: '#000080', bg: '#E8EAF6' },
-    { value: metrics ? `${metrics.verifiedProcedures}/${metrics.totalProcedures}` : '18/18', label: '🛡 Verified', icon: ShieldCheck, color: '#138808', bg: '#E8F5E9' },
+    {
+      value: metrics ? `${metrics.visitsSaved}+` : '22+',
+      label: t.impactVisits,
+      description: t.impactVisitsDesc || 'Avoided redundant trips to municipal ward offices & departments',
+      icon: TrendingUp,
+      color: '#FF9933',
+      bg: '#FFF4E6'
+    },
+    {
+      value: metrics ? `${metrics.hoursSaved}+` : '77+',
+      label: t.impactHours,
+      description: t.impactHoursDesc || 'Estimated citizen time saved navigating confusing queues and paperwork',
+      icon: Clock,
+      color: '#138808',
+      bg: '#E8F5E9'
+    },
+    {
+      value: metrics ? `${metrics.totalProcedures}` : '18',
+      label: t.impactProcedures,
+      description: t.impactProceduresDesc || 'Civic procedures mapped across municipal, state & central ministries',
+      icon: BookOpen,
+      color: '#000080',
+      bg: '#E8EAF6'
+    },
+    {
+      value: metrics ? `${metrics.verifiedProcedures}/${metrics.totalProcedures}` : '18/18',
+      label: t.impactVerified,
+      description: t.impactVerifiedDesc || '100% verified against active gazettes, statutory acts and official .gov.in portals',
+      icon: ShieldCheck,
+      color: '#138808',
+      bg: '#E8F5E9'
+    },
   ];
 
   const goals = [
@@ -185,15 +213,18 @@ export const LandingHero: React.FC = () => {
                 {stats.map(s => {
                   const Icon = s.icon;
                   return (
-                    <div key={s.label} className="flex flex-col items-center gap-2 p-4 rounded-2xl"
+                    <div key={s.label} className="flex flex-col items-center text-center gap-1.5 p-3.5 sm:p-4 rounded-2xl transition-all hover:scale-[1.02] shadow-2xs"
                       style={{ background: s.bg }}>
                       <Icon className="w-5 h-5" style={{ color: s.color }}/>
-                      <span className="text-3xl font-black leading-none" style={{ color: s.color }}>
+                      <span className="text-2xl sm:text-3xl font-black leading-none" style={{ color: s.color }}>
                         {s.value}
                       </span>
-                      <span className="text-[11px] font-semibold text-[#6C8075] text-center leading-tight">
+                      <span className="text-xs font-bold text-[#11261F] leading-tight">
                         {s.label}
                       </span>
+                      <p className="text-[10px] sm:text-[11px] text-[#556960] leading-snug font-medium mt-0.5">
+                        {s.description}
+                      </p>
                     </div>
                   );
                 })}

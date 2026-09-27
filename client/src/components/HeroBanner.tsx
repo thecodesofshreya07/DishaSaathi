@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeroBannerProps {
   onSearch: (query: string) => void;
   isLoading?: boolean;
+  userName?: string;
 }
 
-export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = false }) => {
+export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = false, userName }) => {
   const [query, setQuery] = useState('');
+  const { t } = useLanguage();
 
   const popularSearches = [
-    'Register a small business',
-    'Birth Certificate',
-    'Property Title Registration',
-    'New Water Connection',
-    'Municipal Trade License'
+    { key: 'business', label: t.heroPopBusiness || 'Register a small business', query: 'Register a small business' },
+    { key: 'birth', label: t.heroPopBirth || 'Birth Certificate', query: 'Birth Certificate' },
+    { key: 'property', label: t.heroPopProperty || 'Property Title Registration', query: 'Property Title Registration' },
+    { key: 'water', label: t.heroPopWater || 'New Water Connection', query: 'New Water Connection' },
+    { key: 'trade', label: t.heroPopTrade || 'Municipal Trade License', query: 'Municipal Trade License' }
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,10 +27,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
     }
   };
 
-  const handlePillClick = (item: string) => {
-    setQuery(item);
-    onSearch(item);
+  const handlePillClick = (itemQuery: string) => {
+    setQuery(itemQuery);
+    onSearch(itemQuery);
   };
+
+  const displayName = userName?.trim() ? userName.toUpperCase() : 'BHUMIKA';
 
   return (
     <div className="relative rounded-3xl bg-[#EAF2ED] border border-[#D5E3DB] p-6 md:p-8 shadow-2xs overflow-hidden mb-6 min-h-[260px] flex items-center justify-between">
@@ -40,9 +45,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
 
         {/* Tilted cursive badge positioned above monument */}
         <div className="absolute left-8 top-5 z-20 transform -rotate-6 font-serif italic text-xs tracking-wider text-[#2D5A46] font-medium leading-tight drop-shadow-xs">
-          <span>Simpler</span><br />
-          <span>Steps. Greater</span><br />
-          <span className="font-semibold text-[#183F2F]">Possibilities.</span>
+          <span>{t.heroTaglinePossibilities || 'Simpler Steps. Greater Possibilities.'}</span>
         </div>
 
         {/* The Gateway of India Monument Image */}
@@ -57,18 +60,18 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
       <div className="relative z-10 max-w-xl">
         {/* Welcome greeting */}
         <div className="inline-block text-[11px] font-extrabold uppercase tracking-widest text-[#7C6534] mb-2 font-sans">
-          WELCOME BACK, BHUMIKA ✌️
+          {t.heroWelcomeBack || 'WELCOME BACK'}, {displayName} ✌️
         </div>
 
         {/* Core USP Headline */}
         <h2 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-[#11261F] tracking-tight leading-[1.18] font-sans">
-          Government processes<br />
-          shouldn't feel like a maze.
+          {t.heroMazeTitle1 || 'Government processes'}<br />
+          {t.heroMazeTitle2 || "shouldn't feel like a maze."}
         </h2>
 
         {/* Supporting message */}
         <p className="text-xs sm:text-sm text-[#4A5D54] mt-2.5 leading-relaxed font-normal max-w-lg">
-          Tell us what you're trying to do. DishaSaathi turns fragmented government information into one clear, verified roadmap.
+          {t.heroMazeSubtitle || "Tell us what you're trying to do. DishaSaathi turns fragmented government information into one clear, verified roadmap."}
         </p>
 
         {/* Natural Language Task Input Box */}
@@ -84,14 +87,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="What are you trying to accomplish?"
+              placeholder={t.heroInputPlaceholder || "What are you trying to accomplish?"}
               className="w-full pl-3 pr-14 py-3 bg-transparent rounded-full text-xs sm:text-sm font-medium text-[#11261F] placeholder-[#8C9B94] focus:outline-none"
             />
             <button
               type="submit"
               disabled={isLoading}
               aria-label="Submit search query"
-              className="absolute right-1.5 w-8 h-8 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm"
+              className="absolute right-1.5 w-8 h-8 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
             >
               {isLoading ? (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -104,15 +107,15 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
 
         {/* Popular searches pills */}
         <div className="flex flex-wrap items-center gap-2 mt-4 text-[11px]">
-          <span className="text-[#6C8075] font-medium">Popular searches:</span>
+          <span className="text-[#6C8075] font-medium">{t.heroPopularSearches || 'Popular searches:'}</span>
           {popularSearches.map((item) => (
             <button
-              key={item}
+              key={item.key}
               type="button"
-              onClick={() => handlePillClick(item)}
-              className="px-3 py-1 rounded-full bg-white hover:bg-[#F3F7F5] text-[#2C3F36] font-medium border border-[#D5E3DB] shadow-2xs hover:border-[#1B4D3E] transition-all"
+              onClick={() => handlePillClick(item.query)}
+              className="px-3 py-1 rounded-full bg-white hover:bg-[#F3F7F5] text-[#2C3F36] font-medium border border-[#D5E3DB] shadow-2xs hover:border-[#1B4D3E] transition-all cursor-pointer"
             >
-              {item}
+              {item.label}
             </button>
           ))}
         </div>
@@ -120,3 +123,5 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSearch, isLoading = fa
     </div>
   );
 };
+
+export default HeroBanner;

@@ -13,13 +13,18 @@ export async function parseCitizenGoal(
   const lower = query.toLowerCase();
   const apiKey = process.env.GEMINI_API_KEY;
 
-  // 1. Try AI Goal Understanding if API key configured
-  if (apiKey) {
-    try {
-      const { GoogleGenAI } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey });
+  // 1. Strictly execute AI Goal Understanding via Gemini
+  if (!apiKey) {
+    throw new Error(
+      'Gemini AI API key is not configured. Please set GEMINI_API_KEY in server/.env with your API key. (Regex fallback is currently disabled).'
+    );
+  }
 
-      const prompt = `You are DishaSaathi's Civic Intent & Entity Recognition Engine for Indian Government Procedures.
+  try {
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `You are DishaSaathi's Civic Intent & Entity Recognition Engine for Indian Government Procedures.
 Analyze the user's natural-language civic query: "${query}".
 Location provided by user: "${options?.locationOverride || 'Unspecified'}".
 Additional context: "${options?.context || 'None'}".
@@ -57,33 +62,33 @@ Return ONLY a valid JSON object matching this schema:
   "clarificationSuggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"]
 }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json'
-        }
-      });
-
-      if (response && response.text) {
-        const parsed = JSON.parse(response.text) as StructuredGoal;
-        if (parsed.intent) {
-          // If locationOverride was explicitly supplied, ensure it takes precedence
-          if (options?.locationOverride) {
-            const parts = options.locationOverride.split(',').map((p) => p.trim());
-            parsed.location.city = parts[0] || parsed.location.city;
-            if (parts[1]) parsed.location.state = parts[1];
-          }
-          return parsed;
-        }
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json'
       }
-    } catch (aiErr) {
-      console.warn('AI Parser fallback to deterministic engine:', aiErr);
-    }
-  }
+    });
 
-  // 2. Deterministic Fallback Parser (Robust, zero-dependency, competition-grade)
-  return parseDeterministicGoal(query, options);
+    if (response && response.text) {
+      const parsed = JSON.parse(response.text) as StructuredGoal;
+      if (parsed.intent) {
+        // If locationOverride was explicitly supplied, ensure it takes precedence
+        if (options?.locationOverride) {
+          const parts = options.locationOverride.split(',').map((p) => p.trim());
+          parsed.location.city = parts[0] || parsed.location.city;
+          if (parts[1]) parsed.location.state = parts[1];
+        }
+        return parsed;
+      }
+    }
+
+    throw new Error('Gemini AI returned an empty or invalid response format.');
+  } catch (aiErr: any) {
+    console.error('Gemini AI Goal Parsing Error:', aiErr);
+    throw new Error(`AI Goal Parsing failed: ${aiErr?.message || aiErr}. (Regex fallback is disabled).`);
+  }
 }
 
 export function parseDeterministicGoal(

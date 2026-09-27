@@ -1,24 +1,38 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, PlusCircle, RotateCcw, Clock, Tv } from 'lucide-react';
+import { ArrowLeft, PlusCircle, RotateCcw, Clock, Download } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
-import { RightSidebar } from '../components/RightSidebar';
 import { HeroBanner } from '../components/HeroBanner';
 import { CivicJourneyPipeline } from '../components/CivicJourneyPipeline';
-import { FeatureCards } from '../components/FeatureCards';
+import { RoadmapFlowchart } from '../components/RoadmapFlowchart';
+import { CitizenHomeDashboard } from '../components/CitizenHomeDashboard';
+import {
+  ServicesView,
+  DocumentsView,
+  UpdatesView,
+  DeadlinesView,
+  PassportView,
+  SavedView,
+  SettingsView
+} from '../components/SidebarPages';
 import { StepDetailModal } from '../components/StepDetailModal';
 import { ReactFlowGraphModal } from '../components/ReactFlowGraphModal';
 import { ChangeDetectionModal } from '../components/ChangeDetectionModal';
 import { AdminValidationModal } from '../components/AdminValidationModal';
 import { AiAssistantModal } from '../components/AiAssistantModal';
-import { DemoModeToolbar } from '../components/DemoModeToolbar';
+import { SourceExcerptModal } from '../components/SourceExcerptModal';
 import { CivicCopilot } from '../components/CivicCopilot';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, StepStatus, CivicDocumentStatus } from '../types';
 import { useRoadmap } from '../context/RoadmapContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { generateRoadmapPdf } from '../utils/pdfGenerator';
 
 export const RoadmapPage: React.FC = () => {
+  const { t } = useLanguage();
+  const { user } = useAuth();
   const {
     journey,
     setJourney,
@@ -32,12 +46,11 @@ export const RoadmapPage: React.FC = () => {
     hasSavedProgress,
     resumeSavedProgress,
     resetToDefault,
-    isPresentationMode,
-    setIsPresentationMode,
     isCopilotOpen,
     setIsCopilotOpen
   } = useRoadmap();
 
+  // Active Tab: 'home' | 'journeys' | 'services' | 'updates' | 'documents' | 'deadlines' | 'saved' | 'passport' | 'settings'
   const [activeTab, setActiveTab] = useState('home');
   const [loading, setLoading] = useState(false);
 
@@ -45,17 +58,19 @@ export const RoadmapPage: React.FC = () => {
   const [selectedStep, setSelectedStep] = useState<ProcedureStep | null>(null);
   const [isGraphModalOpen, setIsGraphModalOpen] = useState(false);
   const [selectedUpdate, setSelectedUpdate] = useState<GovernmentUpdate | null>(null);
+  const [selectedExcerptUpdate, setSelectedExcerptUpdate] = useState<GovernmentUpdate | null>(null);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [aiFocusStepId, setAiFocusStepId] = useState<string | undefined>(undefined);
 
-  // Handle Natural Language Search right from the roadmap hero bar
+  // Handle Natural Language Search
   const handleSearch = async (goal: string) => {
     setLoading(true);
     try {
       const generated = await generateRoadmap({ goal });
       if (generated) {
         setJourney(generated);
+        setActiveTab('journeys');
       }
     } catch (err) {
       console.error('Failed to interpret task', err);
@@ -64,7 +79,7 @@ export const RoadmapPage: React.FC = () => {
     }
   };
 
-  // Handle Step status change (with prerequisite enforcement)
+  // Handle Step status change (Item 9: closes card on submit)
   const handleUpdateStepStatus = async (
     stepId: string,
     status: StepStatus
@@ -74,11 +89,8 @@ export const RoadmapPage: React.FC = () => {
       alert(`🔒 Step Blocked: ${result.message}`);
       return;
     }
-
-    if (journey) {
-      const updated = journey.steps.find((s: ProcedureStep) => s.id === stepId);
-      if (updated) setSelectedStep({ ...updated, status });
-    }
+    // Item 9: Close the card after doing submitted
+    setSelectedStep(null);
   };
 
   // Apply change to roadmap
@@ -87,12 +99,10 @@ export const RoadmapPage: React.FC = () => {
     setSelectedUpdate(null);
   };
 
-  // Admin Approve update
   const handleAdminApprove = async (updateId: string) => {
     await handleApplyUpdateToRoadmap(updateId);
   };
 
-  // Admin Reject update
   const handleAdminReject = async (updateId: string) => {
     try {
       await fetch(`/api/updates/${updateId}/review`, {
@@ -110,32 +120,22 @@ export const RoadmapPage: React.FC = () => {
     }
   };
 
-  // Reset Demo Baseline
   const handleResetDemo = async () => {
     try {
       const res = await fetch('/api/journey/reset', { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         if (data.journey) setJourney(data.journey);
-        alert('Demo state reset to clean baseline.');
       }
     } catch (err) {
       console.error('Failed to reset demo', err);
     }
   };
 
+  // Item 14: Download Roadmap in PDF Format
   const handleDownloadRoadmap = () => {
-    if (!journey) return;
-    const roadmapText = `DISHASAATHI CIVIC ROADMAP\n\nTask: ${journey.title}\nLocation: ${journey.location}\nStatus: ${journey.status}\nCompleted: ${journey.completedSteps}/${journey.totalSteps}\n\n` +
-      journey.steps.map(s => `${s.stepNumber}. ${s.title} [${s.status}]\n   Department: ${s.department}\n   Fee: ${s.fee?.amount}\n   Docs: ${s.documents.map(d => d.name).join(', ')}\n   URL: ${s.applicationUrl}\n`).join('\n');
-
-    const blob = new Blob([roadmapText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dishasaathi-${journey.title.toLowerCase().replace(/\s+/g, '-')}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!activeJourney) return;
+    generateRoadmapPdf(activeJourney, user?.name || 'Citizen');
   };
 
   // Safe fallback if journey hasn't loaded yet
@@ -155,120 +155,103 @@ export const RoadmapPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] font-sans text-[#11261F] antialiased">
-      {/* Phase 5 Hackathon Demo Mode Toolbar (Section 27, 28, 29, 30) */}
-      <DemoModeToolbar />
-
-      {!isPresentationMode && (
-        <>
-          {/* Phase 2 Context Sub-Bar */}
-          <div className="bg-[#EAF2ED] border-b border-[#D5E3DB] px-4 py-2 text-xs">
-            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/create"
-                  className="inline-flex items-center gap-1.5 font-bold text-[#1B4D3E] hover:underline"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Goal Intake</span>
-                </Link>
-                <span className="text-[#8C9B94]">•</span>
-                <span className="text-[#4A5D54] font-medium">
-                  Active Roadmap for: <strong className="text-[#11261F]">"{activeJourney.title}"</strong> ({activeJourney.location})
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    if (resetToDefault()) {
-                      window.location.href = '/create';
-                    }
-                  }}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#8C3A27] font-bold border border-[#E9C3BA] hover:bg-[#FDF3F1] transition-all shadow-2xs cursor-pointer text-xs"
-                  title="Reset current roadmap after confirmation"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Start New Roadmap</span>
-                </button>
-
-                <Link
-                  to="/create"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#1B4D3E] font-bold border border-[#CDE3D7] hover:bg-[#F2F8F5] transition-all shadow-2xs"
-                >
-                  <PlusCircle className="w-3 h-3" />
-                  <span>Create New Roadmap</span>
-                </Link>
-
-                <Link
-                  to="/"
-                  className="text-[#4A5D54] hover:text-[#11261F] font-semibold"
-                >
-                  Landing Page
-                </Link>
-              </div>
-            </div>
+      {/* Context Sub-Bar */}
+      <div className="bg-[#EAF2ED] border-b border-[#D5E3DB] px-4 py-2 text-xs">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/create"
+              className="inline-flex items-center gap-1.5 font-bold text-[#1B4D3E] hover:underline"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Goal Intake</span>
+            </Link>
+            <span className="text-[#8C9B94]">•</span>
+            <span className="text-[#4A5D54] font-medium">
+              Active Roadmap for: <strong className="text-[#11261F]">"{activeJourney.title}"</strong> ({activeJourney.location})
+            </span>
           </div>
 
-          {/* 1. Global Navigation Bar */}
-          <Navbar
-            onSearch={handleSearch}
-            unreadCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
-            onOpenNotifications={() => {
-              if (updates.length > 0) setSelectedUpdate(updates[0]);
-            }}
-            onOpenAdmin={() => setIsAdminModalOpen(true)}
-          />
-        </>
-      )}
+          <div className="flex items-center gap-3">
+            {/* Item 14: Download PDF button right in top bar */}
+            <button
+              onClick={handleDownloadRoadmap}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#1B4D3E] font-bold border border-[#CDE3D7] hover:bg-[#F2F8F5] transition-all shadow-2xs cursor-pointer text-xs"
+              title="Download official roadmap in PDF format"
+            >
+              <Download className="w-3 h-3 text-[#1B4D3E]" />
+              <span>Download PDF</span>
+            </button>
 
-      {/* 2. Main 3-Column Layout (Optimized for Presentation Mode when active) */}
-      <div className={`flex max-w-[1720px] mx-auto ${isPresentationMode ? 'justify-center' : ''}`}>
-        {/* Left Sidebar (hidden in Presentation Mode) */}
-        {!isPresentationMode && (
-          <Sidebar
-            activeTab={activeTab}
-            onTabChange={(tab) => {
-              setActiveTab(tab);
-              if (tab === 'updates' && updates.length > 0) {
-                setSelectedUpdate(updates[0]);
-              }
-            }}
-            updatesCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
-          />
-        )}
+            <button
+              onClick={() => {
+                if (resetToDefault()) {
+                  window.location.href = '/create';
+                }
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#8C3A27] font-bold border border-[#E9C3BA] hover:bg-[#FDF3F1] transition-all shadow-2xs cursor-pointer text-xs"
+              title="Reset current roadmap after confirmation"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>{t.resetRoadmap || 'Reset'}</span>
+            </button>
+
+            <Link
+              to="/create"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#1B4D3E] font-bold border border-[#CDE3D7] hover:bg-[#F2F8F5] transition-all shadow-2xs"
+            >
+              <PlusCircle className="w-3 h-3" />
+              <span>{t.navCreateRoadmap || 'New Goal'}</span>
+            </Link>
+
+            <Link
+              to="/"
+              className="text-[#4A5D54] hover:text-[#11261F] font-semibold"
+            >
+              {t.backToHome || 'Landing Page'}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 1. Global Navigation Bar */}
+      <Navbar
+        onSearch={handleSearch}
+        unreadCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
+        onOpenNotifications={() => {
+          if (updates.length > 0) setSelectedUpdate(updates[0]);
+        }}
+        onOpenAdmin={() => setIsAdminModalOpen(true)}
+      />
+
+      {/* 2. Main 2-Column Layout (Item 15: right sidebar removed, full screen width) */}
+      <div className="flex max-w-[1720px] mx-auto min-h-[calc(100vh-100px)]">
+        {/* Left Sidebar (Item 11: clean navigation) */}
+        <Sidebar
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            if (tab === 'updates' && updates.length > 0) {
+              setSelectedExcerptUpdate(updates[0]);
+            }
+          }}
+          updatesCount={updates.filter((u) => u.reviewStatus === 'Pending Review').length}
+        />
 
         {/* Center Main Stage Content */}
-        <main className={`flex-1 p-4 sm:p-6 lg:p-7 min-w-0 ${isPresentationMode ? 'max-w-[1380px]' : 'max-w-[1140px]'}`}>
-          {/* Presentation Mode Notice Banner */}
-          {isPresentationMode && (
-            <div className="mb-4 bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center justify-between text-xs text-amber-900 shadow-2xs">
-              <div className="flex items-center gap-2">
-                <Tv className="w-4 h-4 text-amber-700" />
-                <span className="font-semibold">
-                  Presentation Mode Active — Max visibility for projectors and pitches.
-                </span>
-              </div>
-              <button
-                onClick={() => setIsPresentationMode(false)}
-                className="px-2.5 py-1 rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-900 font-bold transition-colors cursor-pointer text-xs"
-              >
-                Exit Presentation Mode
-              </button>
-            </div>
-          )}
-
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 max-w-7xl mx-auto">
           {/* Phase 4 Resume Experience Banner */}
-          {hasSavedProgress && !isPresentationMode && (
-            <div className="mb-4 bg-[#EAF2ED] border-2 border-[#1B4D3E]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          {hasSavedProgress && activeTab === 'home' && (
+            <div className="mb-5 bg-[#EAF2ED] border-2 border-[#1B4D3E]/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#1B4D3E] text-white flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h4 className="font-bold text-[#11261F] text-sm flex items-center gap-1.5">
-                    Continue your roadmap
+                    Continue your saved progress
                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E] font-bold">
-                      Saved Progress
+                      Saved
                     </span>
                   </h4>
                   <p className="text-xs text-[#4A5D54]">
@@ -277,7 +260,10 @@ export const RoadmapPage: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={resumeSavedProgress}
+                onClick={() => {
+                  resumeSavedProgress();
+                  setActiveTab('journeys');
+                }}
                 className="w-full sm:w-auto px-4 py-2 bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer text-center"
               >
                 Continue Roadmap
@@ -285,59 +271,105 @@ export const RoadmapPage: React.FC = () => {
             </div>
           )}
 
-          {/* Hero Banner with Gateway of India Monument Artwork (hidden in Presentation Mode for max compact focus) */}
-          {!isPresentationMode && (
-            <HeroBanner
+          {/* TAB 1: Item 12: HOME SHOWS HERO BANNER, FLOWCHART, METRICS AND WELCOME BACK */}
+          {activeTab === 'home' && (
+            <CitizenHomeDashboard
+              journey={activeJourney}
+              updates={updates}
+              onGoToJourney={() => setActiveTab('journeys')}
+              onGoToTab={(tab) => setActiveTab(tab)}
+              onDownloadPdf={handleDownloadRoadmap}
+              onOpenAiCopilot={() => setIsCopilotOpen(true)}
               onSearch={handleSearch}
               isLoading={loading}
+              onSelectStep={(step) => setSelectedStep(step)}
+              selectedStepId={selectedStep?.id}
             />
           )}
 
-          {/* Core Interactive Roadmap Pipeline */}
-          <ErrorBoundary fallbackTitle="Interactive Civic Roadmap Unavailable">
-            <CivicJourneyPipeline
-              journey={activeJourney}
-              onSelectStep={(step) => setSelectedStep(step)}
-              onOpenGraphView={() => setIsGraphModalOpen(true)}
-              onOpenAiAssistant={(stepId) => {
-                setAiFocusStepId(stepId);
-                setIsCopilotOpen(true);
-              }}
-              selectedStepId={selectedStep?.id}
-              onQuickSearch={handleSearch}
-            />
-          </ErrorBoundary>
+          {/* TAB 2: Item 13 & Flowchart: IN JOURNEY SHOW THE ROADMAP */}
+          {activeTab === 'journeys' && (
+            <div className="space-y-6">
+              {/* Hero Banner for Natural Language Search */}
+              <HeroBanner
+                onSearch={handleSearch}
+                isLoading={loading}
+              />
 
-          {/* 4 Feature Cards (hidden in Presentation Mode) */}
-          {!isPresentationMode && (
-            <FeatureCards
-              onOpenAiAssistant={() => {
-                setAiFocusStepId(undefined);
-                setIsCopilotOpen(true);
+              {/* MOST IMPORTANT: FLOWCHART WITH ONLY SMALL STEPS */}
+              <RoadmapFlowchart
+                journey={activeJourney}
+                onSelectStep={(step) => setSelectedStep(step)}
+                selectedStepId={selectedStep?.id}
+              />
+
+              {/* AND THEN THE ALREADY GIVEN FLOW.. DONT CHANGE IT */}
+              <ErrorBoundary fallbackTitle="Interactive Civic Roadmap Unavailable">
+                <CivicJourneyPipeline
+                  journey={activeJourney}
+                  onSelectStep={(step) => setSelectedStep(step)}
+                  onOpenGraphView={() => setIsGraphModalOpen(true)}
+                  onOpenAiAssistant={(stepId) => {
+                    setAiFocusStepId(stepId);
+                    setIsCopilotOpen(true);
+                  }}
+                  selectedStepId={selectedStep?.id}
+                  onQuickSearch={handleSearch}
+                />
+              </ErrorBoundary>
+            </div>
+          )}
+
+          {/* TAB 3: Item 11: EXPLORE SERVICES VIEW */}
+          {activeTab === 'services' && (
+            <ServicesView
+              onStartProcedure={(query) => handleSearch(query)}
+            />
+          )}
+
+          {/* TAB 4: Item 11 & Item 8: DOCUMENT LOCKER VIEW */}
+          {activeTab === 'documents' && (
+            <DocumentsView
+              journey={activeJourney}
+              onUpdateDocumentStatus={async (stepId, docId, status) => {
+                await updateDocumentStatus(stepId, docId, status);
               }}
-              onExploreServices={() => setIsGraphModalOpen(true)}
-              onHowItWorks={() => setIsGraphModalOpen(true)}
-              onWhyDishaSaathi={() => {
-                if (updates.length > 0) setSelectedUpdate(updates[0]);
-              }}
+            />
+          )}
+
+          {/* TAB 5: Item 11 & Item 7: GOVERNMENT GAZETTE UPDATES VIEW */}
+          {activeTab === 'updates' && (
+            <UpdatesView
+              updates={updates}
+              onInspectExcerpt={(u) => setSelectedExcerptUpdate(u)}
+            />
+          )}
+
+          {/* TAB 6: DEADLINES VIEW */}
+          {activeTab === 'deadlines' && (
+            <DeadlinesView />
+          )}
+
+          {/* TAB 7: CIVIC PASSPORT VIEW */}
+          {activeTab === 'passport' && (
+            <PassportView journey={activeJourney} />
+          )}
+
+          {/* TAB 8: SAVED VIEW */}
+          {activeTab === 'saved' && (
+            <SavedView
+              journey={activeJourney}
+              onGoToJourney={() => setActiveTab('journeys')}
+            />
+          )}
+
+          {/* TAB 9: SETTINGS VIEW */}
+          {activeTab === 'settings' && (
+            <SettingsView
+              onResetRoadmap={() => resetToDefault()}
             />
           )}
         </main>
-
-        {/* Right Sidebar: Progress, Updates, Quick Actions (hidden in Presentation Mode) */}
-        {!isPresentationMode && (
-          <RightSidebar
-            completedSteps={activeJourney.completedSteps}
-            totalSteps={activeJourney.totalSteps}
-            updates={updates}
-            onSelectUpdate={(u) => setSelectedUpdate(u)}
-            onViewAllUpdates={() => {
-              if (updates.length > 0) setSelectedUpdate(updates[0]);
-            }}
-            onDownloadRoadmap={handleDownloadRoadmap}
-            onExploreServices={() => setIsGraphModalOpen(true)}
-          />
-        )}
       </div>
 
       {/* 3. Interactive Modals */}
@@ -408,7 +440,7 @@ export const RoadmapPage: React.FC = () => {
         />
       )}
 
-      {/* E. DishaSaathi AI Assistant Modal (Legacy trigger support) */}
+      {/* E. AI Assistant Modal */}
       {isAiModalOpen && (
         <AiAssistantModal
           journey={activeJourney}
@@ -420,7 +452,21 @@ export const RoadmapPage: React.FC = () => {
         />
       )}
 
-      {/* F. Phase 5 Civic Copilot Drawer (Section 1, 2, 4) */}
+      {/* F. Item 7: AI Official Source Statutory Excerpt Modal */}
+      {selectedExcerptUpdate && (
+        <SourceExcerptModal
+          isOpen={!!selectedExcerptUpdate}
+          onClose={() => setSelectedExcerptUpdate(null)}
+          title={selectedExcerptUpdate.title}
+          authority={selectedExcerptUpdate.type || 'Official Gazette'}
+          sourceUrl={selectedExcerptUpdate.sourceUrl}
+          stepTitle={selectedExcerptUpdate.title}
+          query={selectedExcerptUpdate.description}
+        />
+      )}
+
+
+      {/* G. Civic Copilot Drawer */}
       <ErrorBoundary fallbackTitle="Civic Copilot Error">
         <CivicCopilot
           journey={activeJourney}

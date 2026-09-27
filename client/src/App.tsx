@@ -1,31 +1,39 @@
-﻿import React from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { RoadmapProvider } from './context/RoadmapContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { AuthProvider } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import GoalIntakePage from './pages/GoalIntakePage';
 import RoadmapPage from './pages/RoadmapPage';
+import AuthPage from './pages/AuthPage';
 
 export const App: React.FC = () => {
   return (
     <LanguageProvider>
-      <RoadmapProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Phase 2: Landing Page */}
-            <Route path="/" element={<LandingPage />} />
+      <AuthProvider>
+        <RoadmapProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Landing Page */}
+              <Route path="/" element={<LandingPage />} />
 
-            {/* Phase 2: Goal Intake & Jurisdiction Mapping */}
-            <Route path="/create" element={<GoalIntakePage />} />
+              {/* Goal Intake & Jurisdiction Mapping */}
+              <Route path="/create" element={<GoalIntakePage />} />
 
-            {/* Phase 2: Generated Civic Roadmap Visualization */}
-            <Route path="/roadmap" element={<RoadmapPage />} />
+              {/* Generated Civic Roadmap Visualization & Hub */}
+              <Route path="/roadmap" element={<RoadmapPage />} />
 
-            {/* Fallback to landing */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </RoadmapProvider>
+              {/* Authentication: Login & Sign Up (Item 10) */}
+              <Route path="/login" element={<AuthPage />} />
+              <Route path="/signup" element={<AuthPage />} />
+
+              {/* Fallback to landing */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </RoadmapProvider>
+      </AuthProvider>
     </LanguageProvider>
   );
 };

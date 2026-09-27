@@ -52,14 +52,36 @@ app.use(express.json());
 let currentJourney: CivicJourney | null = null;
 let updates: GovernmentUpdate[] = JSON.parse(JSON.stringify(initialGovernmentUpdates));
 
-// Initialize default journey dynamically (Bakery in Mumbai demo)
+// Initialize default journey (uses AI if GEMINI_API_KEY configured, else seed template)
 async function initDefault() {
-  const goal = await parseCitizenGoal('I want to start a small bakery in Mumbai.', {
-    locationOverride: 'Mumbai, Maharashtra',
-    context: 'Small / home-based bakery'
-  });
-  const procedures = findRelevantProcedures(goal);
-  currentJourney = buildRoadmap(goal, procedures);
+  try {
+    if (process.env.GEMINI_API_KEY) {
+      const goal = await parseCitizenGoal('I want to start a small bakery in Mumbai.', {
+        locationOverride: 'Mumbai, Maharashtra',
+        context: 'Small / home-based bakery'
+      });
+      const procedures = findRelevantProcedures(goal);
+      currentJourney = buildRoadmap(goal, procedures);
+      return;
+    }
+  } catch (err) {
+    console.warn('Initial AI goal parse skipped (waiting for user GEMINI_API_KEY):', err);
+  }
+
+  // Pre-configured default roadmap for the initial view
+  const defaultGoal: any = {
+    rawGoal: 'I want to start a small bakery in Mumbai.',
+    intent: 'START_BUSINESS',
+    domain: 'FOOD_BUSINESS',
+    activity: 'BAKERY',
+    location: { city: 'Mumbai', state: 'Maharashtra', country: 'India' },
+    context: { scale: 'small', type: 'home_based', additionalNotes: 'Small / home-based bakery' },
+    entities: { businessType: 'bakery', scale: 'small' },
+    confidence: 1.0,
+    clarificationNeeded: false
+  };
+  const procedures = findRelevantProcedures(defaultGoal);
+  currentJourney = buildRoadmap(defaultGoal, procedures);
 }
 initDefault();
 
@@ -177,8 +199,11 @@ app.post('/api/journey/interpret', async (req: Request, res: Response) => {
       journey: currentJourney
     });
   } catch (err: any) {
-    console.error('Error generating procedure:', err);
-    res.status(500).json({ success: false, error: 'Failed to generate civic roadmap' });
+    console.error('Error in AI goal interpretation:', err);
+    res.status(400).json({ 
+      success: false, 
+      error: err.message || 'AI Goal Parsing failed. Please ensure GEMINI_API_KEY is configured in server/.env.' 
+    });
   }
 });
 
@@ -212,6 +237,61 @@ const handleAskAssistant = async (req: Request, res: Response) => {
 
 app.post('/api/journey/ask', handleAskAssistant);
 app.post('/api/assistant/ask', handleAskAssistant);
+
+// 3c. AI-Powered Official Source Excerpt Extraction (Section 7: View only specific texts)
+app.post('/api/sources/excerpt', async (req: Request, res: Response) => {
+  const { title, authority, sourceUrl, stepTitle, query } = req.body;
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(400).json({
+      success: false,
+      error: 'Gemini AI API key is not configured. Please set GEMINI_API_KEY in server/.env to enable AI source excerpt extraction.'
+    });
+  }
+
+  try {
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey });
+    const prompt = `You are DishaSaathi's Official Government Source & Gazette Extractor.
+A citizen is fulfilling the requirement: "${stepTitle || title}" under "${authority || 'Government Authority'}" (${sourceUrl || 'Official Portal'}).
+Their broader civic goal is: "${query || 'Civic procedure compliance in India'}".
+
+Your task is to extract and highlight ONLY the specific statutory text, gazette clause, or relevant rule extract that directly applies to this citizen's step, without overwhelming them with irrelevant paperwork or legal boilerplate.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "statutoryClause": "e.g., Section 31(1) of Food Safety and Standards Act, 2006 / Rule 6 of Maharashtra Shops and Establishments Rules",
+  "specificRuleText": "The exact verbatim or authoritative legal excerpt that specifies this obligation.",
+  "whatIsRequiredOfYou": [
+    "Crisp bullet point 1 explaining ONLY what the citizen must do",
+    "Crisp bullet point 2 explaining what documents or fees apply"
+  ],
+  "exemptionsOrThresholds": "Any key threshold (e.g. turnover under ₹12 Lakhs/year, employee headcount < 10, etc.)",
+  "authorityName": "${authority || 'Designated Statutory Authority'}",
+  "portalLink": "${sourceUrl || ''}"
+}`;
+
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: { responseMimeType: 'application/json' }
+    });
+
+    if (response && response.text) {
+      const excerpt = JSON.parse(response.text);
+      return res.json({ success: true, excerpt });
+    }
+    throw new Error('Gemini AI returned empty excerpt response.');
+  } catch (err: any) {
+    console.error('Source excerpt extraction error:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to extract official source text'
+    });
+  }
+});
 
 // ============================================================
 // IMPACT METRICS — Landing Page Hero Stats

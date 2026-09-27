@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Sparkles,
   RotateCcw,
-  Tv,
   MessageSquare,
   ChevronDown,
   Store,
@@ -16,8 +15,6 @@ export const DemoModeToolbar: React.FC = () => {
   const {
     activeScenarioId,
     loadDemoScenario,
-    isPresentationMode,
-    setIsPresentationMode,
     isCopilotOpen,
     setIsCopilotOpen
   } = useRoadmap();
@@ -83,18 +80,6 @@ export const DemoModeToolbar: React.FC = () => {
             <span>Reset Demo</span>
           </button>
 
-          <button
-            onClick={() => setIsPresentationMode(!isPresentationMode)}
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold border transition-colors cursor-pointer text-[11px] ${
-              isPresentationMode
-                ? 'bg-amber-400 text-black border-amber-300'
-                : 'bg-[#1A382E] text-white hover:bg-[#23483B] border-[#2D5A46]'
-            }`}
-            title="Toggle presentation view for projectors"
-          >
-            <Tv className="w-3 h-3" />
-            <span>{isPresentationMode ? 'Exit Presentation' : 'Presentation View'}</span>
-          </button>
 
           <button
             onClick={() => setIsCopilotOpen(!isCopilotOpen)}
