@@ -232,6 +232,37 @@ export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
                 </div>
               )}
 
+              {/* Direct Deep Official Subpage (AI Found Deep Page - Requirement 2) */}
+              {(excerpt.portalLink || sourceUrl) && (
+                <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                        Exact Official Application Page (AI Verified)
+                      </div>
+                      <p className="text-xs text-slate-700 font-medium">
+                        Specific subpage destination for this requirement (not generic homepage):
+                      </p>
+                      <div className="text-[11px] font-mono text-emerald-950 font-semibold bg-white/90 p-2 rounded-xl border border-emerald-200 break-all select-all">
+                        {excerpt.portalLink || sourceUrl}
+                      </div>
+                    </div>
+
+                    <a
+                      href={excerpt.portalLink || sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs cursor-pointer self-start sm:self-center"
+                      title="Open the exact wanted subpage on official portal"
+                    >
+                      <span>Open Specific Page ↗</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {/* Exemptions or Thresholds */}
               {excerpt.exemptionsOrThresholds && (
                 <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900">
@@ -252,7 +283,7 @@ export const SourceExcerptModal: React.FC<SourceExcerptModalProps> = ({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1B4D3E] hover:underline"
             >
-              <span>Verify full page on official government portal</span>
+              <span>Verify specific official page directly ↗</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}

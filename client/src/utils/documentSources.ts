@@ -1,88 +1,311 @@
 /**
- * DishaSaathi Official Document Procurement & Application URL Directory
- * Maps statutory citizen documents to authoritative government application portals
+ * DishaSaathi Official Document Procurement & Statutory Directory
+ * Maps citizen documents to either:
+ * - Direct deep official online application URLs, OR
+ * - Authoritative offline municipal/department office locations, counters, and timings
  */
 
-export function getDocumentApplicationUrl(documentName: string, explicitUrl?: string): string {
-  if (explicitUrl && explicitUrl.startsWith('http')) {
-    return explicitUrl;
+export interface OfflineOfficeDetails {
+  department: string;
+  officeName: string;
+  location: string;
+  officeTimings: string;
+  tokenTimings?: string;
+  whatToBring: string[];
+  turnaround: string;
+  instructions: string;
+}
+
+export interface DocumentProcurementInfo {
+  mode: 'ONLINE' | 'OFFLINE';
+  url?: string;
+  offlineDetails?: OfflineOfficeDetails;
+}
+
+export function getDocumentProcurementInfo(
+  documentName: string,
+  explicitUrl?: string
+): DocumentProcurementInfo {
+  const name = (documentName || '').toLowerCase().trim();
+
+  // If explicit URL is provided and not generic root
+  if (explicitUrl && explicitUrl.startsWith('http') && !explicitUrl.endsWith('.gov.in/')) {
+    return {
+      mode: 'ONLINE',
+      url: explicitUrl
+    };
   }
 
+  // ----------------------------------------------------
+  // A. OFFLINE IN-PERSON STATUTORY DOCUMENTS
+  // ----------------------------------------------------
 
-  const name = (documentName || '').toLowerCase();
+  // 1. Medical Fitness / Form-IX
+  if (
+    name.includes('medical') ||
+    name.includes('fitness') ||
+    name.includes('form-ix') ||
+    name.includes('form ix') ||
+    name.includes('health certificate')
+  ) {
+    return {
+      mode: 'OFFLINE',
+      offlineDetails: {
+        department: 'Public Health Department, Municipal Corporation',
+        officeName: 'Municipal Ward Dispensary / Registered Medical Officer (MBBS)',
+        location: 'Nearest Municipal Dispensary or State Civil Hospital (Ward Health Post)',
+        officeTimings: 'Monday – Friday: 9:00 AM – 1:00 PM & 4:00 PM – 7:00 PM',
+        tokenTimings: 'Morning token counter closes at 12:30 PM; Evening at 6:30 PM',
+        whatToBring: [
+          '2 Passport-size recent color photographs',
+          'Aadhaar Card / Voter ID (Original + 1 self-attested photocopy)',
+          'Prescribed Medical Examination Proforma (Schedule-II / Form-IX)',
+          'Basic medical tests report (Blood pressure, vision, communicable diseases)'
+        ],
+        turnaround: 'Same-day issuance upon physical medical screening & doctor certification',
+        instructions:
+          'Visit your municipal dispensary or any registered MBBS practitioner. The doctor will verify physical vitals and stamp Form-IX with their official Council Registration Number.'
+      }
+    };
+  }
+
+  // 2. Water Potability Test Report
+  if (name.includes('water') && (name.includes('potability') || name.includes('test') || name.includes('lab') || name.includes('report'))) {
+    return {
+      mode: 'OFFLINE',
+      offlineDetails: {
+        department: 'Hydraulic Engineer & Water Quality Department',
+        officeName: 'Municipal Water Quality Testing Laboratory',
+        location: 'Central Municipal Water Analysis Lab / State Public Health Laboratory',
+        officeTimings: 'Monday – Friday: 10:00 AM – 3:30 PM',
+        tokenTimings: 'Water sample collection window: 10:00 AM – 1:00 PM strictly',
+        whatToBring: [
+          '1 Litre fresh tap/tank water in sterilized glass or clean PET container',
+          'Copy of recent Municipal Water Connection bill',
+          'Formal sample deposit request letter indicating food/commercial premises address',
+          'Official laboratory testing fee receipt (approx ₹600 - ₹1,200)'
+        ],
+        turnaround: '3 – 5 working days for chemical & bacteriological test report',
+        instructions:
+          'Collect the sample on the morning of submission. Hand over the container at the counter before 1:00 PM and collect the acknowledgment token for final report collection.'
+      }
+    };
+  }
+
+  // 3. Site Layout Plan / Key Plan / Floor Blueprints
+  if (
+    name.includes('layout') ||
+    name.includes('key plan') ||
+    name.includes('site plan') ||
+    name.includes('architect') ||
+    name.includes('blueprint') ||
+    name.includes('floor plan')
+  ) {
+    return {
+      mode: 'OFFLINE',
+      offlineDetails: {
+        department: 'Building Proposal & Town Planning Department',
+        officeName: 'Licensed Town Planning Surveyor / Registered Architect Studio',
+        location: 'Council of Architecture (CoA) Registered Architect or Municipal Ward Office (B&F Dept)',
+        officeTimings: 'Monday – Saturday: 10:30 AM – 5:30 PM',
+        tokenTimings: 'Municipal ward officer visiting hours: 2:30 PM – 5:00 PM (Mon–Fri)',
+        whatToBring: [
+          'Copy of CTS Property Card / Land Title Deed',
+          'Existing sanctioned structure map or municipal assessment extract',
+          'Premises lease deed or ownership agreement',
+          'Site dimension measurements & boundary demarcation notes'
+        ],
+        turnaround: '2 – 4 working days for physical survey, CAD drafting & license stamping',
+        instructions:
+          'Engage an authorized licensed surveyor or CoA architect. They will measure the commercial carpet area, indicate entrances/ventilation, and emboss their official registration seal.'
+      }
+    };
+  }
+
+  // 4. Property Card (CTS) / 7/12 Extract Verification / Mutation Certificate
+  if (
+    name.includes('property card') ||
+    name.includes('cts') ||
+    name.includes('7/12') ||
+    name.includes('satbara') ||
+    name.includes('mutation') ||
+    name.includes('city survey')
+  ) {
+    return {
+      mode: 'OFFLINE',
+      offlineDetails: {
+        department: 'Land Records & Revenue Department',
+        officeName: 'City Survey Office (CTSO) / Tahsildar Registry Counter',
+        location: 'District Collectorate or Local Ward City Survey Office',
+        officeTimings: 'Monday – Friday: 10:00 AM – 4:30 PM',
+        tokenTimings: 'Challan fee counter: 10:30 AM – 2:00 PM',
+        whatToBring: [
+          'CTS Number / Village Survey Number details',
+          'Original and photocopy of Registered Sale Deed / Lease Deed',
+          'Citizen Aadhaar Card / Identity Card',
+          'Treasury challan receipt for certified extract'
+        ],
+        turnaround: '2 – 3 working days with government stamped seal',
+        instructions:
+          'Submit Form-1 application at the City Survey counter with the CTS number. The officer will pull the physical ledger folio, sign, and issue the certified Property Card extract.'
+      }
+    };
+  }
+
+  // 5. Fire Safety Physical NOC & Inspection
+  if (name.includes('fire noc') || name.includes('fire safety') || name.includes('fire brigade')) {
+    return {
+      mode: 'OFFLINE',
+      offlineDetails: {
+        department: 'Directorate of Maharashtra Fire Services / Municipal Fire Brigade',
+        officeName: 'Divisional Fire Officer (DFO) / Ward Regional Fire Station',
+        location: 'Regional Ward Fire Brigade Headquarters',
+        officeTimings: 'Monday – Friday: 10:30 AM – 4:00 PM',
+        tokenTimings: 'Physical inspection booking desk: 10:30 AM – 1:30 PM',
+        whatToBring: [
+          'Form-A / Form-B Certificate from Licensed Fire Safety Equipment Agency',
+          'Premises architectural floor plan with fire exits and extinguishers marked',
+          'Rent Agreement / Ownership deed copy',
+          'Challan payment proof for Municipal Fire Scrutiny Fee'
+        ],
+        turnaround: '7 – 10 working days following physical on-site inspection',
+        instructions:
+          'Install ABC-type fire extinguishers, emergency exit signs, and smoke detectors. Book an on-site inspection visit with the Divisional Fire Officer to obtain physical clearance.'
+      }
+    };
+  }
+
+  // 6. Pollution Under Control (PUC) Certificate
+  if (name.includes('puc') || name.includes('pollution under control') || name.includes('emission')) {
+    return {
+      mode: 'OFFLINE',
+      offlineDetails: {
+        department: 'Transport Department & Regional Transport Office (RTO)',
+        officeName: 'Authorized Mobile PUC Emission Testing Centre / Petrol Station Kiosk',
+        location: 'Any Authorized RTO Petrol Pump Testing Counter',
+        officeTimings: 'Monday – Sunday: 8:00 AM – 8:00 PM (Open 7 days)',
+        tokenTimings: 'Walk-in continuous service',
+        whatToBring: [
+          'Vehicle brought physically for exhaust gas sampling',
+          'Vehicle Registration Certificate (RC Book or mParivahan digital copy)'
+        ],
+        turnaround: 'Instant (5 minutes post-sensor emission test)',
+        instructions:
+          'Drive your vehicle to any certified petrol pump PUC booth. The tester will insert an exhaust sensor probe, measure carbon monoxide/hydrocarbons, and sync the digital certificate directly to VAHAN.'
+      }
+    };
+  }
+
+  // ----------------------------------------------------
+  // B. AUTHORITATIVE ONLINE APPLICATION PORTALS (Deep URLs)
+  // ----------------------------------------------------
 
   // 1. Central Tax & Legal Identity
-  if (name.includes('pan card') || name.includes('commercial pan') || name.includes('individual pan') || name.includes('pan')) {
-    return 'https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html';
+  if (name.includes('pan') || name.includes('taxpayer identification')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://www.onlineservices.nsdl.com/paam/endUserRegisterContact.html'
+    };
   }
   if (name.includes('aadhaar') || name.includes('aadhar') || name.includes('uidai')) {
-    return 'https://myaadhaar.uidai.gov.in/';
+    return {
+      mode: 'ONLINE',
+      url: 'https://myaadhaar.uidai.gov.in/'
+    };
   }
   if (name.includes('udyam') || name.includes('msme')) {
-    return 'https://udyamregistration.gov.in/Government-India/Ministry-MSME-registration.htm';
+    return {
+      mode: 'ONLINE',
+      url: 'https://udyamregistration.gov.in/Government-India/Ministry-MSME-registration.htm'
+    };
   }
-  if (name.includes('gst') || name.includes('taxpayer identification')) {
-    return 'https://reg.gst.gov.in/registration/';
+  if (name.includes('gst')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://reg.gst.gov.in/registration/'
+    };
   }
-  if (name.includes('incorporation') || name.includes('mca') || name.includes('partnership deed') || name.includes('moa') || name.includes('aoa')) {
-    return 'https://www.mca.gov.in/content/mca/global/en/home.html';
-  }
-
-  // 2. Premises & Municipal Utilities
-  if (name.includes('electricity') || name.includes('discom') || name.includes('power bill')) {
-    return 'https://www.mahadiscom.in/';
-  }
-  if (name.includes('property tax') || name.includes('tax receipt') || name.includes('assessment')) {
-    return 'https://ptaxportal.mcgm.gov.in/';
-  }
-  if (name.includes('rent agreement') || name.includes('lease deed') || name.includes('occupancy') || name.includes('tenancy')) {
-    return 'https://igrmaharashtra.gov.in/';
-  }
-  if (name.includes('fire noc') || name.includes('fire safety') || name.includes('fire clearance')) {
-    return 'https://portal.mcgm.gov.in/';
-  }
-  if (name.includes('water') || name.includes('potability') || name.includes('water test')) {
-    return 'https://jaljeevanmission.gov.in/';
-  }
-  if (name.includes('gumasta') || name.includes('shops & establishments') || name.includes('shop registration') || name.includes('signboard')) {
-    return 'https://services.india.gov.in/';
+  if (name.includes('incorporation') || name.includes('mca') || name.includes('cin')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://www.mca.gov.in/content/mca/global/en/home.html'
+    };
   }
 
-  // 3. Food, Health & Safety
-  if (name.includes('fssai') || name.includes('food safety') || name.includes('hygiene') || name.includes('foscos')) {
-    return 'https://foscos.fssai.gov.in/';
+  // 2. Food Licensing (FSSAI)
+  if (name.includes('fssai') || name.includes('food') || name.includes('foscos')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://foscos.fssai.gov.in/apply-for-new-license'
+    };
   }
-  if (name.includes('medical') || name.includes('fitness certificate') || name.includes('health')) {
-    return 'https://foscos.fssai.gov.in/';
+
+  // 3. Trade License & Gumasta (Shops & Establishments)
+  if (name.includes('gumasta') || name.includes('shop') || name.includes('establishment')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://lms.mahaonline.gov.in/'
+    };
   }
 
   // 4. Transport & RTO
-  if (name.includes('driving license') || name.includes('learner license') || name.includes('dl')) {
-    return 'https://parivahan.gov.in/parivahan//en/content/driving-licence-0';
+  if (name.includes('driving') || name.includes('learner') || name.includes('dl')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://sarathi.parivahan.gov.in/sarathiservice/'
+    };
   }
-  if (name.includes('registration certificate') || name.includes('rc') || name.includes('chassis') || name.includes('form 20') || name.includes('form 21')) {
-    return 'https://vahan.parivahan.gov.in/vahanservice/';
-  }
-  if (name.includes('puc') || name.includes('pollution')) {
-    return 'https://puc.parivahan.gov.in/';
-  }
-
-  // 5. Vital Records & Revenue Certificates
-  if (name.includes('birth certificate') || name.includes('death certificate') || name.includes('crs')) {
-    return 'https://crsorgi.gov.in/';
-  }
-  if (name.includes('income certificate') || name.includes('caste') || name.includes('domicile') || name.includes('tahsildar') || name.includes('ration card')) {
-    return 'https://aaplesarkar.mahaonline.gov.in/';
+  if (name.includes('registration certificate') || name.includes('rc') || name.includes('chassis')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://vahan.parivahan.gov.in/vahanservice/'
+    };
   }
 
-  // 6. Architecture & Building Permissions
-  if (name.includes('building plan') || name.includes('autodcr') || name.includes('sanction') || name.includes('architect')) {
-    return 'https://autodcr.gov.in/';
+  // 5. Civil Registry & Vital Records
+  if (name.includes('birth') || name.includes('death')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://crsorgi.gov.in/'
+    };
+  }
+  if (name.includes('income') || name.includes('caste') || name.includes('domicile') || name.includes('ration')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://aaplesarkar.mahaonline.gov.in/'
+    };
   }
 
-  // Default fallback: National Single Window & Services Portal of India
-  return 'https://services.india.gov.in/';
+  // 6. Property & Utilities
+  if (name.includes('property tax') || name.includes('ptax')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://ptaxportal.mcgm.gov.in/'
+    };
+  }
+  if (name.includes('electricity') || name.includes('discom') || name.includes('power')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://www.mahadiscom.in/'
+    };
+  }
+  if (name.includes('rent agreement') || name.includes('lease deed')) {
+    return {
+      mode: 'ONLINE',
+      url: 'https://efilingigr.maharashtra.gov.in/'
+    };
+  }
+
+  // Default Online: National Services Portal
+  return {
+    mode: 'ONLINE',
+    url: 'https://services.india.gov.in/'
+  };
+}
+
+export function getDocumentApplicationUrl(documentName: string, explicitUrl?: string): string {
+  const info = getDocumentProcurementInfo(documentName, explicitUrl);
+  return info.url || 'https://services.india.gov.in/';
 }
 
 export const getOfficialDocumentApplicationUrl = getDocumentApplicationUrl;
-

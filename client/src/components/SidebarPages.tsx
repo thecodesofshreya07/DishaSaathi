@@ -16,7 +16,192 @@ import {
   Sparkles
 } from 'lucide-react';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, CivicDocumentStatus } from '../types';
-import { getOfficialDocumentApplicationUrl } from '../utils/documentSources';
+import { getOfficialDocumentApplicationUrl, getDocumentProcurementInfo, OfflineOfficeDetails } from '../utils/documentSources';
+import { OfflineDocModal } from './OfflineDocModal';
+
+// ----------------------------------------------------
+// 0. EXPLORE VIEW (Civic Categories & Government Guide)
+// ----------------------------------------------------
+interface ExploreViewProps {
+  onStartProcedure: (goal: string) => void;
+  onExploreService?: () => void;
+}
+
+export const ExploreView: React.FC<ExploreViewProps> = ({ onStartProcedure, onExploreService }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const civicCategories = [
+    {
+      id: 'cat-food-comm',
+      title: 'Commercial Enterprise & Food Businesses',
+      description: 'Start shops, bakeries, cafes, retail counters, and MSME enterprises with unified licensing.',
+      icon: Building2,
+      badge: 'Municipal & Central',
+      procedures: [
+        'FSSAI Food Business License / Registration',
+        'Shop & Establishment Act (Gumasta)',
+        'Udyam MSME Government Certificate',
+        'GSTIN Commercial Registration'
+      ],
+      timeEst: '3 - 21 Days',
+      popularQuery: 'I want to start a small bakery in Mumbai'
+    },
+    {
+      id: 'cat-prop-land',
+      title: 'Land, Property & Building Permissions',
+      description: 'Navigate municipal layout sanctions, building proposals, property cards, and municipal tax assessments.',
+      icon: FileText,
+      badge: 'State & Municipal',
+      procedures: [
+        'City Survey CTS Property Card & Mutation',
+        'AutoDCR Architectural Sanction Plan',
+        'Provisional & Final Fire Safety NOC',
+        'Municipal Water Connection & Potability'
+      ],
+      timeEst: '15 - 45 Days',
+      popularQuery: 'Property tax assessment and mutation'
+    },
+    {
+      id: 'cat-transport',
+      title: 'Transport, Driving & Vehicle Services',
+      description: 'Streamline learner driving licences, vehicle RC transfers, emission certifications, and fitness badges.',
+      icon: Clock,
+      badge: 'MoRTH / State RTO',
+      procedures: [
+        'Learner Licence & Permanent Driving Licence',
+        'Vehicle Registration Certificate (RC) & Transfer',
+        'Pollution Under Control (PUC) Certification',
+        'Commercial Permit & Fitness Certificate'
+      ],
+      timeEst: '7 - 14 Days',
+      popularQuery: 'Permanent driving licence application'
+    },
+    {
+      id: 'cat-vital-welfare',
+      title: 'Vital Records & Citizen Identity',
+      description: 'Essential certificates of citizenship, domicile, revenue verifications, and civil registry.',
+      icon: Award,
+      badge: 'District Collectorate',
+      procedures: [
+        'Civil Registration Birth & Death Certificates',
+        'Aadhaar Demographics & Biometrics Update',
+        'Permanent Account Number (PAN Card)',
+        'Income, Domicile & Caste Certificate'
+      ],
+      timeEst: '1 - 10 Days',
+      popularQuery: 'Apply for income and domicile certificate'
+    }
+  ];
+
+  const filteredCategories = civicCategories.filter(
+    (c) =>
+      c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.procedures.some((p) => p.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Header */}
+      <div className="p-6 rounded-3xl bg-gradient-to-br from-[#1B4D3E] to-[#12352B] text-white shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white inline-block mb-1.5">
+              Civic Discovery
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black">Explore Citizen Procedures</h2>
+            <p className="text-xs text-white/80 mt-1 max-w-xl">
+              Discover verified statutory requirements, government portals, and step-by-step pathways across Municipal, State, and Central authorities.
+            </p>
+          </div>
+
+          <div className="w-full sm:w-72">
+            <div className="relative">
+              <Search className="w-4 h-4 text-white/60 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search procedures or categories..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/10 border border-white/20 text-xs text-white placeholder-white/50 focus:outline-none focus:bg-white/20"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Categories Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filteredCategories.map((cat) => {
+          const Icon = cat.icon;
+          return (
+            <div
+              key={cat.id}
+              className="p-5 rounded-3xl bg-white border border-[#DCE8E1] hover:border-[#1B4D3E] shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between text-xs mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center font-bold">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EAF2ED] text-[#1B4D3E]">
+                      {cat.badge}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500">
+                      ⏱ {cat.timeEst}
+                    </span>
+                  </div>
+                </div>
+
+                <h3 className="text-base font-extrabold text-[#11261F]">
+                  {cat.title}
+                </h3>
+                <p className="text-xs text-[#5C7066] mt-1 leading-relaxed">
+                  {cat.description}
+                </p>
+
+                <div className="mt-3 pt-3 border-t border-[#EDF2EE]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
+                    Included Procedures:
+                  </span>
+                  <div className="space-y-1">
+                    {cat.procedures.map((proc, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 text-xs text-[#3D5247]">
+                        <span className="text-emerald-700 font-bold">•</span>
+                        <span className="line-clamp-1">{proc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-[#EDF2EE] flex items-center justify-between">
+                <button
+                  onClick={() => onStartProcedure(cat.popularQuery)}
+                  className="px-3.5 py-2 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Start Procedure</span>
+                </button>
+
+                {onExploreService && (
+                  <button
+                    onClick={onExploreService}
+                    className="text-xs font-bold text-[#1B4D3E] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>View All Services</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 // ----------------------------------------------------
 // 1. EXPLORE SERVICES VIEW (All 18 Civic Procedures)
@@ -248,6 +433,13 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
     });
   });
 
+  const [activeOfflineDoc, setActiveOfflineDoc] = useState<{
+    name: string;
+    details: OfflineOfficeDetails;
+    stepId: string;
+    docId: string;
+  } | null>(null);
+
   const docs = Array.from(docMap.values());
   const readyCount = docs.filter((item) => item.doc.status === 'READY' || item.doc.status === 'UPLOADED').length;
 
@@ -269,7 +461,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {docs.map(({ doc, step }) => {
           const isReady = doc.status === 'READY' || doc.status === 'UPLOADED';
-          const applicationUrl = getOfficialDocumentApplicationUrl(doc.name);
+          const proc = getDocumentProcurementInfo(doc.name, doc.sourceUrl);
 
           return (
             <div
@@ -307,20 +499,33 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
               </div>
 
               <div className="mt-3 pt-3 border-t border-[#EDF2EE] flex items-center justify-between gap-2">
-                {/* Item 8: Apply for Document button */}
-                {applicationUrl ? (
+                {/* Item 3: Online deep link or Offline office guidance */}
+                {proc.mode === 'ONLINE' ? (
                   <a
-                    href={applicationUrl}
+                    href={proc.url || getOfficialDocumentApplicationUrl(doc.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EAF2ED] hover:bg-[#DEEFE5] text-[#1B4D3E] text-xs font-bold border border-[#CDE3D7] transition-all cursor-pointer"
                   >
-                    <span>Apply for Document ↗</span>
+                    <span>Apply Online ↗</span>
                   </a>
                 ) : (
-                  <span className="text-[10px] text-[#8C9B94] italic">
-                    Issued by {step.authority || 'local department'}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveOfflineDoc({
+                        name: doc.name,
+                        details: proc.offlineDetails!,
+                        stepId: step.id,
+                        docId: doc.id
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300 transition-all cursor-pointer"
+                    title="View office location, timings and submission checklist"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Where to Apply (Offline) 📍</span>
+                  </button>
                 )}
 
                 <button
@@ -338,6 +543,20 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
           );
         })}
       </div>
+
+      {/* Offline Document Modal (Item 3 & 4) */}
+      {activeOfflineDoc && (
+        <OfflineDocModal
+          isOpen={!!activeOfflineDoc}
+          onClose={() => setActiveOfflineDoc(null)}
+          docName={activeOfflineDoc.name}
+          details={activeOfflineDoc.details}
+          onMarkSubmitted={async () => {
+            await onUpdateDocumentStatus(activeOfflineDoc.stepId, activeOfflineDoc.docId, 'READY');
+            setActiveOfflineDoc(null);
+          }}
+        />
+      )}
     </div>
   );
 };

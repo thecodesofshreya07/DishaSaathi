@@ -18,6 +18,7 @@ export interface LanguageStrings {
   // Sidebar Items
   sidebarHome: string;
   sidebarJourneys: string;
+  sidebarExplore: string;
   sidebarServices: string;
   sidebarUpdates: string;
   sidebarDocuments: string;
@@ -153,6 +154,7 @@ const translations: Record<Language, LanguageStrings> = {
 
     sidebarHome: 'Home',
     sidebarJourneys: 'My Journeys',
+    sidebarExplore: 'Explore',
     sidebarServices: 'Explore Services',
     sidebarUpdates: 'Government Updates',
     sidebarDocuments: 'Documents',
@@ -281,6 +283,7 @@ const translations: Record<Language, LanguageStrings> = {
 
     sidebarHome: 'होम',
     sidebarJourneys: 'मेरी यात्राएं',
+    sidebarExplore: 'एक्सप्लोर',
     sidebarServices: 'सेवाएं खोजें',
     sidebarUpdates: 'सरकारी अपडेट',
     sidebarDocuments: 'दस्तावेज़',
@@ -409,6 +412,7 @@ const translations: Record<Language, LanguageStrings> = {
 
     sidebarHome: 'होम',
     sidebarJourneys: 'माझे मार्ग',
+    sidebarExplore: 'एक्सप्लोर करा',
     sidebarServices: 'सेवा शोधा',
     sidebarUpdates: 'सरकारी अद्यतने',
     sidebarDocuments: 'कागदपत्रे',

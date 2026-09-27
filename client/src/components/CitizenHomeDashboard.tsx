@@ -1,24 +1,17 @@
 import React from 'react';
 import {
   Compass,
-  CheckCircle2,
   Clock,
   FileText,
   Building2,
-  ArrowRight,
   ShieldCheck,
-  Download,
-  Calendar,
   Layers,
-  Sparkles,
-  Search,
-  ExternalLink
+  Search
 } from 'lucide-react';
 import { CivicJourney, GovernmentUpdate, ProcedureStep } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { HeroBanner } from './HeroBanner';
-import { RoadmapFlowchart } from './RoadmapFlowchart';
 
 interface CitizenHomeDashboardProps {
   journey: CivicJourney;
@@ -34,50 +27,24 @@ interface CitizenHomeDashboardProps {
 }
 
 export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
-  journey,
-  updates,
   onGoToJourney,
   onGoToTab,
-  onDownloadPdf,
-  onOpenAiCopilot,
   onSearch,
-  isLoading = false,
-  onSelectStep,
-  selectedStepId
+  isLoading = false
 }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  const completedSteps = journey.steps.filter((s) => s.status === 'Completed').length;
-  const totalSteps = journey.steps.length;
-  const progressPercent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-
-  let totalDocs = 0;
-  let readyDocs = 0;
-  journey.steps.forEach((s) => {
-    s.documents.forEach((d) => {
-      totalDocs++;
-      if (d.status === 'READY' || d.status === 'UPLOADED') readyDocs++;
-    });
-  });
-
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* 1. Exactly as in the Screenshot: Hero Banner with Gateway of India, Welcome Back, Search and Popular searches */}
+      {/* 1. Hero Banner with Gateway of India, Welcome Back, Search and Popular searches */}
       <HeroBanner
         onSearch={onSearch}
         isLoading={isLoading}
         userName={user?.name || 'Citizen'}
       />
 
-      {/* 2. Exactly as in the Screenshot: Civic Procedure Flowchart right beneath the banner */}
-      <RoadmapFlowchart
-        journey={journey}
-        onSelectStep={onSelectStep}
-        selectedStepId={selectedStepId}
-      />
-
-      {/* 3. Core Impact Metrics with small descriptions (Item 4 & 12) */}
+      {/* 2. Core Impact Metrics with small descriptions (Item 4 & 6) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
         <div className="p-5 rounded-2xl bg-white border border-[#DCE8E1] shadow-2xs hover:shadow-xs transition-shadow">
@@ -164,94 +131,7 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
         </div>
       </div>
 
-      {/* 4. Active Journey Summary Card */}
-      {journey.steps.length > 0 ? (
-        <div className="p-6 rounded-3xl bg-white border border-[#D5E3DB] shadow-xs">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 mb-5 border-b border-[#EDF2EE]">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1B4D3E]/10 text-[#1B4D3E]">
-                  {t.pipelineGoal || 'Active Civic Goal'}
-                </span>
-                {journey.location && (
-                  <span className="text-xs text-[#6C8075] font-semibold">
-                    • {journey.location}
-                  </span>
-                )}
-              </div>
-              <h3 className="text-xl font-extrabold text-[#11261F]">
-                {journey.title}
-              </h3>
-              <p className="text-xs text-[#5C7066] mt-0.5">
-                Category: {journey.category} | Status: <strong className="text-[#1B4D3E]">{journey.status}</strong>
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onGoToJourney}
-                className="px-4 py-2.5 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>{t.viewRequirements || 'View Full Step Details ➔'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={onDownloadPdf}
-                className="px-3.5 py-2.5 rounded-xl bg-white text-[#1B4D3E] hover:bg-[#F2F8F5] border border-[#CDE3D7] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
-                title="Download official roadmap in PDF format"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download PDF</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Progress Gauges */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-[#F6FAF8] border border-[#E2EAE5]">
-              <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                <span className="text-[#4A5D54]">{t.stepsProgress || 'Step Clearance Progress'}</span>
-                <span className="text-[#1B4D3E]">{completedSteps} / {totalSteps} ({progressPercent}%)</span>
-              </div>
-              <div className="w-full h-2.5 bg-[#E1ECE5] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#1B4D3E] rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#F6FAF8] border border-[#E2EAE5]">
-              <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                <span className="text-[#4A5D54]">{t.documentReadiness || 'Document Locker Readiness'}</span>
-                <span className="text-emerald-800">{readyDocs} / {totalDocs} {t.docsReady || 'ready'} ({totalDocs > 0 ? Math.round((readyDocs/totalDocs)*100) : 0}%)</span>
-              </div>
-              <div className="w-full h-2.5 bg-[#E1ECE5] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-600 rounded-full transition-all duration-500"
-                  style={{ width: `${totalDocs > 0 ? (readyDocs/totalDocs)*100 : 0}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="p-8 rounded-3xl bg-white border border-[#D5E3DB] shadow-2xs text-center">
-          <div className="w-12 h-12 rounded-2xl bg-[#EAF2ED] text-[#1B4D3E] flex items-center justify-center mx-auto mb-3">
-            <Compass className="w-6 h-6" />
-          </div>
-          <h3 className="text-base font-extrabold text-[#11261F]">
-            Ready to Begin Your Civic Journey
-          </h3>
-          <p className="text-xs text-[#6C8075] max-w-md mx-auto mt-1 leading-relaxed">
-            Search what procedure or license you need in the search bar above to generate an instant, verified statutory roadmap.
-          </p>
-        </div>
-      )}
-
-
-      {/* 5. Quick Access Hub */}
+      {/* 3. Quick Access Hub */}
       <div>
         <h4 className="text-sm font-extrabold text-[#11261F] uppercase tracking-wider mb-3">
           Quick Access & Services Hub
@@ -298,7 +178,7 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
               <Search className="w-5 h-5" />
             </div>
             <h5 className="text-xs font-extrabold text-[#11261F] group-hover:text-[#1B4D3E]">
-              Explore 18 Services
+              Explore Services
             </h5>
             <p className="text-[11px] text-[#6C8075] mt-1 leading-relaxed">
               Browse food permits, trade licenses, driving, factory, and property taxes.
@@ -314,7 +194,7 @@ export const CitizenHomeDashboard: React.FC<CitizenHomeDashboardProps> = ({
               <Layers className="w-5 h-5" />
             </div>
             <h5 className="text-xs font-extrabold text-[#11261F] group-hover:text-[#1B4D3E]">
-              Gazette Updates
+              Govt Updates
             </h5>
             <p className="text-[11px] text-[#6C8075] mt-1 leading-relaxed">
               Check real-time statutory amendments and AI-extracted legal excerpts.

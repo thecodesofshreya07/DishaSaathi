@@ -7,6 +7,7 @@ import { CivicJourneyPipeline } from '../components/CivicJourneyPipeline';
 import { RoadmapFlowchart } from '../components/RoadmapFlowchart';
 import { CitizenHomeDashboard } from '../components/CitizenHomeDashboard';
 import {
+  ExploreView,
   ServicesView,
   DocumentsView,
   UpdatesView,
@@ -259,6 +260,17 @@ export const RoadmapPage: React.FC = () => {
                 />
               </ErrorBoundary>
             </div>
+          )}
+
+          {/* TAB: EXPLORE VIEW (Requirement 5) */}
+          {activeTab === 'explore' && (
+            <ExploreView
+              onStartProcedure={(query) => {
+                handleSearch(query);
+                setActiveTab('journeys');
+              }}
+              onExploreService={() => setActiveTab('services')}
+            />
           )}
 
           {/* TAB 3: Item 11: EXPLORE SERVICES VIEW */}
