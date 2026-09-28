@@ -990,7 +990,7 @@ export const PassportView: React.FC<{
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       return window.location.hostname;
     }
-    return '10.85.100.122';
+    return '';
   });
 
   // Discover server network LAN IP so phone QR scanning accesses the host machine directly
@@ -998,11 +998,15 @@ export const PassportView: React.FC<{
     fetch('/api/network-info')
       .then((r) => r.json())
       .then((data) => {
-        if (data?.ip && data.ip !== '127.0.0.1') {
+        if (data?.ip) {
           setNetworkHost(data.ip);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (typeof window !== 'undefined' && window.location.hostname) {
+          setNetworkHost(window.location.hostname);
+        }
+      });
   }, []);
 
   const allJourneys = journeys.length > 0 ? journeys : (journey ? [journey] : []);
@@ -1017,9 +1021,10 @@ export const PassportView: React.FC<{
 
   const currentJourney = allJourneys.find((j) => j.id === selectedJourneyId) || journey || allJourneys[0];
 
-  // Direct Binary PDF download URL on the phone (avoids localhost)
-  const directPhonePdfUrl = `http://${networkHost}:5000/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
-  const verifyWebUrl = `http://${networkHost}:5173/verify/${currentJourney?.id || ''}?download=pdf`;
+  // Direct Binary PDF download URL on the phone (dynamically using live LAN IP)
+  const effectiveHost = networkHost || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.hostname : '10.68.124.122');
+  const directPhonePdfUrl = `http://${effectiveHost}:5000/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
+  const verifyWebUrl = `http://${effectiveHost}:5173/verify/${currentJourney?.id || ''}?download=pdf`;
 
   // QR Code encodes direct binary PDF download for instant phone download
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(directPhonePdfUrl)}&margin=10`;
@@ -1040,9 +1045,15 @@ export const PassportView: React.FC<{
     if (!currentJourney) return;
     setPdfGenerating(true);
     try {
-      generateRoadmapPdf(currentJourney, user?.name || 'Citizen');
+      const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = `/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
+      } else {
+        generateRoadmapPdf(currentJourney, user?.name || 'Citizen');
+      }
     } catch (e) {
-      console.error('Failed to generate PDF:', e);
+      console.error('Failed to generate PDF, falling back to server download:', e);
+      window.location.href = `/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
     } finally {
       setTimeout(() => setPdfGenerating(false), 1200);
     }

@@ -1,7 +1,7 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { RoadmapProvider } from './context/RoadmapContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage, triggerGoogleTranslate } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import LandingPage from './pages/LandingPage';
@@ -14,6 +14,25 @@ import AdminValidationPage from './pages/AdminValidationPage';
 
 import PublicJourneyVerificationPage from './pages/PublicJourneyVerificationPage';
 
+/**
+ * Ensures Google Translate stays in sync when user navigates between routes
+ */
+const RouteLanguageSync: React.FC = () => {
+  const location = useLocation();
+  const { language } = useLanguage();
+
+  useEffect(() => {
+    if (language !== 'en') {
+      const timer = setTimeout(() => {
+        triggerGoogleTranslate(language);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, language]);
+
+  return null;
+};
+
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
@@ -21,6 +40,7 @@ export const App: React.FC = () => {
         <AuthProvider>
           <RoadmapProvider>
             <BrowserRouter>
+              <RouteLanguageSync />
               <Routes>
                 {/* Landing Page */}
                 <Route path="/" element={<LandingPage />} />

@@ -215,7 +215,17 @@ export const RoadmapPage: React.FC = () => {
   // Item 14: Download Roadmap in PDF Format
   const handleDownloadRoadmap = () => {
     if (!activeJourney) return;
-    generateRoadmapPdf(activeJourney, user?.name || 'Citizen');
+    try {
+      const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        window.location.href = `/api/journey/${activeJourney.id || 'current'}/download-pdf`;
+      } else {
+        generateRoadmapPdf(activeJourney, user?.name || 'Citizen');
+      }
+    } catch (e) {
+      console.error('Failed to generate PDF, falling back to server download:', e);
+      window.location.href = `/api/journey/${activeJourney.id || 'current'}/download-pdf`;
+    }
   };
 
   // Safe fallback if journey hasn't loaded yet

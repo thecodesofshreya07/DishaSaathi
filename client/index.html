@@ -12,19 +12,29 @@
     <style>
       /* Clean styling for Google Translate element so it integrates seamlessly without shifting layout */
       .goog-te-banner-frame.skiptranslate,
-      .goog-te-banner-frame {
+      .goog-te-banner-frame,
+      iframe.goog-te-banner-frame {
         display: none !important;
+        visibility: hidden !important;
       }
       body {
         top: 0px !important;
+        position: static !important;
       }
       #google_translate_element {
-        position: absolute;
+        position: fixed;
         bottom: 0;
-        left: 0;
-        opacity: 0;
+        right: 0;
+        width: 1px;
+        height: 1px;
+        opacity: 0.01;
         pointer-events: none;
-        z-index: -999;
+        z-index: -9999;
+        overflow: hidden;
+      }
+      .goog-te-gadget {
+        font-size: 0px !important;
+        color: transparent !important;
       }
       .goog-tooltip,
       .goog-tooltip:hover {
@@ -39,6 +49,26 @@
         display: none !important;
       }
     </style>
+    <script>
+      /* Safeguard React virtual DOM reconciliation against Google Translate DOM font mutations */
+      if (typeof Node === 'function' && Node.prototype) {
+        const originalRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function (child) {
+          if (child.parentNode !== this) {
+            return child;
+          }
+          return originalRemoveChild.apply(this, arguments);
+        };
+
+        const originalInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function (newNode, referenceNode) {
+          if (referenceNode && referenceNode.parentNode !== this) {
+            return newNode;
+          }
+          return originalInsertBefore.apply(this, arguments);
+        };
+      }
+    </script>
   </head>
   <body class="bg-[#F4F6F8] text-[#1E293B] antialiased selection:bg-blue-100 selection:text-blue-900">
     <div id="root"></div>
@@ -51,13 +81,12 @@
           new window.google.translate.TranslateElement({
             pageLanguage: 'en',
             includedLanguages: 'en,hi,mr',
-            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
             autoDisplay: false
           }, 'google_translate_element');
         }
       }
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script type="text/javascript" id="google-translate-script" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>

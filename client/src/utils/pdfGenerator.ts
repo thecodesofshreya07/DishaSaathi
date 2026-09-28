@@ -97,8 +97,14 @@ function generateHighResGraphCanvas(journey: CivicJourney): HTMLCanvasElement {
   const logicalWidth = padX * 2 + totalCols * cardWidth + (totalCols - 1) * colGap;
   const logicalHeight = padY * 2 + maxRows * cardHeight + (maxRows - 1) * rowGap;
 
-  // Render at 3.0x ultra-high DPI resolution
-  const scale = 3.0;
+  // Render with mobile memory safeguards (mobile GPUs limit canvas to max 2048px/16MB)
+  const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const maxDim = isMobile ? 2048 : 4096;
+  const rawScale = isMobile ? 1.2 : 2.5;
+  const scaleX = logicalWidth * rawScale > maxDim ? maxDim / logicalWidth : rawScale;
+  const scaleY = logicalHeight * rawScale > maxDim ? maxDim / logicalHeight : rawScale;
+  const scale = Math.min(scaleX, scaleY);
+
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(logicalWidth * scale);
   canvas.height = Math.ceil(logicalHeight * scale);
@@ -543,8 +549,35 @@ export const generateRoadmapPdf = (journey: CivicJourney, citizenName: string = 
     });
 
     const safeFilename = `${journey.title.replace(/[^a-zA-Z0-9]/g, '_')}_Roadmap_Graph.pdf`;
-    pdf.save(safeFilename);
+    const isMobileDevice = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobileDevice) {
+      try {
+        const blob = pdf.output('blob');
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = safeFilename;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        }, 4000);
+      } catch (mobileErr) {
+        // Fallback to server endpoint if mobile blob creation encounters issues
+        window.location.href = `/api/journey/${journey.id || 'current'}/download-pdf`;
+      }
+    } else {
+      pdf.save(safeFilename);
+    }
   } catch (err) {
-    console.error('Failed to generate high-resolution visual roadmap PDF', err);
+    console.error('Failed to generate client visual roadmap PDF, triggering server download fallback:', err);
+    try {
+      window.location.href = `/api/journey/${journey.id || 'current'}/download-pdf`;
+    } catch (fallbackErr) {
+      console.error('Server PDF download fallback also failed:', fallbackErr);
+    }
   }
 };

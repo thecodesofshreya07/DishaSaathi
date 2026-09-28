@@ -919,32 +919,51 @@ export const triggerGoogleTranslate = (lang: Language) => {
     const googleCode = lang === 'en' ? '' : lang;
     const hostname = window.location.hostname;
 
-    // Set translation cookies for all domain paths
-    document.cookie = `googtrans=/en/${lang}; path=/;`;
-    document.cookie = `googtrans=/auto/${lang}; path=/;`;
-    if (hostname && hostname !== 'localhost') {
-      document.cookie = `googtrans=/en/${lang}; path=/; domain=.${hostname};`;
-      document.cookie = `googtrans=/en/${lang}; path=/; domain=${hostname};`;
-      document.cookie = `googtrans=/auto/${lang}; path=/; domain=.${hostname};`;
-      document.cookie = `googtrans=/auto/${lang}; path=/; domain=${hostname};`;
+    // Cookie management for Google Translate
+    if (lang === 'en') {
+      const expired = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = `googtrans=; ${expired}`;
+      document.cookie = `googtrans=/en/en; path=/;`;
+      if (hostname && hostname !== 'localhost') {
+        document.cookie = `googtrans=; ${expired} domain=${hostname};`;
+        document.cookie = `googtrans=; ${expired} domain=.${hostname};`;
+        document.cookie = `googtrans=/en/en; path=/; domain=${hostname};`;
+        document.cookie = `googtrans=/en/en; path=/; domain=.${hostname};`;
+      }
+    } else {
+      document.cookie = `googtrans=/en/${lang}; path=/;`;
+      document.cookie = `googtrans=/auto/${lang}; path=/;`;
+      if (hostname && hostname !== 'localhost') {
+        document.cookie = `googtrans=/en/${lang}; path=/; domain=.${hostname};`;
+        document.cookie = `googtrans=/en/${lang}; path=/; domain=${hostname};`;
+        document.cookie = `googtrans=/auto/${lang}; path=/; domain=.${hostname};`;
+        document.cookie = `googtrans=/auto/${lang}; path=/; domain=${hostname};`;
+      }
     }
 
     // Function to trigger DOM select element
-    const applySelect = () => {
+    const applySelect = (): boolean => {
       const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
       if (select) {
-        select.value = googleCode;
+        if (select.value !== googleCode) {
+          select.value = googleCode;
+        }
         select.dispatchEvent(new Event('change', { bubbles: true }));
+        select.dispatchEvent(new Event('input', { bubbles: true }));
+        if (typeof (select as any).onchange === 'function') {
+          (select as any).onchange();
+        }
         return true;
       }
       return false;
     };
 
+    // Immediate attempt + progressive polling if script is still rendering widget
     if (!applySelect()) {
-      // Retry in 200ms, 600ms, 1200ms in case Google widget is still initializing
-      setTimeout(applySelect, 200);
-      setTimeout(applySelect, 600);
-      setTimeout(applySelect, 1200);
+      const delays = [50, 150, 300, 600, 1000, 1500, 2500, 4000];
+      delays.forEach((delay) => {
+        setTimeout(applySelect, delay);
+      });
     }
   } catch (err) {
     console.warn('Google Translate sync error:', err);

@@ -51,10 +51,19 @@ export const PublicJourneyVerificationPage: React.FC = () => {
   const handleDownloadPdf = () => {
     if (!matchedJourney) return;
     try {
-      generateRoadmapPdf(matchedJourney, 'Verified Citizen');
-      setPdfDownloaded(true);
+      const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        // Direct server binary download works on 100% of mobile browsers (iOS Safari, Android Chrome)
+        window.location.href = `/api/journey/${matchedJourney.id || 'current'}/download-pdf`;
+        setPdfDownloaded(true);
+      } else {
+        generateRoadmapPdf(matchedJourney, 'Verified Citizen');
+        setPdfDownloaded(true);
+      }
     } catch (e) {
-      console.error('Failed to generate PDF:', e);
+      console.error('Failed to generate PDF, falling back to server download:', e);
+      window.location.href = `/api/journey/${matchedJourney.id || 'current'}/download-pdf`;
+      setPdfDownloaded(true);
     }
   };
 
