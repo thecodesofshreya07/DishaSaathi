@@ -16,8 +16,6 @@ import {
   Scale,
   ChevronLeft,
   ChevronRight,
-  PanelLeftClose,
-  PanelLeftOpen,
   Menu,
   X
 } from 'lucide-react';
@@ -190,36 +188,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ChevronLeft className="w-4 h-4" />
           )}
         </button>
-
-        {/* Top Header Row with quick slide toggle */}
-        <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-[#F0F4F2] dark:border-[#1A332B] min-h-[26px] shrink-0">
-          {!isCollapsed ? (
-            <>
-              <span className="text-[10px] font-black tracking-widest text-[#7C9086] dark:text-[#8C9B94] uppercase px-1">
-                CIVIC MENU
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(true)}
-                className="p-1 rounded-md text-[#7C9086] hover:text-[#1B4D3E] dark:hover:text-[#6EE7B7] hover:bg-[#EBF2EE] dark:hover:bg-[#163026] transition-colors cursor-pointer"
-                title="Slide collapse"
-              >
-                <PanelLeftClose className="w-3.5 h-3.5" />
-              </button>
-            </>
-          ) : (
-            <div className="w-full flex justify-center">
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(false)}
-                className="p-1 rounded-md text-[#7C9086] hover:text-[#1B4D3E] dark:hover:text-[#6EE7B7] hover:bg-[#EBF2EE] dark:hover:bg-[#163026] transition-colors cursor-pointer"
-                title="Slide expand"
-              >
-                <PanelLeftOpen className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Isolated Scrollable Container - scrolls all the way to the very end */}
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 scrollbar-thin flex flex-col justify-between pb-1">

@@ -5,7 +5,6 @@ import { useLanguage, Language } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
-import { VoiceSearchButton } from './VoiceSearchButton';
 
 const LANG_LABELS: Record<Language, string> = { en: 'EN', hi: 'हि', mr: 'म' };
 const LANG_NAMES: Record<Language, string> = { en: 'English', hi: 'हिन्दी', mr: 'मराठी' };
@@ -49,11 +48,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right Controls */}
       <div className="flex items-center gap-2.5 lg:gap-4">
-        {/* Voice Assistant Trigger */}
-        <VoiceSearchButton
-          autoNavigate={true}
-          className="border border-[#DCE4DF] dark:border-[#1F3E33] bg-white dark:bg-[#12241E] shadow-2xs hover:scale-105 active:scale-95"
-        />
         {/* Light / Dark Mode Toggle Button */}
         <button
           onClick={toggleTheme}
