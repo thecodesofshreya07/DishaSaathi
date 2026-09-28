@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers } from 'lucide-react';
+import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers, FileDown, Network } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -386,6 +386,26 @@ export const RoadmapPage: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap shrink-0 w-full lg:w-auto justify-start lg:justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-[#EEF3F0] dark:border-[#1A332B]">
                       <button
                         type="button"
+                        onClick={() => setIsGraphModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
+                        title="Open interactive visual dependency graph"
+                      >
+                        <Network className="w-3.5 h-3.5 shrink-0" />
+                        <span>Visual Graph</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDownloadRoadmap}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98"
+                        title="Download official visual roadmap graph as PDF"
+                      >
+                        <FileDown className="w-3.5 h-3.5 shrink-0" />
+                        <span>Download PDF</span>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setIsCompareOpen(true)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
                         title="Compare statutory routes and procedures side-by-side"
@@ -400,7 +420,7 @@ export const RoadmapPage: React.FC = () => {
                         title="Check consequences of skipping or omitting any step"
                       >
                         <Scale className="w-3.5 h-3.5 shrink-0" />
-                        <span>What If I Skip a Step?</span>
+                        <span>What If I Skip?</span>
                       </button>
 
                       <button
