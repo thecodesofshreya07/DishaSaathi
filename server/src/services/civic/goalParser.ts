@@ -31,65 +31,102 @@ export function extractLocationFromQuery(query: string, options?: ParseGoalOptio
   ) {
     return { city: 'Bengaluru', state: 'Karnataka' };
   }
-  if (q.includes('mangalore') || q.includes('mangaluru')) {
-    return { city: 'Mangaluru', state: 'Karnataka' };
-  }
-  if (q.includes('mysore') || q.includes('mysuru')) {
-    return { city: 'Mysuru', state: 'Karnataka' };
-  }
-  if (q.includes('hubli') || q.includes('dharwad')) {
-    return { city: 'Hubli-Dharwad', state: 'Karnataka' };
-  }
-  if (q.includes('belgaum') || q.includes('belagavi')) {
-    return { city: 'Belagavi', state: 'Karnataka' };
-  }
-  if (q.includes('pune') || q.includes('पुणे')) {
-    return { city: 'Pune', state: 'Maharashtra' };
-  }
-  if (q.includes('nagpur') || q.includes('नागपूर')) {
-    return { city: 'Nagpur', state: 'Maharashtra' };
-  }
-  if (q.includes('nashik') || q.includes('नाशिक')) {
-    return { city: 'Nashik', state: 'Maharashtra' };
-  }
-  if (q.includes('thane') || q.includes('ठाणे')) {
-    return { city: 'Thane', state: 'Maharashtra' };
-  }
-  if (q.includes('navi mumbai') || q.includes('नवी मुंबई')) {
-    return { city: 'Navi Mumbai', state: 'Maharashtra' };
-  }
-  if (q.includes('mumbai') || q.includes('मुंबई') || q.includes('bombay')) {
-    return { city: 'Mumbai', state: 'Maharashtra' };
-  }
-  if (q.includes('delhi') || q.includes('दिल्ली')) {
-    return { city: 'Delhi', state: 'Delhi' };
-  }
-  if (q.includes('hyderabad') || q.includes('हैदराबाद')) {
+  if (q.includes('mangalore') || q.includes('mangaluru')) return { city: 'Mangaluru', state: 'Karnataka' };
+  if (q.includes('mysore') || q.includes('mysuru')) return { city: 'Mysuru', state: 'Karnataka' };
+  if (q.includes('hubli') || q.includes('dharwad')) return { city: 'Hubli-Dharwad', state: 'Karnataka' };
+  if (q.includes('belgaum') || q.includes('belagavi')) return { city: 'Belagavi', state: 'Karnataka' };
+  if (q.includes('karnataka')) return { city: 'Bengaluru', state: 'Karnataka' };
+
+  // 2. Maharashtra
+  if (q.includes('pune') || q.includes('पुणे')) return { city: 'Pune', state: 'Maharashtra' };
+  if (q.includes('nagpur') || q.includes('नागपूर')) return { city: 'Nagpur', state: 'Maharashtra' };
+  if (q.includes('nashik') || q.includes('नाशिक')) return { city: 'Nashik', state: 'Maharashtra' };
+  if (q.includes('thane') || q.includes('ठाणे')) return { city: 'Thane', state: 'Maharashtra' };
+  if (q.includes('navi mumbai') || q.includes('नवी मुंबई')) return { city: 'Navi Mumbai', state: 'Maharashtra' };
+  if (q.includes('mumbai') || q.includes('मुंबई') || q.includes('bombay')) return { city: 'Mumbai', state: 'Maharashtra' };
+  if (q.includes('maharashtra')) return { city: 'Mumbai', state: 'Maharashtra' };
+
+  // 3. Delhi / NCR
+  if (q.includes('delhi') || q.includes('दिल्ली') || q.includes('ncr')) return { city: 'Delhi', state: 'Delhi' };
+
+  // 4. Telangana & Andhra Pradesh
+  if (q.includes('hyderabad') || q.includes('हैदराबाद') || q.includes('secunderabad') || q.includes('telangana')) {
     return { city: 'Hyderabad', state: 'Telangana' };
   }
-  if (q.includes('chennai') || q.includes('चेन्नई')) {
-    return { city: 'Chennai', state: 'Tamil Nadu' };
+  if (q.includes('visakhapatnam') || q.includes('vizag')) return { city: 'Visakhapatnam', state: 'Andhra Pradesh' };
+  if (q.includes('vijayawada')) return { city: 'Vijayawada', state: 'Andhra Pradesh' };
+  if (q.includes('andhra')) return { city: 'Visakhapatnam', state: 'Andhra Pradesh' };
+
+  // 5. Tamil Nadu
+  if (q.includes('chennai') || q.includes('चेन्नई') || q.includes('madras')) return { city: 'Chennai', state: 'Tamil Nadu' };
+  if (q.includes('coimbatore') || q.includes('madurai') || q.includes('tiruchirappalli') || q.includes('tamil nadu')) {
+    return { city: q.includes('coimbatore') ? 'Coimbatore' : q.includes('madurai') ? 'Madurai' : 'Chennai', state: 'Tamil Nadu' };
   }
-  if (q.includes('kolkata') || q.includes('कलकत्ता') || q.includes('कोलकाता')) {
+
+  // 6. West Bengal
+  if (q.includes('kolkata') || q.includes('कलकत्ता') || q.includes('कोलकाता') || q.includes('calcutta') || q.includes('west bengal')) {
     return { city: 'Kolkata', state: 'West Bengal' };
   }
-  if (q.includes('ahmedabad') || q.includes('अहमदाबाद')) {
-    return { city: 'Ahmedabad', state: 'Gujarat' };
+
+  // 7. Gujarat
+  if (q.includes('ahmedabad') || q.includes('अहमदाबाद')) return { city: 'Ahmedabad', state: 'Gujarat' };
+  if (q.includes('surat')) return { city: 'Surat', state: 'Gujarat' };
+  if (q.includes('vadodara') || q.includes('baroda')) return { city: 'Vadodara', state: 'Gujarat' };
+  if (q.includes('gujarat')) return { city: 'Ahmedabad', state: 'Gujarat' };
+
+  // 8. Rajasthan
+  if (q.includes('jaipur') || q.includes('जयपुर')) return { city: 'Jaipur', state: 'Rajasthan' };
+  if (q.includes('jodhpur')) return { city: 'Jodhpur', state: 'Rajasthan' };
+  if (q.includes('udaipur')) return { city: 'Udaipur', state: 'Rajasthan' };
+  if (q.includes('rajasthan')) return { city: 'Jaipur', state: 'Rajasthan' };
+
+  // 9. Uttar Pradesh
+  if (q.includes('lucknow') || q.includes('लखनऊ')) return { city: 'Lucknow', state: 'Uttar Pradesh' };
+  if (q.includes('noida') || q.includes('greater noida')) return { city: 'Noida', state: 'Uttar Pradesh' };
+  if (q.includes('kanpur') || q.includes('varanasi') || q.includes('banaras') || q.includes('agra') || q.includes('uttar pradesh') || q.includes('u.p.') || q.includes('up')) {
+    const matchedCity = q.includes('kanpur') ? 'Kanpur' : q.includes('varanasi') || q.includes('banaras') ? 'Varanasi' : q.includes('agra') ? 'Agra' : 'Lucknow';
+    return { city: matchedCity, state: 'Uttar Pradesh' };
   }
-  if (q.includes('jaipur') || q.includes('जयपुर')) {
-    return { city: 'Jaipur', state: 'Rajasthan' };
+
+  // 10. Kerala
+  if (q.includes('kochi') || q.includes('cochin') || q.includes('thiruvananthapuram') || q.includes('trivandrum') || q.includes('kozhikode') || q.includes('calicut') || q.includes('kerala')) {
+    const matchedCity = q.includes('thiruvananthapuram') || q.includes('trivandrum') ? 'Thiruvananthapuram' : q.includes('kozhikode') || q.includes('calicut') ? 'Kozhikode' : 'Kochi';
+    return { city: matchedCity, state: 'Kerala' };
   }
+
+  // 11. Haryana & Punjab
+  if (q.includes('gurugram') || q.includes('gurgaon') || q.includes('faridabad') || q.includes('panipat') || q.includes('haryana')) {
+    return { city: q.includes('faridabad') ? 'Faridabad' : 'Gurugram', state: 'Haryana' };
+  }
+  if (q.includes('ludhiana') || q.includes('amritsar') || q.includes('jalandhar') || q.includes('punjab')) {
+    return { city: q.includes('amritsar') ? 'Amritsar' : q.includes('jalandhar') ? 'Jalandhar' : 'Ludhiana', state: 'Punjab' };
+  }
+  if (q.includes('chandigarh')) return { city: 'Chandigarh', state: 'Chandigarh' };
+
+  // 12. Madhya Pradesh
+  if (q.includes('indore') || q.includes('bhopal') || q.includes('gwalior') || q.includes('madhya pradesh') || q.includes('m.p.') || q.includes('mp')) {
+    return { city: q.includes('bhopal') ? 'Bhopal' : 'Indore', state: 'Madhya Pradesh' };
+  }
+
+  // 13. Odisha, Bihar, Assam, Goa, Uttarakhand, Himachal, Jharkhand, Chhattisgarh, J&K
+  if (q.includes('bhubaneswar') || q.includes('cuttack') || q.includes('odisha') || q.includes('orissa')) return { city: 'Bhubaneswar', state: 'Odisha' };
+  if (q.includes('patna') || q.includes('bihar')) return { city: 'Patna', state: 'Bihar' };
+  if (q.includes('guwahati') || q.includes('assam')) return { city: 'Guwahati', state: 'Assam' };
+  if (q.includes('panaji') || q.includes('goa')) return { city: 'Panaji', state: 'Goa' };
+  if (q.includes('dehradun') || q.includes('uttarakhand')) return { city: 'Dehradun', state: 'Uttarakhand' };
+  if (q.includes('shimla') || q.includes('himachal')) return { city: 'Shimla', state: 'Himachal Pradesh' };
+  if (q.includes('ranchi') || q.includes('jharkhand')) return { city: 'Ranchi', state: 'Jharkhand' };
+  if (q.includes('raipur') || q.includes('chhattisgarh')) return { city: 'Raipur', state: 'Chhattisgarh' };
+  if (q.includes('srinagar') || q.includes('jammu')) return { city: 'Srinagar', state: 'Jammu and Kashmir' };
 
   // Regex pattern to extract "in <location>" or "at <location>"
   const locMatch = q.match(/\b(?:in|at|for|near)\s+([a-zA-Z\u0900-\u097F]+)/i);
   if (locMatch && locMatch[1]) {
     const rawPlace = locMatch[1].trim();
-    const ignored = ['a', 'the', 'my', 'this', 'our', 'commercial', 'small', 'new', 'shop', 'salon', 'parlour', 'business'];
+    const ignored = ['a', 'the', 'my', 'this', 'our', 'commercial', 'small', 'new', 'shop', 'salon', 'parlour', 'business', 'india'];
     if (!ignored.includes(rawPlace.toLowerCase())) {
       city = rawPlace.charAt(0).toUpperCase() + rawPlace.slice(1);
-      state = (city.toLowerCase().includes('navg') || city.toLowerCase().includes('bang') || city.toLowerCase().includes('mang'))
-        ? 'Karnataka'
-        : 'State Jurisdiction';
+      state = `${city} State Jurisdiction`;
       return { city, state };
     }
   }

@@ -123,37 +123,384 @@ const VerificationBadge: React.FC<{ status: VerificationBadgeStatus; className?:
  * - If only one legitimate statutory route exists (e.g. Karnataka Salon), displays only one route.
  * - Categorizes documents into Required, Conditional, and Supporting.
  */
+interface StateComparisonConfig {
+  state: string;
+  city: string;
+  shopsAct: string;
+  shopsAuthority: string;
+  shopsPortalUrl: string;
+  municipalAct: string;
+  municipalAuthority: string;
+  municipalPortalUrl: string;
+  signboardRule: string;
+  rtsAct: string;
+}
+
+function resolveStateComparisonConfig(text: string): StateComparisonConfig {
+  const t = text.toLowerCase();
+  if (t.includes('delhi')) {
+    return {
+      state: 'Delhi',
+      city: 'Delhi',
+      shopsAct: 'Delhi Shops and Establishments Act, 1954',
+      shopsAuthority: 'Department of Labour, Government of NCT of Delhi',
+      shopsPortalUrl: 'https://labourcis.delhi.gov.in',
+      municipalAct: 'Section 417 of the Delhi Municipal Corporation Act, 1957',
+      municipalAuthority: 'Municipal Corporation of Delhi (MCD) Public Health Department',
+      municipalPortalUrl: 'https://mcdonline.nic.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari and English under MCD Bylaws)',
+      rtsAct: 'Delhi Right to Citizen Services Act, 1995 & e-SLA'
+    };
+  }
+  if (t.includes('tamil') || t.includes('chennai') || t.includes('coimbatore') || t.includes('madurai')) {
+    return {
+      state: 'Tamil Nadu',
+      city: t.includes('coimbatore') ? 'Coimbatore' : t.includes('madurai') ? 'Madurai' : 'Chennai',
+      shopsAct: 'Tamil Nadu Shops and Establishments Act, 1947',
+      shopsAuthority: 'Department of Labour, Government of Tamil Nadu',
+      shopsPortalUrl: 'https://labour.tn.gov.in',
+      municipalAct: 'Section 287 of the Chennai City Municipal Corporation Act, 1919',
+      municipalAuthority: 'Greater Chennai Corporation (GCC) Health Department',
+      municipalPortalUrl: 'https://chennaicorporation.gov.in',
+      signboardRule: 'Tamil Signboard Proof (Tamil script prominently on top under TN Shops Rules)',
+      rtsAct: 'Tamil Nadu Right to Services Citizen Charter'
+    };
+  }
+  if (t.includes('telan') || t.includes('hyde') || t.includes('secun')) {
+    return {
+      state: 'Telangana',
+      city: 'Hyderabad',
+      shopsAct: 'Telangana Shops and Establishments Act, 1988',
+      shopsAuthority: 'Department of Labour, Government of Telangana',
+      shopsPortalUrl: 'https://labour.telangana.gov.in',
+      municipalAct: 'Section 521 & 622 of the Greater Hyderabad Municipal Corporation Act, 1955',
+      municipalAuthority: 'Greater Hyderabad Municipal Corporation (GHMC) Health Section',
+      municipalPortalUrl: 'https://ghmc.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Telugu and English under GHMC Regulations)',
+      rtsAct: 'Telangana Citizen Service Guarantee Act'
+    };
+  }
+  if (t.includes('guj') || t.includes('ahmed') || t.includes('surat') || t.includes('vado')) {
+    return {
+      state: 'Gujarat',
+      city: t.includes('surat') ? 'Surat' : t.includes('vado') ? 'Vadodara' : 'Ahmedabad',
+      shopsAct: 'Gujarat Shops and Establishments Act, 2019',
+      shopsAuthority: 'Labour and Employment Department, Government of Gujarat',
+      shopsPortalUrl: 'https://enagar.gujarat.gov.in',
+      municipalAct: 'Section 376 of Gujarat Provincial Municipal Corporations (GPMC) Act, 1949',
+      municipalAuthority: 'Ahmedabad Municipal Corporation (AMC) Health Department',
+      municipalPortalUrl: 'https://ahmedabadcity.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Gujarati script and English under Gujarat Shops Rules)',
+      rtsAct: 'Gujarat Right to Public Services Act, 2013'
+    };
+  }
+  if (t.includes('bengal') || t.includes('kolk') || t.includes('calcutta')) {
+    return {
+      state: 'West Bengal',
+      city: 'Kolkata',
+      shopsAct: 'West Bengal Shops and Establishments Act, 1963',
+      shopsAuthority: 'Labour Department, Government of West Bengal',
+      shopsPortalUrl: 'https://silpasathi.wb.gov.in',
+      municipalAct: 'Section 199 (Certificate of Enlistment) of Kolkata Municipal Corporation Act, 1980',
+      municipalAuthority: 'Kolkata Municipal Corporation (KMC) License & Health Department',
+      municipalPortalUrl: 'https://www.kmcgov.in',
+      signboardRule: 'Bilingual Signboard Proof (Bengali script and English under KMC Bylaws)',
+      rtsAct: 'West Bengal Right to Public Services Act, 2013'
+    };
+  }
+  if (t.includes('uttar p') || t.includes('luck') || t.includes('noida') || t.includes('kanp') || t.includes('varan')) {
+    return {
+      state: 'Uttar Pradesh',
+      city: t.includes('noida') ? 'Noida' : t.includes('kanp') ? 'Kanpur' : t.includes('varan') ? 'Varanasi' : 'Lucknow',
+      shopsAct: 'Uttar Pradesh Dookan Aur Vanijya Adhishthan Adhiniyam, 1962',
+      shopsAuthority: 'Department of Labour, Government of Uttar Pradesh',
+      shopsPortalUrl: 'https://niveshmitra.up.nic.in',
+      municipalAct: 'Section 437 of the Uttar Pradesh Municipal Corporation Act, 1959',
+      municipalAuthority: 'Nagar Nigam Health & Sanitation Department',
+      municipalPortalUrl: 'https://enagarsewa.up.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Uttar Pradesh Janhit Guarantee Adhiniyam, 2011'
+    };
+  }
+  if (t.includes('rajas') || t.includes('jaip') || t.includes('jodh') || t.includes('udai')) {
+    return {
+      state: 'Rajasthan',
+      city: t.includes('jodh') ? 'Jodhpur' : t.includes('udai') ? 'Udaipur' : 'Jaipur',
+      shopsAct: 'Rajasthan Shops and Commercial Establishments Act, 1958',
+      shopsAuthority: 'Department of Labour, Government of Rajasthan',
+      shopsPortalUrl: 'https://sso.rajasthan.gov.in',
+      municipalAct: 'Section 256 of the Rajasthan Municipalities Act, 2009',
+      municipalAuthority: 'Jaipur Municipal Corporation (Nagar Nigam) Health Section',
+      municipalPortalUrl: 'https://urban.rajasthan.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari and English under Municipal Bylaws)',
+      rtsAct: 'Rajasthan Guaranteed Delivery of Public Services Act, 2011'
+    };
+  }
+  if (t.includes('kera') || t.includes('koch') || t.includes('coch') || t.includes('thiru')) {
+    return {
+      state: 'Kerala',
+      city: t.includes('thiru') ? 'Thiruvananthapuram' : 'Kochi',
+      shopsAct: 'Kerala Shops and Commercial Establishments Act, 1960',
+      shopsAuthority: 'Labour Commissionerate, Government of Kerala',
+      shopsPortalUrl: 'https://kswift.kerala.gov.in',
+      municipalAct: 'Section 447 of the Kerala Municipality Act, 1994 (D&O Trade Licence)',
+      municipalAuthority: 'Kochi Municipal Corporation Health & License Wing',
+      municipalPortalUrl: 'https://kswift.kerala.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Malayalam on top and English under Kerala Rules)',
+      rtsAct: 'Kerala State Right to Service Act, 2012'
+    };
+  }
+  if (t.includes('hary') || t.includes('guru') || t.includes('fari')) {
+    return {
+      state: 'Haryana',
+      city: t.includes('fari') ? 'Faridabad' : 'Gurugram',
+      shopsAct: 'Punjab Shops and Commercial Establishments Act, 1958 (Haryana Adaptation)',
+      shopsAuthority: 'Department of Labour, Government of Haryana',
+      shopsPortalUrl: 'https://hrylabour.gov.in',
+      municipalAct: 'Section 330 of the Haryana Municipal Corporation Act, 1994',
+      municipalAuthority: 'Municipal Corporation of Gurugram (MCG) Health Department',
+      municipalPortalUrl: 'https://ulbharyana.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari and English)',
+      rtsAct: 'Haryana Right to Service Act, 2014'
+    };
+  }
+  if (t.includes('punj') || t.includes('ludh') || t.includes('amri')) {
+    return {
+      state: 'Punjab',
+      city: t.includes('amri') ? 'Amritsar' : 'Ludhiana',
+      shopsAct: 'Punjab Shops and Commercial Establishments Act, 1958',
+      shopsAuthority: 'Department of Labour, Government of Punjab',
+      shopsPortalUrl: 'https://mseva.lgpunjab.gov.in',
+      municipalAct: 'Section 343 of the Punjab Municipal Corporation Act, 1976',
+      municipalAuthority: 'Municipal Corporation Ludhiana Health Wing',
+      municipalPortalUrl: 'https://mseva.lgpunjab.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Punjabi Gurmukhi on top and English)',
+      rtsAct: 'Punjab Right to Service Act, 2011'
+    };
+  }
+  if (t.includes('andhra') || t.includes('visa') || t.includes('vija') || t.includes('tiru')) {
+    return {
+      state: 'Andhra Pradesh',
+      city: t.includes('vija') ? 'Vijayawada' : t.includes('tiru') ? 'Tirupati' : 'Visakhapatnam',
+      shopsAct: 'Andhra Pradesh Shops and Establishments Act, 1988',
+      shopsAuthority: 'Department of Labour, Government of Andhra Pradesh',
+      shopsPortalUrl: 'https://labour.ap.gov.in',
+      municipalAct: 'Section 521 of the Andhra Pradesh Municipal Corporations Act, 1994',
+      municipalAuthority: 'Greater Visakhapatnam Municipal Corporation (GVMC) Health Section',
+      municipalPortalUrl: 'https://cdma.ap.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Telugu and English under AP Local Body Bylaws)',
+      rtsAct: 'Andhra Pradesh Right to Services Act'
+    };
+  }
+  if (t.includes('madhya') || t.includes('indo') || t.includes('bhop') || t.includes('gwal')) {
+    return {
+      state: 'Madhya Pradesh',
+      city: t.includes('bhop') ? 'Bhopal' : t.includes('gwal') ? 'Gwalior' : 'Indore',
+      shopsAct: 'Madhya Pradesh Shops and Commercial Establishments Act, 1958',
+      shopsAuthority: 'Labour Department, Government of Madhya Pradesh',
+      shopsPortalUrl: 'https://labour.mp.gov.in',
+      municipalAct: 'Section 366 of the Madhya Pradesh Municipal Corporation Act, 1956',
+      municipalAuthority: 'Indore Municipal Corporation (IMC) Health Section',
+      municipalPortalUrl: 'https://www.mpenagarpalika.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Madhya Pradesh Lok Sewa Guarantee Act, 2010'
+    };
+  }
+  if (t.includes('odis') || t.includes('oris') || t.includes('bhub') || t.includes('cutt')) {
+    return {
+      state: 'Odisha',
+      city: t.includes('cutt') ? 'Cuttack' : 'Bhubaneswar',
+      shopsAct: 'Odisha Shops and Commercial Establishments Act, 1956',
+      shopsAuthority: 'Labour and ESI Department, Government of Odisha',
+      shopsPortalUrl: 'https://labdirodisha.gov.in',
+      municipalAct: 'Section 550 of the Odisha Municipal Corporation Act, 2003',
+      municipalAuthority: 'Bhubaneswar Municipal Corporation (BMC) Health Wing',
+      municipalPortalUrl: 'https://bmc.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Odia script and English under Odisha Official Language Rules)',
+      rtsAct: 'Odisha Right to Public Services Act, 2012'
+    };
+  }
+  if (t.includes('biha') || t.includes('patn') || t.includes('gaya')) {
+    return {
+      state: 'Bihar',
+      city: t.includes('gaya') ? 'Gaya' : 'Patna',
+      shopsAct: 'Bihar Shops and Establishments Act, 1953',
+      shopsAuthority: 'Labour Resources Department, Government of Bihar',
+      shopsPortalUrl: 'https://labour.bihar.gov.in',
+      municipalAct: 'Section 342 of the Bihar Municipal Act, 2007',
+      municipalAuthority: 'Patna Municipal Corporation (PMC) Health Department',
+      municipalPortalUrl: 'https://pmc.bihar.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Bihar Right to Public Services (RTPS) Act, 2011'
+    };
+  }
+  if (t.includes('assa') || t.includes('guwa')) {
+    return {
+      state: 'Assam',
+      city: 'Guwahati',
+      shopsAct: 'Assam Shops and Establishments Act, 1971',
+      shopsAuthority: 'Labour Welfare Department, Government of Assam',
+      shopsPortalUrl: 'https://eodb.assam.gov.in',
+      municipalAct: 'Section 380 of the Guwahati Municipal Corporation Act, 1971',
+      municipalAuthority: 'Guwahati Municipal Corporation (GMC) Health Wing',
+      municipalPortalUrl: 'https://gmc.assam.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Assamese script and English under Assam State Guidelines)',
+      rtsAct: 'Assam Right to Public Services Act, 2012'
+    };
+  }
+  if (t.includes('goa') || t.includes('pana') || t.includes('marg')) {
+    return {
+      state: 'Goa',
+      city: t.includes('marg') ? 'Margao' : 'Panaji',
+      shopsAct: 'Goa, Daman and Diu Shops and Establishments Act, 1973',
+      shopsAuthority: 'Department of Labour, Government of Goa',
+      shopsPortalUrl: 'https://goaonline.gov.in',
+      municipalAct: 'Section 245 of the City of Panaji Corporation Act, 2002',
+      municipalAuthority: 'Corporation of the City of Panaji (CCP) Health Section',
+      municipalPortalUrl: 'https://ccpgoa.com',
+      signboardRule: 'Bilingual Signboard Proof (Konkani / Marathi and English)',
+      rtsAct: 'Goa (Right of Citizens to Time-Bound Delivery of Public Services) Act, 2013'
+    };
+  }
+  if (t.includes('uttarak') || t.includes('dehr') || t.includes('hari')) {
+    return {
+      state: 'Uttarakhand',
+      city: t.includes('hari') ? 'Haridwar' : 'Dehradun',
+      shopsAct: 'Uttar Pradesh Dookan Aur Vanijya Adhishthan Adhiniyam, 1962 (as applicable in Uttarakhand)',
+      shopsAuthority: 'Labour Department, Government of Uttarakhand',
+      shopsPortalUrl: 'https://labour.uk.gov.in',
+      municipalAct: 'Section 437 of the Municipal Corporation Act (Uttarakhand)',
+      municipalAuthority: 'Nagar Nigam Dehradun Health Section',
+      municipalPortalUrl: 'https://nagarnigamdehradun.com',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Uttarakhand Right to Service Act, 2011'
+    };
+  }
+  if (t.includes('himach') || t.includes('shim') || t.includes('dhar')) {
+    return {
+      state: 'Himachal Pradesh',
+      city: t.includes('dhar') ? 'Dharamshala' : 'Shimla',
+      shopsAct: 'Himachal Pradesh Shops and Commercial Establishments Act, 1969',
+      shopsAuthority: 'Department of Labour and Employment, Government of Himachal Pradesh',
+      shopsPortalUrl: 'https://emerginghimachal.hp.gov.in',
+      municipalAct: 'Section 302 of the Himachal Pradesh Municipal Corporation Act, 1994',
+      municipalAuthority: 'Municipal Corporation Shimla Health Section',
+      municipalPortalUrl: 'https://shimlamc.hp.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Himachal Pradesh Public Services Guarantee Act, 2011'
+    };
+  }
+  if (t.includes('jhar') || t.includes('ranc') || t.includes('jams')) {
+    return {
+      state: 'Jharkhand',
+      city: t.includes('jams') ? 'Jamshedpur' : 'Ranchi',
+      shopsAct: 'Jharkhand Shops and Establishments Act, 2000',
+      shopsAuthority: 'Department of Labour, Employment, Training and Skill Development, Government of Jharkhand',
+      shopsPortalUrl: 'https://shramadhan.jharkhand.gov.in',
+      municipalAct: 'Section 455 of the Jharkhand Municipal Act, 2011',
+      municipalAuthority: 'Ranchi Municipal Corporation (RMC) Health Wing',
+      municipalPortalUrl: 'https://udhd.jharkhand.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Jharkhand Right to Service Act, 2011'
+    };
+  }
+  if (t.includes('chhatt') || t.includes('raip') || t.includes('bila')) {
+    return {
+      state: 'Chhattisgarh',
+      city: t.includes('bila') ? 'Bilaspur' : 'Raipur',
+      shopsAct: 'Chhattisgarh Dookan Aur Vanijya Adhishthan Adhiniyam, 1958',
+      shopsAuthority: 'Labour Department, Government of Chhattisgarh',
+      shopsPortalUrl: 'https://cglabour.nic.in',
+      municipalAct: 'Section 366 of the Chhattisgarh Municipal Corporation Act, 1956',
+      municipalAuthority: 'Raipur Municipal Corporation (RMC) Health Department',
+      municipalPortalUrl: 'https://nagarnigamraipur.nic.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari script and English)',
+      rtsAct: 'Chhattisgarh Lok Seva Guarantee Act, 2011'
+    };
+  }
+  if (t.includes('chand')) {
+    return {
+      state: 'Chandigarh',
+      city: 'Chandigarh',
+      shopsAct: 'Punjab Shops and Commercial Establishments Act, 1958 (as extended to Chandigarh)',
+      shopsAuthority: 'Labour Department, Chandigarh Administration',
+      shopsPortalUrl: 'https://chandigarh.gov.in',
+      municipalAct: 'Section 343 of the Punjab Municipal Corporation Act, 1976 (as extended to Chandigarh)',
+      municipalAuthority: 'Municipal Corporation Chandigarh (MCC) Medical Officer of Health',
+      municipalPortalUrl: 'https://mcchandigarh.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (English and Hindi / Punjabi)',
+      rtsAct: 'Chandigarh Right to Services Act'
+    };
+  }
+  if (t.includes('kash') || t.includes('srin') || t.includes('jammu')) {
+    return {
+      state: 'Jammu and Kashmir',
+      city: t.includes('jammu') ? 'Jammu' : 'Srinagar',
+      shopsAct: 'Jammu and Kashmir Shops and Establishments Act, 1966',
+      shopsAuthority: 'Department of Labour & Employment, UT of Jammu and Kashmir',
+      shopsPortalUrl: 'https://singlewindow.jk.gov.in',
+      municipalAct: 'Section 320 of the Jammu and Kashmir Municipal Corporation Act, 2000',
+      municipalAuthority: t.includes('jammu') ? 'Jammu Municipal Corporation (JMC) Health Department' : 'Srinagar Municipal Corporation (SMC) Health Department',
+      municipalPortalUrl: t.includes('jammu') ? 'https://jmc.nic.in' : 'https://smcsrinagar.in',
+      signboardRule: 'Bilingual Signboard Proof (Urdu / Hindi and English)',
+      rtsAct: 'Jammu & Kashmir Public Services Guarantee Act, 2011'
+    };
+  }
+  if (t.includes('karn') || t.includes('bang') || t.includes('beng') || t.includes('navg') || t.includes('mang')) {
+    return {
+      state: 'Karnataka',
+      city: t.includes('navg') ? 'Navglore / Bengaluru' : t.includes('mang') ? 'Mangaluru' : 'Bengaluru',
+      shopsAct: 'Karnataka Shops and Commercial Establishments Act, 1961',
+      shopsAuthority: 'Department of Labour, Government of Karnataka',
+      shopsPortalUrl: 'https://ekarmika.karnataka.gov.in',
+      municipalAct: 'Section 353 of the Karnataka Municipal Corporations Act, 1976',
+      municipalAuthority: 'Bruhat Bengaluru Mahanagara Palike (BBMP) Health Department',
+      municipalPortalUrl: 'https://bbmp.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (min 60% Kannada on top under Karnataka Language Comprehensive Development Act, 2022)',
+      rtsAct: 'Karnataka Sakala Services Act, 2011'
+    };
+  }
+  return {
+    state: 'State Jurisdiction',
+    city: 'Municipal Jurisdiction',
+    shopsAct: 'State Shops and Commercial Establishments Act',
+    shopsAuthority: 'State Labour Department',
+    shopsPortalUrl: 'https://serviceonline.gov.in',
+    municipalAct: 'Municipal Corporations Act',
+    municipalAuthority: 'City Municipal Corporation Health Department',
+    municipalPortalUrl: 'https://serviceonline.gov.in',
+    signboardRule: 'Bilingual Signboard Proof (Official State Language and English)',
+    rtsAct: 'State Right to Public Services Act'
+  };
+}
+
 function getJourneyContextComparisons(journey?: CivicJourney | null): ComparisonPreset[] {
   const title = (journey?.title || '').toLowerCase();
   const query = (journey?.query || '').toLowerCase();
   const location = journey?.location || 'Mumbai, Maharashtra';
   const combinedText = `${title} ${query} ${location}`.toLowerCase();
 
-  const isKarnataka =
-    combinedText.includes('navglore') ||
-    combinedText.includes('bangalore') ||
-    combinedText.includes('bengaluru') ||
-    combinedText.includes('karnataka') ||
-    combinedText.includes('mangalore') ||
-    combinedText.includes('mysore');
-
-  const isMumbai =
-    combinedText.includes('mumbai') ||
+  const isMaharashtra =
+    (combinedText.includes('mumbai') ||
     combinedText.includes('bombay') ||
     combinedText.includes('bmc') ||
     combinedText.includes('mcgm') ||
-    (combinedText.includes('maharashtra') && !isKarnataka);
+    combinedText.includes('pune') ||
+    combinedText.includes('nagpur') ||
+    combinedText.includes('thane') ||
+    combinedText.includes('nashik') ||
+    combinedText.includes('maharashtra')) &&
+    !combinedText.includes('karnataka') &&
+    !combinedText.includes('bengaluru') &&
+    !combinedText.includes('navg');
 
-  const cityLabel = isKarnataka
-    ? (combinedText.includes('navglore') ? 'Navglore / Bengaluru' : 'Bengaluru')
-    : isMumbai
-    ? 'Mumbai'
-    : location.split(',')[0]?.trim() || 'Municipal Jurisdiction';
-
-  const stateLabel = isKarnataka ? 'Karnataka' : isMumbai ? 'Maharashtra' : 'State';
+  const stateConfig = resolveStateComparisonConfig(combinedText);
+  const cityLabel = isMaharashtra ? 'Mumbai' : stateConfig.city;
+  const stateLabel = isMaharashtra ? 'Maharashtra' : stateConfig.state;
+  const isMumbai = isMaharashtra && (cityLabel.toLowerCase().includes('mumbai') || combinedText.includes('mumbai') || combinedText.includes('bombay') || combinedText.includes('bmc') || combinedText.includes('mcgm'));
 
   // ══════════════════════════════════════════════════════════════════
-  // 1. SALON & BEAUTY PARLOUR (MUMBAI VS KARNATAKA / BENGALURU)
+  // 1. SALON & BEAUTY PARLOUR (ALL STATES)
   // ══════════════════════════════════════════════════════════════════
   if (
     combinedText.includes('salon') ||
@@ -164,43 +511,43 @@ function getJourneyContextComparisons(journey?: CivicJourney | null): Comparison
     combinedText.includes('grooming') ||
     combinedText.includes('spa')
   ) {
-    // ── CASE A: KARNATAKA (BENGALURU / NAVGLORE) SALON ──
-    // Law: Karnataka Municipal Corporations Act 1976 + Karnataka Shops Act 1961 + Sakala Act 2011.
+    // ── CASE A: NON-MAHARASHTRA STATES (SINGLE STATUTORY ROUTE) ──
+    // Law: State Municipal Act + State Shops Act + State Right to Services Act.
     // There is ONLY ONE legitimate statutory procedure. No parallel fast-track or private expedited channel exists.
-    if (isKarnataka) {
+    if (!isMaharashtra) {
       return [
         {
-          id: 'salon_karnataka_single_route',
+          id: `salon_${stateConfig.state.toLowerCase().replace(/\s+/g, '_')}_single_route`,
           name: `Statutory Municipal & Labour Route (${cityLabel})`,
-          description: `Verified government procedure for setting up a hair dressing saloon or beauty parlour under Karnataka law.`,
+          description: `Verified government procedure for setting up a hair dressing saloon or beauty parlour under ${stateConfig.state} law.`,
           domain: 'salon',
           isSingleRouteOnly: true,
-          singleRouteReason: `Under the Karnataka Municipal Corporations Act, 1976 (Section 353) and Karnataka Sakala Services Act, 2011, hair dressing salons follow a single unified statutory licensing procedure. The Government of Karnataka does not operate a parallel, private, or expedited "fast-track" fee route for municipal salon licensing. All applications must be submitted through the notified e-Karmika and City Corporation portals.`,
+          singleRouteReason: `Under the ${stateConfig.municipalAct} and ${stateConfig.rtsAct}, hair dressing salons follow a single unified statutory licensing procedure. The Government of ${stateConfig.state} does not operate a parallel, private, or expedited "fast-track" fee route for municipal salon licensing. All applications must be submitted through the notified statutory portals.`,
           optionA: {
-            id: 'karnataka_salon_statutory',
-            title: `Unified Karnataka Statutory Route (e-Karmika & City Corporation)`,
+            id: `${stateConfig.state.toLowerCase().replace(/\s+/g, '_')}_salon_statutory`,
+            title: `Unified ${stateConfig.state} Statutory Route (${stateConfig.shopsAuthority.split(',')[0]} & Municipal Health Dept)`,
             routeType: `Direct Online Statutory Submission`,
-            authority: `Bruhat Bengaluru Mahanagara Palike (BBMP) / Local Health Dept & Karnataka Labour Department`,
-            applicationMethod: `Online submission via e-Karmika Portal & Municipal Health Trade Portal`,
+            authority: `${stateConfig.municipalAuthority} & ${stateConfig.shopsAuthority}`,
+            applicationMethod: `Online submission via ${stateConfig.shopsPortalUrl} & Municipal Health Trade Portal`,
             applicableApprovals: [
               'MSME Udyam Enterprise Registration (Ministry of MSME)',
-              'Karnataka Shop & Commercial Establishment Registration (e-Karmika, Karnataka Shops Act 1961)',
-              'Municipal Health & Trade Licence for Hair Saloon (Section 353, Karnataka Municipal Corporations Act 1976)',
-              'Kannada Bilingual Signboard Compliance (Karnataka Language Act 2022)'
+              `${stateConfig.shopsAct} Registration`,
+              `Municipal Health & Trade Licence for Hair Saloon (${stateConfig.municipalAct})`,
+              stateConfig.signboardRule
             ],
-            statutoryTimeline: `Statutory service timeline: 30 days under Karnataka Sakala Services Act, 2011`,
+            statutoryTimeline: `Statutory service timeline: 30 days under ${stateConfig.rtsAct}`,
             timelineVerification: 'Officially verified',
-            officialFees: `₹0 (Udyam) + Scheduled State Fee under Karnataka Shops Act + Municipal Health Trade Fee (Varies by floor area & power load; verify with Ward Health Officer)`,
+            officialFees: `₹0 (Udyam) + Scheduled State Fee under ${stateConfig.shopsAct} + Municipal Health Trade Fee (Varies by floor area & power load; verify with Ward Health Officer)`,
             feeVerification: 'Depends on the applicable licence/activity',
             requiredDocsCount: 4,
-            physicalVisits: `1 Field Visit (Premises hygiene & sterilizer inspection by Municipal Senior Health Inspector)`,
-            onlineTracking: `Available via Sakala 15-digit GSC (Guarantee of Services to Citizens) Number`,
-            sourceUrl: `https://ekarmika.karnataka.gov.in`,
-            sourceName: `Karnataka Labour Dept (e-Karmika) & BBMP Health Directorate`,
+            physicalVisits: `1 Field Visit (Premises hygiene & sterilizer inspection by Municipal Health Inspector)`,
+            onlineTracking: `Available via Official Department Application Acknowledgment Number`,
+            sourceUrl: stateConfig.shopsPortalUrl,
+            sourceName: `${stateConfig.shopsAuthority} & Municipal Health Directorate`,
             lastVerifiedDate: `28 Sep 2026`,
             verificationStatus: 'Officially verified',
             suitableFor: `Entrepreneurs opening a hair dressing saloon, beauty parlour, or grooming studio in ${cityLabel}.`,
-            notice: `Under the Karnataka Sakala Services Act 2011, municipal officers are legally bound to decide trade licence applications within 30 days. No expedited fees or fast-track options are legally recognized.`,
+            notice: `Under ${stateConfig.rtsAct}, municipal officers are legally bound to decide trade licence applications within 30 days. No expedited fees or fast-track options are legally recognized.`,
             documents: [
               {
                 name: 'Applicant Aadhaar Card & PAN Card',
@@ -210,7 +557,7 @@ function getJourneyContextComparisons(journey?: CivicJourney | null): Comparison
               {
                 name: 'Premises Commercial Lease Agreement / Sale Deed with latest Electricity Bill',
                 type: 'Required',
-                authorityRequiredBy: 'e-Karmika & Municipal Health Dept'
+                authorityRequiredBy: 'State Labour & Municipal Health Dept'
               },
               {
                 name: 'Salon Floor Plan & Layout Drawing (showing styling chairs, basins & water drainage points)',
@@ -218,9 +565,9 @@ function getJourneyContextComparisons(journey?: CivicJourney | null): Comparison
                 authorityRequiredBy: 'Municipal Health Directorate'
               },
               {
-                name: 'Bilingual Signboard Proof (min 60% Kannada text under Karnataka Language Comprehensive Development Act, 2022)',
+                name: stateConfig.signboardRule,
                 type: 'Required',
-                authorityRequiredBy: 'BBMP / City Municipal Health Office'
+                authorityRequiredBy: `${cityLabel} Municipal Authority`
               },
               {
                 name: 'Property Owner / Cooperative Building NOC',
@@ -240,7 +587,7 @@ function getJourneyContextComparisons(journey?: CivicJourney | null): Comparison
               {
                 name: 'Water Testing / Sanitary Drainage Clearance',
                 type: 'Supporting',
-                condition: 'If requested by Senior Health Inspector during physical site inspection'
+                condition: 'If requested by Health Inspector during physical site inspection'
               }
             ],
             steps: [
@@ -254,29 +601,29 @@ function getJourneyContextComparisons(journey?: CivicJourney | null): Comparison
                 officialUrl: `https://udyamregistration.gov.in`
               },
               {
-                title: `Karnataka Shop & Commercial Establishment Registration`,
-                authority: `Karnataka Labour Department (e-Karmika Portal)`,
+                title: `${stateConfig.shopsAct} Registration`,
+                authority: stateConfig.shopsAuthority,
                 status: 'mandatory',
-                statutoryAct: `Karnataka Shops and Commercial Establishments Act, 1961`,
+                statutoryAct: stateConfig.shopsAct,
                 note: `Mandatory within 30 days of commencing commercial salon operations`,
                 fee: `Scheduled fee based on number of salon staff`,
-                officialUrl: `https://ekarmika.karnataka.gov.in`
+                officialUrl: stateConfig.shopsPortalUrl
               },
               {
                 title: `Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)`,
-                authority: `Bruhat Bengaluru Mahanagara Palike (BBMP) / City Health Department`,
+                authority: stateConfig.municipalAuthority,
                 status: 'mandatory',
-                statutoryAct: `Section 353, Karnataka Municipal Corporations Act, 1976`,
+                statutoryAct: stateConfig.municipalAct,
                 note: `Regulates hygiene, waste water disposal, sterilizer equipment, and sanitary norms`,
                 fee: `Varies by premises area and electrical connected load; verify with Ward Health Officer`,
-                officialUrl: `https://bbmp.gov.in`
+                officialUrl: stateConfig.municipalPortalUrl
               },
               {
-                title: `Premises Inspection & Kannada Signboard Verification`,
-                authority: `Ward Senior Health Inspector (BBMP / City Corporation)`,
+                title: `Premises Inspection & Signboard Verification`,
+                authority: `Ward Senior Health Inspector (${cityLabel})`,
                 status: 'mandatory',
-                statutoryAct: `Karnataka Language Comprehensive Development Act, 2022`,
-                note: `Physical verification of barber sterilizers, towel cleanliness, and 60% Kannada nameplate`,
+                statutoryAct: stateConfig.rtsAct,
+                note: `Physical verification of barber sterilizers, towel cleanliness, and official language nameplate`,
                 fee: `No additional fee for statutory inspection`
               }
             ]

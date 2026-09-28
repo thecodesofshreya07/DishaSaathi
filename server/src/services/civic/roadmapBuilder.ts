@@ -14,6 +14,7 @@ import {
   validateRoadmapIntegrity, 
   sanitizeRoadmap 
 } from './roadmapValidator.js';
+import { getJurisdictionProfile } from './jurisdictionRegistry.js';
 
 /**
  * Infers document category from document title and description
@@ -168,15 +169,8 @@ export function buildRoadmap(
   let mandatoryDocCount = 0;
   let totalDocCount = 0;
 
-  const isKarnataka = (goal.location.state || '').toLowerCase().includes('karnataka') ||
-    (goal.location.city || '').toLowerCase().includes('bengaluru') ||
-    (goal.location.city || '').toLowerCase().includes('bangalore') ||
-    (goal.location.city || '').toLowerCase().includes('navg') ||
-    (goal.location.city || '').toLowerCase().includes('mangalore');
-
-  const isMaharashtra = (goal.location.state || '').toLowerCase().includes('maharashtra') ||
-    (goal.location.city || '').toLowerCase().includes('mumbai') ||
-    (goal.location.city || '').toLowerCase().includes('pune');
+  // Dynamically resolve comprehensive state jurisdiction profile across all Indian States & UTs
+  const jurisdictionProfile = getJurisdictionProfile(goal.location.state, goal.location.city);
 
   const steps: ProcedureStep[] = sortedProcs.map((proc, index) => {
     let stepTitle = proc.title;
@@ -186,54 +180,39 @@ export function buildRoadmap(
     let stepApplicationUrl = proc.applicationUrl;
     let stepSource = proc.source;
 
-    // Dynamically localize procedures based on citizen's specific jurisdiction
+    // Dynamically localize procedures based on citizen's specific jurisdiction across all states
     if (proc.id === 'proc-gumasta-shop') {
-      if (isKarnataka) {
-        stepTitle = 'Shop & Commercial Establishment Registration (e-Karmika)';
-        stepAuthority = 'Department of Labour, Government of Karnataka';
-        stepDescription = 'Register your physical commercial premises under the Karnataka Shops and Commercial Establishments Act, 1961 via the official e-Karmika portal.';
-        stepWhyRequired = 'Mandatory statutory requirement under the Karnataka Shops and Commercial Establishments Act, 1961 to lawfully operate a commercial business and employ staff in Karnataka.';
-        stepApplicationUrl = 'https://ekarmika.karnataka.gov.in';
-        stepSource = {
-          id: 'src-karnataka-shops',
-          title: 'e-Karmika Karnataka Citizen Services Portal',
-          url: 'https://ekarmika.karnataka.gov.in',
-          department: 'Department of Labour, Government of Karnataka',
-          domain: 'karnataka.gov.in',
-          lastChecked: '2026-09-28',
-          verificationStatus: 'Verified'
-        };
-      } else if (!isMaharashtra) {
-        stepTitle = `Shop & Commercial Establishment Registration (${goal.location.state || 'State'})`;
-        stepAuthority = `${goal.location.state || 'State'} Labour Department`;
-        stepDescription = `Register your commercial premises under the ${goal.location.state || 'State'} Shops and Commercial Establishments Act.`;
-        stepWhyRequired = `Statutory registration required to operate commercial premises and hire personnel under the ${goal.location.state || 'State'} Shops Act.`;
-      }
+      stepTitle = jurisdictionProfile.shopsAct.title;
+      stepAuthority = jurisdictionProfile.shopsAct.authority;
+      stepDescription = `Register your physical commercial premises under the ${jurisdictionProfile.shopsAct.actName} via the official ${jurisdictionProfile.shopsAct.portalName}.`;
+      stepWhyRequired = jurisdictionProfile.shopsAct.statutoryWhy;
+      stepApplicationUrl = jurisdictionProfile.shopsAct.portalUrl;
+      stepSource = {
+        id: `src-${jurisdictionProfile.state.toLowerCase().replace(/\s+/g, '-')}-shops`,
+        title: `${jurisdictionProfile.shopsAct.actName} — ${jurisdictionProfile.shopsAct.portalName}`,
+        url: jurisdictionProfile.shopsAct.portalUrl,
+        department: jurisdictionProfile.shopsAct.authority,
+        domain: jurisdictionProfile.shopsAct.domain,
+        lastChecked: '2026-09-28',
+        verificationStatus: 'Verified'
+      };
     } else if (proc.id === 'proc-salon-health-license') {
-      if (isKarnataka) {
-        const isBlr = (goal.location.city || '').toLowerCase().includes('bengaluru') || (goal.location.city || '').toLowerCase().includes('bangalore') || (goal.location.city || '').toLowerCase().includes('navg');
-        stepTitle = 'Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)';
-        stepAuthority = isBlr ? 'Bruhat Bengaluru Mahanagara Palike (BBMP) Health Department' : `${goal.location.city} City Corporation Health Department`;
-        stepDescription = 'Obtain statutory municipal health and trade clearance under the Karnataka Municipal Corporations Act.';
-        stepWhyRequired = 'Mandatory under Section 353 of the Karnataka Municipal Corporations Act for personal grooming and hairdressing establishments to ensure sanitary sterilization and waste management.';
-        stepApplicationUrl = 'https://bbmp.gov.in';
-        stepSource = {
-          id: 'src-bbmp-health',
-          title: 'BBMP Health & Trade Licensing Regulations',
-          url: 'https://bbmp.gov.in',
-          department: isBlr ? 'Bruhat Bengaluru Mahanagara Palike (BBMP)' : `${goal.location.city} City Corporation`,
-          domain: 'bbmp.gov.in',
-          lastChecked: '2026-09-28',
-          verificationStatus: 'Verified'
-        };
-      } else if (isMaharashtra) {
-        const isMum = (goal.location.city || '').toLowerCase().includes('mumbai');
-        stepTitle = 'Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)';
-        stepAuthority = isMum ? 'Brihanmumbai Municipal Corporation (BMC) Public Health Department' : `${goal.location.city} Municipal Corporation Health Department`;
-        stepDescription = 'Obtain statutory municipal health trade license under Section 394 of the Mumbai Municipal Corporation Act (MMC Act).';
-        stepWhyRequired = 'Section 394 of the MMC Act mandates that all hair dressing saloons and beauty parlours maintain sterilized instruments, clean drainage, and adequate ventilation.';
-        stepApplicationUrl = 'https://portal.mcgm.gov.in';
-      }
+      const municipalAuth = jurisdictionProfile.municipalTradeLicence.authority(goal.location.city || jurisdictionProfile.defaultCity);
+      const municipalUrl = jurisdictionProfile.municipalTradeLicence.portalUrl(goal.location.city || jurisdictionProfile.defaultCity);
+      stepTitle = 'Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)';
+      stepAuthority = municipalAuth;
+      stepDescription = `Obtain statutory municipal health and trade clearance under ${jurisdictionProfile.municipalTradeLicence.actName}.`;
+      stepWhyRequired = jurisdictionProfile.municipalTradeLicence.statutoryWhy;
+      stepApplicationUrl = municipalUrl;
+      stepSource = {
+        id: `src-${jurisdictionProfile.state.toLowerCase().replace(/\s+/g, '-')}-municipal-health`,
+        title: `${jurisdictionProfile.municipalTradeLicence.actName} — Municipal Public Health Directorate`,
+        url: municipalUrl,
+        department: municipalAuth,
+        domain: jurisdictionProfile.municipalTradeLicence.domain,
+        lastChecked: '2026-09-28',
+        verificationStatus: 'Verified'
+      };
     }
 
     // Enrich each document with structured categories, readiness status, and verification
@@ -241,16 +220,16 @@ export function buildRoadmap(
       totalDocCount++;
       if (doc.isMandatory) mandatoryDocCount++;
 
+      let docName = doc.name;
       let docDesc = doc.description;
       if (proc.id === 'proc-gumasta-shop' && doc.id === 'doc-gumasta-4') {
-        docDesc = isKarnataka
-          ? 'Must display commercial establishment trade name in Kannada and English under Karnataka State Rules'
-          : 'Must display name in Marathi Devanagari script and English under Maharashtra State Rules';
+        docName = `Photo of Commercial Entrance with Bilingual Signboard (${jurisdictionProfile.signboardRequirement.language})`;
+        docDesc = jurisdictionProfile.signboardRequirement.ruleDescription;
       }
 
       return {
         id: doc.id,
-        name: doc.name,
+        name: docName,
         description: docDesc,
         requiredFor: stepTitle,
         category: doc.category || inferDocumentCategory(doc.name, doc.description),
