@@ -96,18 +96,21 @@
 .text-gradient-gold {
   background: linear-gradient(135deg, #FFE5A3 0%, #FF9933 50%, #FFCC66 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-emerald {
   background: linear-gradient(135deg, #A7F3D0 0%, #34D399 50%, #10B981 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-silver {
   background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
