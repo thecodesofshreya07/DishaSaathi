@@ -210,15 +210,6 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
               <Plus className="w-4 h-4" />
               <span>Create Your First Roadmap</span>
             </button>
-            {onLoadDemo && (
-              <button
-                onClick={onLoadDemo}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#142A22] border border-[#D5E3DB] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold hover:bg-[#F2F7F4] dark:hover:bg-[#1A382D] transition-all cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Load Sample Roadmap (Bakery / MSME)</span>
-              </button>
-            )}
           </div>
         </div>
       )}
