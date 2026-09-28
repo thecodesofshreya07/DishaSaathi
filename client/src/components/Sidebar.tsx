@@ -162,7 +162,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex-1 min-h-0 py-3 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
+            <div className="flex-1 min-h-0 py-3 overflow-y-auto overflow-x-hidden overscroll-contain pr-1 scrollbar-thin">
               {renderNavList()}
             </div>
           </aside>
@@ -172,7 +172,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Desktop Slidable & Isolated Sidebar */}
       <aside
         className={`relative bg-white dark:bg-[#0D1A16] border-r border-[#E8ECE9] dark:border-[#1E3B32] h-[calc(100vh-65px)] sticky top-[65px] flex flex-col p-3 hidden md:flex shrink-0 select-none transition-all duration-300 ease-in-out ${
-          isCollapsed ? 'w-[68px] min-w-[68px] max-w-[68px]' : 'w-56 min-w-[215px] max-w-[220px]'
+          isCollapsed ? 'w-[68px] min-w-[68px] max-w-[68px]' : 'w-64 min-w-[250px] max-w-[260px]'
         }`}
       >
         {/* Floating Slide Toggle Pill on Outer Border */}
@@ -189,8 +189,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </button>
 
-        {/* Isolated Scrollable Container - scrolls all the way to the very end */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 scrollbar-thin flex flex-col justify-between pb-1">
+        {/* Isolated Scrollable Container - strictly vertical scrolling only, never horizontal */}
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain pr-1 scrollbar-thin flex flex-col justify-between pb-1">
           <div>
             {renderNavList()}
           </div>
