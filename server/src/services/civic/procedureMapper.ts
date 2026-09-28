@@ -59,7 +59,30 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
         return proc.domain === 'PROPERTY_RENTAL';
 
       case 'REGISTER_VEHICLE':
-        return proc.domain === 'TRANSPORT';
+      case 'APPLY_FOR_LICENSE': {
+        if (isFoodBusiness) {
+          return proc.domain === 'FOOD_BUSINESS';
+        }
+        const rawQ = (goal.rawGoal || '').toLowerCase();
+        const isDL =
+          activity === 'DRIVING_LICENSE' ||
+          rawQ.includes('license') ||
+          rawQ.includes('licence') ||
+          rawQ.includes('liscence') ||
+          rawQ.includes('lisence') ||
+          rawQ.includes('dl') ||
+          rawQ.includes('learner') ||
+          rawQ.includes('parwana') ||
+          rawQ.includes('perwana') ||
+          rawQ.includes('लायसन्स') ||
+          rawQ.includes('परवाना') ||
+          rawQ.includes('चालक');
+
+        if (isDL) {
+          return proc.id.startsWith('proc-dl-');
+        }
+        return proc.id.startsWith('proc-rto-');
+      }
 
       case 'BUILD_PROPERTY':
         if (
@@ -85,9 +108,6 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
 
       case 'GET_CERTIFICATE':
         return proc.domain === 'VITAL_RECORDS';
-
-      case 'APPLY_FOR_LICENSE':
-        return isFoodBusiness ? proc.domain === 'FOOD_BUSINESS' : proc.domain === 'TRANSPORT';
 
       default:
         return false;

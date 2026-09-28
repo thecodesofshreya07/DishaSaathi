@@ -34,6 +34,7 @@ export interface StructuredGoal {
   entities: {
     businessType?: string;
     vehicleType?: string;
+    licenseType?: string;
     propertyType?: string;
     certificateType?: string;
     scale?: string;

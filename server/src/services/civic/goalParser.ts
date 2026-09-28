@@ -22,18 +22,49 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
   } else {
     if (q.includes('delhi')) { city = 'Delhi'; state = 'Delhi'; }
     else if (q.includes('bangalore') || q.includes('bengaluru')) { city = 'Bengaluru'; state = 'Karnataka'; }
-    else if (q.includes('pune')) { city = 'Pune'; state = 'Maharashtra'; }
-    else if (q.includes('mumbai')) { city = 'Mumbai'; state = 'Maharashtra'; }
+    else if (q.includes('pune') || q.includes('पुणे')) { city = 'Pune'; state = 'Maharashtra'; }
+    else if (q.includes('mumbai') || q.includes('मुंबई') || q.includes('bombay')) { city = 'Mumbai'; state = 'Maharashtra'; }
+    else if (q.includes('delhi') || q.includes('दिल्ली')) { city = 'Delhi'; state = 'Delhi'; }
+    else if (q.includes('bangalore') || q.includes('bengaluru') || q.includes('बंगळुरू')) { city = 'Bengaluru'; state = 'Karnataka'; }
   }
 
-  // 1. Vehicle & Transport
+  // 1. Driving Licence (RTO / Sarathi Parivahan) - English, Marathi, Hindi & Phonetic
+  const isDrivingLicence =
+    q.includes('driving') ||
+    q.includes('license') ||
+    q.includes('licence') ||
+    q.includes('liscence') ||
+    q.includes('lisence') ||
+    q.includes('dl') ||
+    q.includes('learner') ||
+    q.includes('parwana') ||
+    q.includes('perwana') ||
+    q.includes('लायसन्स') ||
+    q.includes('ड्रायव्हिंग') ||
+    q.includes('परवाना') ||
+    q.includes('चालक') ||
+    (q.includes('sarathi') && !q.includes('disha'));
+
   let result: StructuredGoal;
 
-  // 1. Vehicle & Transport
-  if (
+  if (isDrivingLicence) {
+    result = {
+      rawGoal: query,
+      intent: 'APPLY_FOR_LICENSE',
+      domain: 'TRANSPORT',
+      activity: 'DRIVING_LICENSE',
+      location: { city, state, country: 'India' },
+      context: { scale: 'personal', type: 'personal', additionalNotes: options?.context || '' },
+      entities: { licenseType: 'Driving Licence (Learner / Permanent DL)' },
+      confidence: 0.98,
+      clarificationNeeded: false
+    };
+  } else if (
     q.includes('vehicle') || q.includes('car') || q.includes('bike') ||
-    q.includes('scooter') || q.includes('rto') || q.includes('driving license') ||
-    q.includes('dl') || q.includes('hsrp') || q.includes('registration') && q.includes('number plate')
+    q.includes('scooter') || q.includes('rto') || q.includes('hsrp') ||
+    q.includes('vahan') || q.includes('gadi') || q.includes('gaadi') ||
+    q.includes('वाहन') || q.includes('गाडी') ||
+    (q.includes('registration') && (q.includes('number plate') || q.includes('rc')))
   ) {
     const isBike = q.includes('bike') || q.includes('two wheeler') || q.includes('scooter');
     result = {
@@ -50,7 +81,8 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
   } else if (
     q.includes('rent') || q.includes('lease') || q.includes('tenant') ||
     q.includes('leave and license') || q.includes('leave & license') ||
-    q.includes('pg') || q.includes('sublet') || q.includes('rental')
+    q.includes('pg') || q.includes('sublet') || q.includes('rental') ||
+    q.includes('भाडे') || q.includes('करार') || q.includes('bhade')
   ) {
     result = {
       rawGoal: query,
@@ -190,9 +222,12 @@ Location provided by user: "${options?.locationOverride || 'Unspecified'}".
 Additional context: "${options?.context || 'None'}".
 
 Extract the intent, domain, activity, location, and entities.
+IMPORTANT: The query may be phrased in Marathi (मराठी), Hindi (हिन्दी), English, or phonetic Romanized Indic (e.g. "mala mumbai madhe driving liscence poayjhe" means "I need a driving licence in Mumbai", "भाडे करार" means "rental agreement", "जन्म दाखला" means "birth certificate").
 Intents must be one of: START_BUSINESS, BUILD_PROPERTY, PROPERTY_RENTAL, REGISTER_VEHICLE, GET_CERTIFICATE, APPLY_FOR_LICENSE, UNKNOWN.
-- For renting/leasing/tenancy/Leave & License/PG, intent is PROPERTY_RENTAL and domain is PROPERTY_RENTAL, activity is RENTAL_AGREEMENT.
-- For buying/purchasing resale flat or apartment, intent is BUILD_PROPERTY and domain is PROPERTY_ACQUISITION, activity is FLAT_PURCHASE.
+- For driving licence, learner's licence, driving permit, RTO driving tests (including Marathi "ड्रायव्हिंग लायसन्स", "परवाना", "driving liscence", "DL"), intent is APPLY_FOR_LICENSE, domain is TRANSPORT, activity is DRIVING_LICENSE.
+- For registering a vehicle/car/bike/scooter (including Marathi "गाडी नोंदणी", "RTO registration"), intent is REGISTER_VEHICLE, domain is TRANSPORT, activity is VEHICLE_REGISTRATION or TWO_WHEELER_REGISTRATION.
+- For renting/leasing/tenancy/Leave & License/PG (including Marathi "भाडे करार"), intent is PROPERTY_RENTAL and domain is PROPERTY_RENTAL, activity is RENTAL_AGREEMENT.
+- For buying/purchasing resale flat or apartment (including Marathi "फ्लॅट खरेदी"), intent is BUILD_PROPERTY and domain is PROPERTY_ACQUISITION, activity is FLAT_PURCHASE.
 - For constructing/building on plot, intent is BUILD_PROPERTY and domain is URBAN_DEVELOPMENT, activity is RESIDENTIAL_CONSTRUCTION.
 - If the query is too vague (like "hello", "need help"), classify as UNKNOWN.
 
@@ -201,9 +236,9 @@ Return ONLY a valid JSON object matching this schema:
   "rawGoal": "${query}",
   "intent": "START_BUSINESS" | "BUILD_PROPERTY" | "PROPERTY_RENTAL" | "REGISTER_VEHICLE" | "GET_CERTIFICATE" | "APPLY_FOR_LICENSE" | "UNKNOWN",
   "domain": "e.g. PROPERTY_RENTAL, PROPERTY_ACQUISITION, URBAN_DEVELOPMENT, FOOD_BUSINESS, TRANSPORT, VITAL_RECORDS, etc.",
-  "activity": "e.g. RENTAL_AGREEMENT, FLAT_PURCHASE, RESIDENTIAL_CONSTRUCTION, BAKERY, TWO_WHEELER, BIRTH_CERTIFICATE, etc.",
+  "activity": "e.g. DRIVING_LICENSE, RENTAL_AGREEMENT, FLAT_PURCHASE, RESIDENTIAL_CONSTRUCTION, BAKERY, TWO_WHEELER, BIRTH_CERTIFICATE, etc.",
   "location": {
-    "city": "Detected or provided city (default to Mumbai if mentioned, else India)",
+    "city": "Detected or provided city (default to Mumbai if mentioned or context indicates Maharashtra, else India)",
     "state": "Detected or provided state (default to Maharashtra if Mumbai, else India)",
     "country": "India"
   },
@@ -215,6 +250,7 @@ Return ONLY a valid JSON object matching this schema:
   "entities": {
     "businessType": "e.g. bakery, retail, tech",
     "vehicleType": "e.g. bike, car, commercial",
+    "licenseType": "e.g. Driving Licence (Learner / Permanent)",
     "propertyType": "e.g. residential 3bhk flat, residential plot, commercial shop",
     "certificateType": "e.g. birth, death, marriage",
     "scale": "e.g. small, micro"
@@ -240,10 +276,34 @@ Return ONLY a valid JSON object matching this schema:
 
         // Post-processing normalization for high fidelity mapping
         const qLower = query.toLowerCase();
-        if (
+
+        // Check for driving licence in any language or typo
+        const isDL =
+          qLower.includes('driving') ||
+          qLower.includes('license') ||
+          qLower.includes('licence') ||
+          qLower.includes('liscence') ||
+          qLower.includes('lisence') ||
+          qLower.includes('dl') ||
+          qLower.includes('learner') ||
+          qLower.includes('parwana') ||
+          qLower.includes('perwana') ||
+          qLower.includes('लायसन्स') ||
+          qLower.includes('ड्रायव्हिंग') ||
+          qLower.includes('परवाना') ||
+          qLower.includes('चालक') ||
+          (qLower.includes('sarathi') && !qLower.includes('disha'));
+
+        if (isDL) {
+          parsed.intent = 'APPLY_FOR_LICENSE';
+          parsed.domain = 'TRANSPORT';
+          parsed.activity = 'DRIVING_LICENSE';
+          parsed.clarificationNeeded = false;
+        } else if (
           qLower.includes('rent') || qLower.includes('lease') || qLower.includes('tenant') ||
           qLower.includes('leave and license') || qLower.includes('leave & license') ||
-          qLower.includes('pg') || qLower.includes('sublet') || qLower.includes('rental')
+          qLower.includes('pg') || qLower.includes('sublet') || qLower.includes('rental') ||
+          qLower.includes('भाडे') || qLower.includes('करार') || qLower.includes('bhade')
         ) {
           parsed.intent = 'PROPERTY_RENTAL';
           parsed.domain = 'PROPERTY_RENTAL';
@@ -257,6 +317,11 @@ Return ONLY a valid JSON object matching this schema:
           parsed.domain = 'PROPERTY_ACQUISITION';
           parsed.activity = 'FLAT_PURCHASE';
           parsed.clarificationNeeded = false;
+        }
+
+        if (qLower.includes('mumbai') || qLower.includes('मुंबई') || qLower.includes('bombay')) {
+          parsed.location.city = parsed.location.city || 'Mumbai';
+          parsed.location.state = parsed.location.state || 'Maharashtra';
         }
 
         parsed.isFallback = false;

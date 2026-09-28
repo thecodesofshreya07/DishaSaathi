@@ -240,6 +240,8 @@ export function buildRoadmap(
     journeyTitle = `Residential Rental & Tenant Compliance Roadmap — ${goal.location.city || 'Mumbai'}`;
   } else if (goal.intent === 'REGISTER_VEHICLE') {
     journeyTitle = `New ${goal.entities.vehicleType || 'Vehicle'} Registration Roadmap — ${goal.location.city}`;
+  } else if (goal.intent === 'APPLY_FOR_LICENSE' || goal.activity === 'DRIVING_LICENSE') {
+    journeyTitle = `Official Driving Licence (Learner to Smart Card) Roadmap — ${goal.location.city || 'Mumbai'}`;
   } else if (goal.intent === 'BUILD_PROPERTY') {
     if (goal.domain === 'PROPERTY_ACQUISITION' || goal.activity === 'FLAT_PURCHASE') {
       journeyTitle = `Residential Flat / Property Purchase & Registration Roadmap — ${goal.location.city}`;

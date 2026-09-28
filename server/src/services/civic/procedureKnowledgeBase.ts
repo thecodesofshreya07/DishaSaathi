@@ -810,5 +810,133 @@ export const procedureKnowledgeBase: BaseCivicProcedure[] = [
       verificationStatus: 'Verified'
     },
     verificationStatus: 'VERIFIED'
+  },
+  // ==========================================
+  // 6. DRIVING LICENCE (SARATHI PARIVAHAN / RTO)
+  // ==========================================
+  {
+    id: 'proc-dl-learner',
+    code: 'DL_LEARNER',
+    title: "Online Learner's Licence (LL) Application & Aadhaar e-KYC Test (Form 2)",
+    plainLanguageSummary: "Apply online for a Learner's Licence on Parivahan Sarathi, submit Form 1 self-declaration of fitness, and clear the computerized road safety test from home via Aadhaar biometric authentication.",
+    whyRequired: "Under Section 3 of the Motor Vehicles Act, 1988, holding a valid Learner's Licence is mandatory before you can practice driving or book a permanent driving test slot.",
+    authority: 'Ministry of Road Transport & Highways (MoRTH) & Maharashtra Motor Vehicles Department',
+    category: 'Provisional Licensing',
+    jurisdiction: { country: 'India', state: 'Maharashtra' },
+    domain: 'TRANSPORT',
+    dependsOn: [],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-dl-1', name: 'Aadhaar Card (Linked with Mobile for OTP e-KYC)', isMandatory: true, description: 'National identity and residential address authentication' },
+      { id: 'doc-dl-2', name: 'Age Proof (Birth Certificate / 10th Marksheet / Passport)', isMandatory: true, description: 'Verification of minimum 18 years age requirement' },
+      { id: 'doc-dl-3', name: 'Form 1 Medical Self-Declaration of Physical Fitness', isMandatory: true, description: 'Statutory eyesight and physical fitness declaration under Rule 5' }
+    ],
+    fee: { amount: '₹350', description: 'Statutory LL application & online computer test fee (MoRTH Gazette)' },
+    estimatedTime: '1 - 2 business days (Instant test upon slot)',
+    applicationMode: 'Online',
+    applicationUrl: 'https://sarathi.parivahan.gov.in/sarathiservice/',
+    source: {
+      id: 'src-parivahan-sarathi',
+      title: 'Parivahan Sarathi Citizen Portal - MoRTH',
+      url: 'https://sarathi.parivahan.gov.in/sarathiservice/',
+      department: 'Ministry of Road Transport & Highways, Government of India',
+      domain: 'parivahan.gov.in',
+      lastChecked: '2026-09-28',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-dl-slot',
+    code: 'DL_SLOT',
+    title: 'RTO Driving Track Slot Booking & Biometric Scheduling (Form 4)',
+    plainLanguageSummary: "After holding your Learner's Licence for at least 30 days, submit Form 4 on Parivahan Sarathi and choose your preferred date and time slot at your regional RTO test track.",
+    whyRequired: 'Mandatory statutory scheduling under Central Motor Vehicles Rule 15; secures official track capacity at RTO Mumbai (Tardeo MH-01, Andheri MH-02, or Wadala MH-03).',
+    authority: 'Regional Transport Office (RTO), Maharashtra Motor Vehicles Department',
+    category: 'Appointment Scheduling',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'TRANSPORT',
+    dependsOn: ['proc-dl-learner'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-dl-4', name: "Valid Learner's Licence Copy (Downloaded from Parivahan)", isMandatory: true, description: 'Must have completed minimum 30 days from issue' },
+      { id: 'doc-dl-5', name: 'Application Form 4 Printout & Fee Challan', isMandatory: true, description: 'Form 4 statutory application reference' }
+    ],
+    fee: { amount: '₹0 (Included in Test Fee)', description: 'Slot selection carries zero extra surcharge' },
+    estimatedTime: 'Immediate online confirmation',
+    applicationMode: 'Online',
+    applicationUrl: 'https://sarathi.parivahan.gov.in/sarathiservice/',
+    source: {
+      id: 'src-rto-slot',
+      title: 'Parivahan Sarathi - Driving Test Appointment System',
+      url: 'https://sarathi.parivahan.gov.in/sarathiservice/',
+      department: 'Transport Commissionerate, Maharashtra',
+      domain: 'parivahan.gov.in',
+      lastChecked: '2026-09-28',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-dl-test',
+    code: 'DL_PRACTICAL_TEST',
+    title: 'Practical Driving Skill Test on Automated Driving Test Track (ADTT)',
+    plainLanguageSummary: 'Bring your vehicle along with a licensed driver to the RTO track. Perform required maneuvers (H-track, 8-figure, parallel parking, and gradient slope stop-and-go) under sensor-based evaluation.',
+    whyRequired: 'Statutory compliance under Section 9 of the Motor Vehicles Act to prove driving competence and road safety awareness before a Motor Vehicle Inspector (MVI).',
+    authority: 'Motor Vehicle Inspector (MVI) Board, RTO Mumbai',
+    category: 'Physical Examination',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'TRANSPORT',
+    dependsOn: ['proc-dl-slot'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-dl-6', name: 'Valid Test Vehicle RC (Registration Certificate) & PUC', isMandatory: true, description: 'Original RC Smart Card and Pollution Certificate' },
+      { id: 'doc-dl-7', name: 'Valid Comprehensive Vehicle Insurance Policy', isMandatory: true, description: 'Insurance certificate valid on test date' },
+      { id: 'doc-dl-8', name: "Accompanist's Original Driving Licence", isMandatory: true, description: 'Licensed driver supervising test candidate' }
+    ],
+    fee: { amount: '₹300', description: 'Statutory driving test fee per vehicle class (LMV/MCWG)' },
+    estimatedTime: '1 day (Track session approx. 2 hours)',
+    applicationMode: 'Offline',
+    applicationUrl: 'https://transport.maharashtra.gov.in/',
+    source: {
+      id: 'src-mumbai-rto',
+      title: 'Maharashtra Motor Vehicles Department - Driving Test Regulations',
+      url: 'https://transport.maharashtra.gov.in/',
+      department: 'Maharashtra Transport Department',
+      domain: 'transport.maharashtra.gov.in',
+      lastChecked: '2026-09-28',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
+    id: 'proc-dl-smartcard',
+    code: 'DL_SMARTCARD_ISSUE',
+    title: 'Permanent Smart Card Driving Licence Issuance & DigiLocker / mParivahan Sync',
+    plainLanguageSummary: 'Upon passing the driving test, your official Smart Card DL is dispatched to your registered address via India Post Speed Post with digital credentials instantly accessible in DigiLocker.',
+    whyRequired: 'Final statutory motor driving permit under Section 9(1) of Motor Vehicles Act; universally valid across all Indian states and Union Territories.',
+    authority: 'Licensing Authority & Regional Transport Office',
+    category: 'Final Certification',
+    jurisdiction: { country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+    domain: 'TRANSPORT',
+    dependsOn: ['proc-dl-test'],
+    canRunInParallelWith: [],
+    documents: [
+      { id: 'doc-dl-9', name: 'Passed Test Endorsement Token / Bio-metrics Slip', isMandatory: true, description: 'Digitally signed MVI test clearance sheet' }
+    ],
+    fee: { amount: '₹350', description: 'Smart card printing (₹200) + Speed Post postal dispatch (₹150)' },
+    estimatedTime: '3 - 7 days (Instant in DigiLocker)',
+    applicationMode: 'Hybrid',
+    applicationUrl: 'https://sarathi.parivahan.gov.in/sarathiservice/',
+    source: {
+      id: 'src-dl-issuance',
+      title: 'National Register for Driving Licences - Sarathi',
+      url: 'https://sarathi.parivahan.gov.in/sarathiservice/',
+      department: 'Ministry of Road Transport & Highways, Government of India',
+      domain: 'parivahan.gov.in',
+      lastChecked: '2026-09-28',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
   }
 ];
