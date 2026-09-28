@@ -30,9 +30,8 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
   if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0) {
     const groqCandidateModels = [
       process.env.GROQ_MODEL,
-      'llama-3.3-70b-versatile',
-      'llama-3.1-8b-instant',
-      'mixtral-8x7b-32768',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
       'qwen/qwen3.8-27b'
     ].filter(Boolean) as string[];
 
@@ -84,10 +83,12 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY.trim() });
       const geminiCandidateModels = [
         process.env.GEMINI_MODEL,
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash'
-      ].filter((m) => m && m !== 'gemini-3.8-flash') as string[];
+        'gemini-3.8-flash',
+        'gemini-3.7-flash',
+        'gemini-3.5-flash',
+        'gemini-3.1-flash-lite',
+        'gemini-flash-latest'
+      ].filter(Boolean) as string[];
 
       for (const modelName of geminiCandidateModels) {
         try {
@@ -118,10 +119,10 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
   if (process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY.trim().length > 0) {
     const openRouterCandidateModels = [
       process.env.OPENROUTER_MODEL,
-      'google/gemini-2.0-flash-exp:free',
-      'meta-llama/llama-3.3-70b-instruct:free',
-      'deepseek/deepseek-r1:free',
-      'qwen/qwen-2.5-72b-instruct:free'
+      'google/gemma-4-31b-it:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'qwen/qwen3.8-27b:free',
+      'nvidia/nemotron-3.5-lightning:free'
     ].filter(Boolean) as string[];
 
     for (const model of openRouterCandidateModels) {

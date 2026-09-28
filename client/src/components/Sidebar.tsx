@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'documents', label: t.sidebarDocuments || 'Documents', icon: FileText },
         { id: 'updates', label: t.sidebarUpdates || 'Govt Updates', icon: Bell, badge: updatesCount },
         { id: 'deadlines', label: t.sidebarDeadlines || 'Deadlines', icon: Calendar, badge: deadlinesCount },
-        { id: 'passport', label: 'Verification QR', icon: QrCode },
+        { id: 'passport', label: 'Roadmap QR', icon: QrCode },
         { id: 'settings', label: t.sidebarSettings || 'Settings', icon: Settings },
       ];
 

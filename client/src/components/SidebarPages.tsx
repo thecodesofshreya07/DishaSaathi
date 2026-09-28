@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   Building2,
@@ -985,7 +985,9 @@ export const PassportView: React.FC<{
 }> = ({ journey, journeys = [], onSelectJourney }) => {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [copiedBinary, setCopiedBinary] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [showDomainConfig, setShowDomainConfig] = useState(false);
   const [networkHost, setNetworkHost] = useState<string>(() => {
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       return window.location.hostname;
@@ -993,12 +995,24 @@ export const PassportView: React.FC<{
     return '';
   });
 
-  // Discover server network LAN IP so phone QR scanning accesses the host machine directly
+  const [customPublicUrl, setCustomPublicUrl] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dishasaathi_public_url');
+      if (saved) return saved;
+    }
+    return (import.meta as any).env?.VITE_PUBLIC_URL || '';
+  });
+
+  const [tempPublicUrl, setTempPublicUrl] = useState<string>(customPublicUrl);
+
+  // Discover server network info so phone QR scanning accesses the public domain or LAN IP directly
   useEffect(() => {
     fetch('/api/network-info')
       .then((r) => r.json())
       .then((data) => {
-        if (data?.ip) {
+        if (data?.publicUrl) {
+          setNetworkHost(data.publicUrl);
+        } else if (data?.ip) {
           setNetworkHost(data.ip);
         }
       })
@@ -1021,13 +1035,36 @@ export const PassportView: React.FC<{
 
   const currentJourney = allJourneys.find((j) => j.id === selectedJourneyId) || journey || allJourneys[0];
 
-  // Direct Binary PDF download URL on the phone (dynamically using live LAN IP)
-  const effectiveHost = networkHost || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? window.location.hostname : '10.68.124.122');
-  const directPhonePdfUrl = `http://${effectiveHost}:5000/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
-  const verifyWebUrl = `http://${effectiveHost}:5173/verify/${currentJourney?.id || ''}?download=pdf`;
+  // Universal Public Origin Calculation
+  // 1. User manual override or env variable (e.g. https://dishasaathi.vercel.app or ngrok)
+  // 2. If website is loaded on ANY online domain (not localhost) - Vercel, Render, Railway, custom domain
+  // 3. If server reported a publicUrl in network-info
+  // 4. Local network fallback
+  const publicBaseOrigin = useMemo(() => {
+    if (customPublicUrl && customPublicUrl.trim().length > 0) {
+      return customPublicUrl.trim().replace(/\/$/, '');
+    }
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return window.location.origin;
+    }
+    if (networkHost && networkHost.startsWith('http')) {
+      return networkHost.replace(/\/$/, '');
+    }
+    if (networkHost && networkHost !== 'localhost' && networkHost !== '127.0.0.1') {
+      return `http://${networkHost}:5173`;
+    }
+    return typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+  }, [customPublicUrl, networkHost]);
 
-  // QR Code encodes direct binary PDF download for instant phone download
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(directPhonePdfUrl)}&margin=10`;
+  const isOnlineOrigin = publicBaseOrigin.startsWith('https://') || 
+    (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+
+  // Web verification URL with auto-download: works on 100% of smartphones from ANY cellular or Wi-Fi network
+  const verifyWebUrl = `${publicBaseOrigin}/verify/${currentJourney?.id || 'current'}?download=pdf`;
+  const directPhonePdfUrl = `${publicBaseOrigin}/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
+
+  // QR Code encodes verifyWebUrl so any phone camera opens the secure public verification + auto PDF download
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(verifyWebUrl)}&margin=10`;
 
   const steps = currentJourney?.steps || [];
   const completedSteps = steps.filter((s) => s.status === 'Completed').length;
@@ -1036,9 +1073,29 @@ export const PassportView: React.FC<{
   const progressPercent = Math.round((completedSteps / (totalSteps || 1)) * 100);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(directPhonePdfUrl);
+    navigator.clipboard.writeText(verifyWebUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleCopyBinary = () => {
+    navigator.clipboard.writeText(directPhonePdfUrl);
+    setCopiedBinary(true);
+    setTimeout(() => setCopiedBinary(false), 2500);
+  };
+
+  const handleSavePublicUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleaned = tempPublicUrl.trim().replace(/\/$/, '');
+    setCustomPublicUrl(cleaned);
+    if (typeof window !== 'undefined') {
+      if (cleaned) {
+        localStorage.setItem('dishasaathi_public_url', cleaned);
+      } else {
+        localStorage.removeItem('dishasaathi_public_url');
+      }
+    }
+    setShowDomainConfig(false);
   };
 
   const handleDownloadPdf = () => {
@@ -1134,8 +1191,54 @@ export const PassportView: React.FC<{
             />
           </div>
 
+          {/* Active Public Domain / Endpoint Indicator */}
+          <div className="w-full bg-[#F4F8F5] dark:bg-[#12241E] p-2.5 rounded-xl border border-[#DCE8E1] dark:border-[#1E3B32] text-left">
+            <div className="flex items-center justify-between text-[11px] font-bold">
+              <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>{isOnlineOrigin ? 'Public Live Domain' : 'Local / LAN Access'}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowDomainConfig(!showDomainConfig)}
+                className="text-[10px] text-[#1B4D3E] dark:text-[#6EE7B7] hover:underline cursor-pointer"
+              >
+                {showDomainConfig ? 'Close' : 'Set Live URL / Tunnel'}
+              </button>
+            </div>
+            <div className="text-[11px] font-mono text-[#4A5D54] dark:text-[#9FB7AC] truncate mt-1">
+              {publicBaseOrigin}
+            </div>
+
+            {showDomainConfig && (
+              <form onSubmit={handleSavePublicUrl} className="mt-2 pt-2 border-t border-[#DCE8E1] dark:border-[#1E3B32] space-y-2">
+                <label className="text-[10px] font-medium text-[#5C7066] dark:text-[#8C9B94] block">
+                  Enter your production domain or ngrok tunnel (e.g. <code>https://dishasaathi.vercel.app</code>):
+                </label>
+                <div className="flex gap-1.5">
+                  <input
+                    type="url"
+                    value={tempPublicUrl}
+                    onChange={(e) => setTempPublicUrl(e.target.value)}
+                    placeholder="https://your-public-url.com"
+                    className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-[#DCE8E1] dark:border-[#1E3B32] bg-white dark:bg-[#0D1A16] text-[#11261F] dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-2.5 py-1 text-xs font-bold rounded-lg bg-[#1B4D3E] text-white hover:bg-[#143B2F] cursor-pointer"
+                  >
+                    Save
+                  </button>
+                </div>
+                <p className="text-[9px] text-[#7A8E83] dark:text-[#7C9287]">
+                  Tip: When deployed to Vercel/Render, your live domain is auto-detected. When testing locally across cellular data, run <code>npx localtunnel --port 5173</code> or <code>ngrok http 5173</code> and paste the link here.
+                </p>
+              </form>
+            )}
+          </div>
+
           <p className="text-xs text-[#5C7066] dark:text-[#8C9B94] max-w-xs leading-relaxed">
-            Point any phone camera at this QR code to <strong className="text-[#11261F] dark:text-white font-bold">directly download the PDF file</strong> for <strong className="text-[#1B4D3E] dark:text-[#6EE7B7]">"{currentJourney?.title}"</strong> straight to your phone.
+            Point any smartphone camera at this QR code to <strong className="text-[#11261F] dark:text-white font-bold">directly download the PDF file</strong> for <strong className="text-[#1B4D3E] dark:text-[#6EE7B7]">"{currentJourney?.title}"</strong> straight to your phone.
           </p>
 
           <div className="w-full pt-2 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-col gap-2">
@@ -1154,7 +1257,15 @@ export const PassportView: React.FC<{
               onClick={handleCopy}
               className="w-full py-2 px-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>{copied ? 'Phone Download Link Copied!' : 'Copy Direct Phone Link'}</span>
+              <span>{copied ? 'Scannable Link Copied!' : 'Copy Scannable Phone Link'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyBinary}
+              className="w-full py-1.5 px-3 rounded-xl border border-[#DCE8E1] dark:border-[#1E3B32] bg-[#F7FAF8] dark:bg-[#12241E] text-xs font-medium text-[#4A5D54] dark:text-[#9FB7AC] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>{copiedBinary ? 'Direct Binary URL Copied!' : 'Copy Direct Binary Stream Link'}</span>
             </button>
 
             <a

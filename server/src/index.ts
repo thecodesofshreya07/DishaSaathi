@@ -17,7 +17,7 @@ import {
 } from './services/civic/adaptiveEngine.js';
 import { answerCopilotQuery } from './services/civic/copilotService.js';
 import { runSourceVerificationPipeline } from './services/civic/sourceFetcher.js';
-import { initDatabase } from './db/database.js';
+import { initDatabase, dbClient } from './db/database.js';
 import { 
   registerUser, 
   loginUser, 
@@ -90,11 +90,13 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Network Info Endpoint for Phone QR Discovery (Returns local Wi-Fi / LAN IP so phones connect without localhost errors)
 app.get('/api/network-info', (_req: Request, res: Response) => {
   const ip = getLocalIpAddress();
+  const publicUrl = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || process.env.VERCEL_URL;
   res.json({
     success: true,
     ip,
     port: PORT,
     clientPort: 5173,
+    publicUrl: publicUrl ? (publicUrl.startsWith('http') ? publicUrl : `https://${publicUrl}`) : undefined,
     directPdfUrl: `http://${ip}:${PORT}/api/journey/current/download-pdf`,
     clientUrl: `http://${ip}:5173`
   });
@@ -119,7 +121,30 @@ app.get('/api/journey/:id/download-pdf', async (req: Request, res: Response) => 
     const g = await parseCitizenGoal('Open a commercial bakery in Mumbai', {});
     targetJourney = buildRoadmap(g, findRelevantProcedures(g));
   } else {
-    targetJourney = await ensureDefaultJourney();
+    // Check if any user in the persistent database has this journey saved
+    try {
+      const dbResult = await dbClient.execute({
+        sql: 'SELECT journey_data FROM user_journeys ORDER BY updated_at DESC',
+        args: []
+      });
+      for (const row of dbResult.rows) {
+        try {
+          const parsed = JSON.parse(row.journey_data as string);
+          const list = Array.isArray(parsed) ? parsed : parsed?.journeys ? parsed.journeys : [parsed];
+          const found = list.find((j: any) => j && (j.id === id || j.title?.toLowerCase().includes(id.toLowerCase())));
+          if (found) {
+            targetJourney = found;
+            break;
+          }
+        } catch {}
+      }
+    } catch (e) {
+      console.warn('Could not query database for journey id', id, e);
+    }
+
+    if (!targetJourney) {
+      targetJourney = await ensureDefaultJourney();
+    }
   }
 
   if (!targetJourney) {

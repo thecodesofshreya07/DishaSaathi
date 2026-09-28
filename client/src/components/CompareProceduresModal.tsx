@@ -446,6 +446,174 @@ function resolveStateComparisonConfig(text: string): StateComparisonConfig {
       rtsAct: 'Jammu & Kashmir Public Services Guarantee Act, 2011'
     };
   }
+  if (t.includes('arunachal') || t.includes('itanagar')) {
+    return {
+      state: 'Arunachal Pradesh',
+      city: 'Itanagar',
+      shopsAct: 'Arunachal Pradesh Shops and Commercial Establishments Act, 1969',
+      shopsAuthority: 'Department of Labour & Employment, Government of Arunachal Pradesh',
+      shopsPortalUrl: 'https://eodb.arunachal.gov.in',
+      municipalAct: 'Section 120 of the Arunachal Pradesh Municipal Act, 2007',
+      municipalAuthority: 'Itanagar Municipal Corporation (IMC) Health & Licensing Department',
+      municipalPortalUrl: 'https://imc.arunachal.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (English and Hindi under IMC Regulations)',
+      rtsAct: 'Arunachal Pradesh Right to Public Services Act, 2014'
+    };
+  }
+  if (t.includes('manipur') || t.includes('imphal')) {
+    return {
+      state: 'Manipur',
+      city: 'Imphal',
+      shopsAct: 'Manipur Shops and Establishments Act, 1972',
+      shopsAuthority: 'Labour Department, Government of Manipur',
+      shopsPortalUrl: 'https://eodbmanipur.gov.in',
+      municipalAct: 'Section 154 of the Manipur Municipalities Act, 1994',
+      municipalAuthority: 'Imphal Municipal Corporation (IMC) Health Section',
+      municipalPortalUrl: 'https://imphalmunicipalcorporation.info',
+      signboardRule: 'Bilingual Signboard Proof (Manipuri Meitei Mayek script and English)',
+      rtsAct: 'Manipur Public Services Delivery Act, 2021'
+    };
+  }
+  if (t.includes('meghalaya') || t.includes('shillong')) {
+    return {
+      state: 'Meghalaya',
+      city: 'Shillong',
+      shopsAct: 'Meghalaya Shops and Establishments Act, 2003',
+      shopsAuthority: 'Labour Department, Government of Meghalaya',
+      shopsPortalUrl: 'https://investmeghalaya.gov.in',
+      municipalAct: 'Section 112 of the Meghalaya Municipal Act, 1973',
+      municipalAuthority: 'Shillong Municipal Board (SMB) Trade Licensing Wing',
+      municipalPortalUrl: 'https://smb.gov.in',
+      signboardRule: 'Signboard Proof (English, Khasi / Garo under SMB Rules)',
+      rtsAct: 'Meghalaya Right to Public Services Act, 2020'
+    };
+  }
+  if (t.includes('mizoram') || t.includes('aizawl')) {
+    return {
+      state: 'Mizoram',
+      city: 'Aizawl',
+      shopsAct: 'Mizoram Shops and Establishments Act, 2010',
+      shopsAuthority: 'Labour, Employment, Skill Development & Entrepreneurship Dept, Govt of Mizoram',
+      shopsPortalUrl: 'https://lesde.mizoram.gov.in',
+      municipalAct: 'Section 64 of the Mizoram Municipalities Act, 2007',
+      municipalAuthority: 'Aizawl Municipal Corporation (AMC) Licensing & Health Branch',
+      municipalPortalUrl: 'https://amcmizoram.com',
+      signboardRule: 'Bilingual Signboard Proof (Mizo and English under AMC Rules)',
+      rtsAct: 'Mizoram Right to Public Services Act, 2015'
+    };
+  }
+  if (t.includes('nagaland') || t.includes('kohima') || t.includes('dimapur')) {
+    return {
+      state: 'Nagaland',
+      city: t.includes('dimapur') ? 'Dimapur' : 'Kohima',
+      shopsAct: 'Nagaland Shops and Establishments Act, 1986',
+      shopsAuthority: 'Department of Labour, Government of Nagaland',
+      shopsPortalUrl: 'https://labour.nagaland.gov.in',
+      municipalAct: 'Section 138 of the Nagaland Municipal Act, 2001',
+      municipalAuthority: t.includes('dimapur') ? 'Dimapur Municipal Council (DMC) Health Wing' : 'Kohima Municipal Council (KMC) Health Wing',
+      municipalPortalUrl: 'https://kmc.nagaland.gov.in',
+      signboardRule: 'Signboard Proof (English under Nagaland Municipal Guidelines)',
+      rtsAct: 'Nagaland Public Services Delivery Act'
+    };
+  }
+  if (t.includes('sikkim') || t.includes('gangtok')) {
+    return {
+      state: 'Sikkim',
+      city: 'Gangtok',
+      shopsAct: 'Sikkim Shops and Commercial Establishments Act, 1983',
+      shopsAuthority: 'Labour Department, Government of Sikkim',
+      shopsPortalUrl: 'https://labour.sikkim.gov.in',
+      municipalAct: 'Section 98 of the Sikkim Municipalities Act, 2007',
+      municipalAuthority: 'Gangtok Municipal Corporation (GMC) Health & Licensing Section',
+      municipalPortalUrl: 'https://udhd.sikkim.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Nepali script and English under GMC Regulations)',
+      rtsAct: 'Sikkim Public Services Delivery Act'
+    };
+  }
+  if (t.includes('tripura') || t.includes('agartala')) {
+    return {
+      state: 'Tripura',
+      city: 'Agartala',
+      shopsAct: 'Tripura Shops and Establishments Act, 1975',
+      shopsAuthority: 'Labour Directorate, Government of Tripura',
+      shopsPortalUrl: 'https://swc.tripura.gov.in',
+      municipalAct: 'Section 118 of the Tripura Municipal Act, 1994',
+      municipalAuthority: 'Agartala Municipal Corporation (AMC) Health & License Section',
+      municipalPortalUrl: 'https://agartalacity.tripura.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Bengali / Kokborok and English under AMC Rules)',
+      rtsAct: 'Tripura Guaranteed Delivery of Public Services Act, 2011'
+    };
+  }
+  if (t.includes('ladakh') || (t.includes('leh') && !t.includes('delhi')) || t.includes('kargil')) {
+    return {
+      state: 'Ladakh',
+      city: t.includes('kargil') ? 'Kargil' : 'Leh',
+      shopsAct: 'Jammu and Kashmir Shops and Establishments Act, 1966 (as adapted to UT of Ladakh)',
+      shopsAuthority: 'Department of Labour, Administration of UT of Ladakh',
+      shopsPortalUrl: 'https://ladakh.gov.in',
+      municipalAct: 'Jammu and Kashmir Municipal Act, 2000 (as adapted to Ladakh)',
+      municipalAuthority: t.includes('kargil') ? 'Municipal Committee Kargil Health Section' : 'Municipal Committee Leh Health Section',
+      municipalPortalUrl: 'https://leh.nic.in',
+      signboardRule: 'Bilingual Signboard Proof (Ladakhi Tibetan script / Urdu / Hindi and English)',
+      rtsAct: 'Ladakh Public Services Guarantee Framework'
+    };
+  }
+  if (t.includes('puducherry') || t.includes('pondicherry')) {
+    return {
+      state: 'Puducherry',
+      city: 'Puducherry',
+      shopsAct: 'Puducherry Shops and Establishments Act, 1964',
+      shopsAuthority: 'Labour Department, Government of Puducherry',
+      shopsPortalUrl: 'https://labour.py.gov.in',
+      municipalAct: 'Section 355 of the Puducherry Municipalities Act, 1973',
+      municipalAuthority: 'Pondicherry Municipality Health Wing',
+      municipalPortalUrl: 'https://pondicherrymunicipality.py.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Tamil on top and English / French under Municipal Rules)',
+      rtsAct: 'Puducherry Right to Services Delivery Act'
+    };
+  }
+  if (t.includes('andaman') || t.includes('nicobar') || t.includes('port blair')) {
+    return {
+      state: 'Andaman and Nicobar Islands',
+      city: 'Port Blair',
+      shopsAct: 'Andaman and Nicobar Islands Shops and Commercial Establishments Regulation, 2004',
+      shopsAuthority: 'Department of Labour, Andaman and Nicobar Administration',
+      shopsPortalUrl: 'https://andaman.gov.in',
+      municipalAct: 'Section 247 of the Andaman and Nicobar Islands Municipal Regulation, 1994',
+      municipalAuthority: 'Port Blair Municipal Council (PBMC) Health & Sanitary Department',
+      municipalPortalUrl: 'https://pbmc.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Hindi Devanagari and English under PBMC Rules)',
+      rtsAct: 'Andaman and Nicobar Public Services Delivery Framework'
+    };
+  }
+  if (t.includes('daman') || t.includes('diu') || t.includes('silvassa') || t.includes('dadra')) {
+    return {
+      state: 'Dadra and Nagar Haveli and Daman and Diu',
+      city: t.includes('silvassa') ? 'Silvassa' : t.includes('diu') ? 'Diu' : 'Daman',
+      shopsAct: 'Goa, Daman and Diu Shops and Establishments Act, 1973 (as extended to DNH & DD)',
+      shopsAuthority: 'Department of Labour, UT Administration of DNH & DD',
+      shopsPortalUrl: 'https://daman.nic.in',
+      municipalAct: 'Daman & Diu Municipalities Regulation / Silvassa Municipal Council Bylaws',
+      municipalAuthority: t.includes('silvassa') ? 'Silvassa Municipal Council Health Wing' : 'Daman Municipal Council Health Department',
+      municipalPortalUrl: 'https://daman.nic.in',
+      signboardRule: 'Bilingual Signboard Proof (Gujarati / Hindi and English under Municipal Guidelines)',
+      rtsAct: 'Dadra and Nagar Haveli and Daman and Diu Citizen Charter'
+    };
+  }
+  if (t.includes('lakshadweep') || t.includes('kavaratti')) {
+    return {
+      state: 'Lakshadweep',
+      city: 'Kavaratti',
+      shopsAct: 'Kerala Shops and Commercial Establishments Act (as adapted to UT of Lakshadweep)',
+      shopsAuthority: 'Department of Labour, Administration of the Union Territory of Lakshadweep',
+      shopsPortalUrl: 'https://lakshadweep.gov.in',
+      municipalAct: 'Lakshadweep Panchayats Regulation, 1994 & Island Council Bylaws',
+      municipalAuthority: 'Kavaratti Village (Dweep) Panchayat Health Section',
+      municipalPortalUrl: 'https://lakshadweep.gov.in',
+      signboardRule: 'Bilingual Signboard Proof (Malayalam script and English under Island Administration Guidelines)',
+      rtsAct: 'Lakshadweep Public Services Delivery Framework'
+    };
+  }
   if (t.includes('karn') || t.includes('bang') || t.includes('beng') || t.includes('navg') || t.includes('mang')) {
     return {
       state: 'Karnataka',

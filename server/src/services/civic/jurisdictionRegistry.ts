@@ -858,6 +858,424 @@ export const STATE_JURISDICTION_REGISTRY: Record<string, StateJurisdictionProfil
     statutoryTimelineDays: 30,
     singleWindowPortalName: 'J&K Single Window System',
     singleWindowPortalUrl: 'https://singlewindow.jk.gov.in'
+  },
+
+  // ── 25. ARUNACHAL PRADESH ──
+  'arunachal pradesh': {
+    state: 'Arunachal Pradesh',
+    defaultCity: 'Itanagar',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (Arunachal EoDB)',
+      actName: 'Arunachal Pradesh Shops and Commercial Establishments Act, 1969',
+      authority: 'Department of Labour & Employment, Government of Arunachal Pradesh',
+      portalName: 'Arunachal Pradesh Single Window Portal',
+      portalUrl: 'https://eodb.arunachal.gov.in',
+      domain: 'arunachal.gov.in',
+      statutoryWhy: 'Mandatory statutory registration under the Arunachal Pradesh Shops and Commercial Establishments Act to lawfully operate commercial facilities and employ staff.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 120 of the Arunachal Pradesh Municipal Act, 2007',
+      authority: (city: string) =>
+        city.toLowerCase().includes('pasighat')
+          ? 'Pasighat Municipal Council Health Section'
+          : 'Itanagar Municipal Corporation (IMC) Health & Licensing Department',
+      portalUrl: (city: string) =>
+        city.toLowerCase().includes('pasighat')
+          ? 'https://pasighat.nic.in'
+          : 'https://imc.arunachal.gov.in',
+      domain: 'arunachal.gov.in',
+      statutoryWhy: 'Mandatory under Section 120 of the Arunachal Pradesh Municipal Act, 2007 for trade hygiene, waste disposal, and municipal commercial operations.'
+    },
+    signboardRequirement: {
+      language: 'English and Hindi (Devanagari script)',
+      ruleTitle: 'Arunachal Pradesh Municipal Commercial Signboard Regulations',
+      ruleDescription: 'Commercial nameboard must be prominently displayed in English and Hindi as per Itanagar Municipal Corporation guidelines.'
+    },
+    rtsActName: 'Arunachal Pradesh Right to Public Services Act, 2014',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Arunachal EoDB Single Window Portal',
+    singleWindowPortalUrl: 'https://eodb.arunachal.gov.in'
+  },
+
+  // ── 26. MANIPUR ──
+  'manipur': {
+    state: 'Manipur',
+    defaultCity: 'Imphal',
+    shopsAct: {
+      title: 'Shop & Establishment Registration (Manipur Labour Portal)',
+      actName: 'Manipur Shops and Establishments Act, 1972',
+      authority: 'Labour Department, Government of Manipur',
+      portalName: 'Manipur Single Window System / Labour Portal',
+      portalUrl: 'https://eodbmanipur.gov.in',
+      domain: 'manipur.gov.in',
+      statutoryWhy: 'Mandatory under the Manipur Shops and Establishments Act, 1972 for operating commercial establishments, regulation of work hours, and employee registration.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 154 of the Manipur Municipalities Act, 1994',
+      authority: (city: string) =>
+        city.toLowerCase().includes('thoubal')
+          ? 'Thoubal Municipal Council Health Wing'
+          : 'Imphal Municipal Corporation (IMC) Health Section',
+      portalUrl: () => 'https://imphalmunicipalcorporation.info',
+      domain: 'imphalmunicipalcorporation.info',
+      statutoryWhy: 'Mandatory under Section 154 of the Manipur Municipalities Act, 1994 to operate commercial and service trades under public health regulations.'
+    },
+    signboardRequirement: {
+      language: 'Meitei (Manipuri in Meitei Mayek script) and English',
+      ruleTitle: 'Manipur Official Language Act & IMC Signboard Bylaws',
+      ruleDescription: 'Commercial nameboards must display the establishment name in Manipuri (Meitei Mayek script) prominently alongside English.'
+    },
+    rtsActName: 'Manipur Public Services Delivery Act, 2021',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Manipur Single Window Clearance Portal',
+    singleWindowPortalUrl: 'https://eodbmanipur.gov.in'
+  },
+
+  // ── 27. MEGHALAYA ──
+  'meghalaya': {
+    state: 'Meghalaya',
+    defaultCity: 'Shillong',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (Invest Meghalaya)',
+      actName: 'Meghalaya Shops and Establishments Act, 2003',
+      authority: 'Labour Department, Government of Meghalaya',
+      portalName: 'Invest Meghalaya Single Window Agency (SWA)',
+      portalUrl: 'https://investmeghalaya.gov.in',
+      domain: 'investmeghalaya.gov.in',
+      statutoryWhy: 'Mandatory under the Meghalaya Shops and Establishments Act, 2003 to register commercial facilities, working conditions, and personnel.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 112 of the Meghalaya Municipal Act, 1973',
+      authority: (city: string) =>
+        city.toLowerCase().includes('tura')
+          ? 'Tura Municipal Board Health Branch'
+          : 'Shillong Municipal Board (SMB) Trade Licensing Wing',
+      portalUrl: (city: string) =>
+        city.toLowerCase().includes('tura')
+          ? 'https://westgarohills.gov.in'
+          : 'https://smb.gov.in',
+      domain: 'smb.gov.in',
+      statutoryWhy: 'Mandatory under the Meghalaya Municipal Act, 1973 for trade sanitation, hygiene standards, and municipal license clearance.'
+    },
+    signboardRequirement: {
+      language: 'English, Khasi, and Garo',
+      ruleTitle: 'Meghalaya Commercial Signboard & Municipal Regulations',
+      ruleDescription: 'Commercial nameboard must display business name in English along with local languages (Khasi in Khasi Hills or Garo in Garo Hills) as per municipal board rules.'
+    },
+    rtsActName: 'Meghalaya Right to Public Services Act, 2020',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Invest Meghalaya Single Window Agency',
+    singleWindowPortalUrl: 'https://investmeghalaya.gov.in'
+  },
+
+  // ── 28. MIZORAM ──
+  'mizoram': {
+    state: 'Mizoram',
+    defaultCity: 'Aizawl',
+    shopsAct: {
+      title: 'Shop & Establishment Registration (Mizoram LESDE)',
+      actName: 'Mizoram Shops and Establishments Act, 2010',
+      authority: 'Labour, Employment, Skill Development and Entrepreneurship Department (LESDE), Government of Mizoram',
+      portalName: 'LESDE Citizen Portal Mizoram',
+      portalUrl: 'https://lesde.mizoram.gov.in',
+      domain: 'mizoram.gov.in',
+      statutoryWhy: 'Mandatory statutory registration under the Mizoram Shops and Establishments Act, 2010 for establishing commercial entities and safeguarding staff welfare.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 64 of the Mizoram Municipalities Act, 2007',
+      authority: (city: string) =>
+        city.toLowerCase().includes('lunglei')
+          ? 'Lunglei Municipal Council Health Wing'
+          : 'Aizawl Municipal Corporation (AMC) Licensing & Health Branch',
+      portalUrl: () => 'https://amcmizoram.com',
+      domain: 'amcmizoram.com',
+      statutoryWhy: 'Mandatory under the Mizoram Municipalities Act, 2007 to obtain a municipal trade licence for operating commercial services within municipal limits.'
+    },
+    signboardRequirement: {
+      language: 'Mizo and English',
+      ruleTitle: 'Mizoram Commercial Signboard Regulations',
+      ruleDescription: 'Commercial nameboard must display the trade name in Mizo language alongside English as mandated by Aizawl Municipal Corporation.'
+    },
+    rtsActName: 'Mizoram Right to Public Services Act, 2015',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Mizoram Single Window Portal',
+    singleWindowPortalUrl: 'https://eodb.mizoram.gov.in'
+  },
+
+  // ── 29. NAGALAND ──
+  'nagaland': {
+    state: 'Nagaland',
+    defaultCity: 'Kohima',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (Nagaland Labour Directorate)',
+      actName: 'Nagaland Shops and Establishments Act, 1986',
+      authority: 'Department of Labour, Government of Nagaland',
+      portalName: 'Department of Labour, Government of Nagaland',
+      portalUrl: 'https://labour.nagaland.gov.in',
+      domain: 'nagaland.gov.in',
+      statutoryWhy: 'Mandatory under the Nagaland Shops and Establishments Act, 1986 to operate commercial offices, personal service salons, or retail establishments.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 138 of the Nagaland Municipal Act, 2001 (and 2023 Amendment)',
+      authority: (city: string) =>
+        city.toLowerCase().includes('dimapur')
+          ? 'Dimapur Municipal Council (DMC) Health Wing'
+          : 'Kohima Municipal Council (KMC) Health Wing',
+      portalUrl: (city: string) =>
+        city.toLowerCase().includes('dimapur')
+          ? 'https://dimapur.nic.in'
+          : 'https://kmc.nagaland.gov.in',
+      domain: 'nagaland.gov.in',
+      statutoryWhy: 'Mandatory under the Nagaland Municipal Act to obtain a valid trade permit and maintain sanitation in commercial premises.'
+    },
+    signboardRequirement: {
+      language: 'English (Official State Language)',
+      ruleTitle: 'Nagaland Municipal Trade Board Guidelines',
+      ruleDescription: 'Commercial nameboard must be clearly displayed in English, the official language of the State of Nagaland.'
+    },
+    rtsActName: 'Nagaland Public Services Delivery Act',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Nagaland Single Window Portal',
+    singleWindowPortalUrl: 'https://eodb.nagaland.gov.in'
+  },
+
+  // ── 30. SIKKIM ──
+  'sikkim': {
+    state: 'Sikkim',
+    defaultCity: 'Gangtok',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (Sikkim Labour Department)',
+      actName: 'Sikkim Shops and Commercial Establishments Act, 1983',
+      authority: 'Labour Department, Government of Sikkim',
+      portalName: 'Sikkim Single Window Clearance System / Labour Portal',
+      portalUrl: 'https://labour.sikkim.gov.in',
+      domain: 'sikkim.gov.in',
+      statutoryWhy: 'Mandatory under the Sikkim Shops and Commercial Establishments Act, 1983 to validate commercial activities and employee safety standards.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 98 of the Sikkim Municipalities Act, 2007',
+      authority: (city: string) =>
+        city.toLowerCase().includes('namchi')
+          ? 'Namchi Municipal Council Health & Licensing Section'
+          : 'Gangtok Municipal Corporation (GMC) Health & Licensing Section',
+      portalUrl: () => 'https://udhd.sikkim.gov.in',
+      domain: 'sikkim.gov.in',
+      statutoryWhy: 'Mandatory under the Sikkim Municipalities Act, 2007 for municipal commercial licensing and public health regulation.'
+    },
+    signboardRequirement: {
+      language: 'Nepali and English',
+      ruleTitle: 'Sikkim Municipal Commercial Board Regulations',
+      ruleDescription: 'Commercial signage must display trade name in Nepali script and English in accordance with Gangtok Municipal Corporation regulations.'
+    },
+    rtsActName: 'Sikkim Public Services Delivery Act',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Invest in Sikkim Single Window Portal',
+    singleWindowPortalUrl: 'https://investinsikkim.sikkim.gov.in'
+  },
+
+  // ── 31. TRIPURA ──
+  'tripura': {
+    state: 'Tripura',
+    defaultCity: 'Agartala',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (Tripura e-Shramik)',
+      actName: 'Tripura Shops and Establishments Act, 1975',
+      authority: 'Labour Directorate, Government of Tripura',
+      portalName: 'Tripura Single Window Portal / e-Shramik',
+      portalUrl: 'https://swc.tripura.gov.in',
+      domain: 'tripura.gov.in',
+      statutoryWhy: 'Mandatory under the Tripura Shops and Establishments Act, 1975 to regulate commercial employment and lawful business registration.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 118 of the Tripura Municipal Act, 1994',
+      authority: (city: string) =>
+        city.toLowerCase().includes('dharmanagar')
+          ? 'Dharmanagar Municipal Council Health Branch'
+          : 'Agartala Municipal Corporation (AMC) Health & License Section',
+      portalUrl: () => 'https://agartalacity.tripura.gov.in',
+      domain: 'tripura.gov.in',
+      statutoryWhy: 'Mandatory under Section 118 of the Tripura Municipal Act, 1994 for trade clearance and sanitary hygiene control.'
+    },
+    signboardRequirement: {
+      language: 'Bengali / Kokborok and English',
+      ruleTitle: 'Tripura Municipal Commercial Signboard Regulations',
+      ruleDescription: 'Signboard must display the business name in Bengali or Kokborok script alongside English as per Agartala Municipal Corporation rules.'
+    },
+    rtsActName: 'Tripura Guaranteed Delivery of Public Services Act, 2011',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Tripura Single Window Clearance System',
+    singleWindowPortalUrl: 'https://swc.tripura.gov.in'
+  },
+
+  // ── 32. LADAKH (UT) ──
+  'ladakh': {
+    state: 'Ladakh',
+    defaultCity: 'Leh',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (Ladakh Administration)',
+      actName: 'Jammu and Kashmir Shops and Establishments Act, 1966 (as adapted to UT of Ladakh)',
+      authority: 'Department of Labour, Administration of Union Territory of Ladakh',
+      portalName: 'Ladakh Single Window Portal / Administration of Ladakh',
+      portalUrl: 'https://ladakh.gov.in',
+      domain: 'ladakh.gov.in',
+      statutoryWhy: 'Mandatory statutory registration under the Shops and Establishments Act as applicable in UT of Ladakh to conduct commercial operations and register staff.'
+    },
+    municipalTradeLicence: {
+      actName: 'Jammu and Kashmir Municipal Act, 2000 (as adapted to Ladakh)',
+      authority: (city: string) =>
+        city.toLowerCase().includes('kargil')
+          ? 'Municipal Committee Kargil Health Section'
+          : 'Municipal Committee Leh Health Section',
+      portalUrl: (city: string) =>
+        city.toLowerCase().includes('kargil')
+          ? 'https://kargil.nic.in'
+          : 'https://leh.nic.in',
+      domain: 'nic.in',
+      statutoryWhy: 'Mandatory municipal trade certification from Leh/Kargil Municipal Committee to ensure health, waste management, and public safety standards.'
+    },
+    signboardRequirement: {
+      language: 'Ladakhi (Tibetan script) / Urdu / Hindi and English',
+      ruleTitle: 'Ladakh Administration Signboard Guidelines',
+      ruleDescription: 'Commercial nameboard must display the name in Ladakhi or Urdu/Hindi alongside English.'
+    },
+    rtsActName: 'Ladakh Public Services Guarantee Framework',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Ladakh Citizen Services Portal',
+    singleWindowPortalUrl: 'https://ladakh.gov.in'
+  },
+
+  // ── 33. PUDUCHERRY (UT) ──
+  'puducherry': {
+    state: 'Puducherry',
+    defaultCity: 'Puducherry',
+    shopsAct: {
+      title: 'Shop & Establishment Registration (Puducherry Labour Department)',
+      actName: 'Puducherry Shops and Establishments Act, 1964',
+      authority: 'Labour Department, Government of Puducherry',
+      portalName: 'Puducherry Single Window Clearance Portal',
+      portalUrl: 'https://labour.py.gov.in',
+      domain: 'py.gov.in',
+      statutoryWhy: 'Mandatory statutory compliance under the Puducherry Shops and Establishments Act, 1964 for running commercial establishments and employee safety.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 355 of the Puducherry Municipalities Act, 1973',
+      authority: (city: string) =>
+        city.toLowerCase().includes('oulgaret')
+          ? 'Oulgaret Municipality Health Wing'
+          : city.toLowerCase().includes('karaikal')
+          ? 'Karaikal Municipality Health Section'
+          : 'Pondicherry Municipality Health Wing',
+      portalUrl: () => 'https://pondicherrymunicipality.py.gov.in',
+      domain: 'py.gov.in',
+      statutoryWhy: 'Mandatory under Section 355 of the Puducherry Municipalities Act, 1973 for dangerous and offensive (D&O) trades and personal grooming premises.'
+    },
+    signboardRequirement: {
+      language: 'Tamil and English / French',
+      ruleTitle: 'Puducherry Municipalities Signboard Rules',
+      ruleDescription: 'Commercial signboard must feature Tamil prominently on top, with English or French optionally below, as per Puducherry Municipal guidelines.'
+    },
+    rtsActName: 'Puducherry Right to Services Delivery Act',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Invest Puducherry Single Window Portal',
+    singleWindowPortalUrl: 'https://investpuducherry.py.gov.in'
+  },
+
+  // ── 34. ANDAMAN AND NICOBAR ISLANDS (UT) ──
+  'andaman and nicobar islands': {
+    state: 'Andaman and Nicobar Islands',
+    defaultCity: 'Port Blair',
+    shopsAct: {
+      title: 'Shop & Commercial Establishment Registration (A&N Administration)',
+      actName: 'Andaman and Nicobar Islands Shops and Commercial Establishments Regulation, 2004',
+      authority: 'Department of Labour, Andaman and Nicobar Administration',
+      portalName: 'Andaman & Nicobar Citizen Portal',
+      portalUrl: 'https://andaman.gov.in',
+      domain: 'andaman.gov.in',
+      statutoryWhy: 'Mandatory under the A&N Islands Shops and Commercial Establishments Regulation, 2004 for operating commercial establishments and ensuring workers welfare.'
+    },
+    municipalTradeLicence: {
+      actName: 'Section 247 of the Andaman and Nicobar Islands Municipal Regulation, 1994',
+      authority: () => 'Port Blair Municipal Council (PBMC) Health & Sanitary Department',
+      portalUrl: () => 'https://pbmc.gov.in',
+      domain: 'pbmc.gov.in',
+      statutoryWhy: 'Mandatory under Section 247 of the A&N Islands Municipal Regulation to obtain trade licence and maintain hygiene standards.'
+    },
+    signboardRequirement: {
+      language: 'Hindi (Devanagari script) and English',
+      ruleTitle: 'Port Blair Municipal Council Signboard Regulations',
+      ruleDescription: 'Commercial nameboard must display establishment name in Hindi and English as prescribed by Port Blair Municipal Council.'
+    },
+    rtsActName: 'Andaman and Nicobar Public Services Delivery Framework',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Andaman e-District Services',
+    singleWindowPortalUrl: 'https://edistrict.andaman.gov.in'
+  },
+
+  // ── 35. DADRA AND NAGAR HAVELI AND DAMAN AND DIU (UT) ──
+  'dadra and nagar haveli and daman and diu': {
+    state: 'Dadra and Nagar Haveli and Daman and Diu',
+    defaultCity: 'Daman',
+    shopsAct: {
+      title: 'Shop & Establishment Registration (DNH & DD Labour Department)',
+      actName: 'Goa, Daman and Diu Shops and Establishments Act, 1973 (as extended to DNH & DD)',
+      authority: 'Department of Labour, UT Administration of Dadra and Nagar Haveli and Daman and Diu',
+      portalName: 'UT Administration Single Window Portal',
+      portalUrl: 'https://daman.nic.in',
+      domain: 'daman.nic.in',
+      statutoryWhy: 'Mandatory statutory registration under the Shops and Establishments Act to lawfully operate commercial trades and register workforce.'
+    },
+    municipalTradeLicence: {
+      actName: 'Daman & Diu Municipalities Regulation / Silvassa Municipal Council Bylaws',
+      authority: (city: string) =>
+        city.toLowerCase().includes('silvassa')
+          ? 'Silvassa Municipal Council Health Wing'
+          : city.toLowerCase().includes('diu')
+          ? 'Diu Municipal Council Health Section'
+          : 'Daman Municipal Council Health Department',
+      portalUrl: () => 'https://daman.nic.in',
+      domain: 'daman.nic.in',
+      statutoryWhy: 'Mandatory trade licence issued by the Municipal Council to certify health, waste handling, and fire safety norms.'
+    },
+    signboardRequirement: {
+      language: 'Gujarati / Hindi and English',
+      ruleTitle: 'DNH & DD Commercial Signage Guidelines',
+      ruleDescription: 'Signboard must display name in Gujarati or Hindi alongside English as per Municipal Council regulations.'
+    },
+    rtsActName: 'Dadra and Nagar Haveli and Daman and Diu Citizen Charter',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'UT of DNH & DD Single Window Portal',
+    singleWindowPortalUrl: 'https://eodbdnhdd.in'
+  },
+
+  // ── 36. LAKSHADWEEP (UT) ──
+  'lakshadweep': {
+    state: 'Lakshadweep',
+    defaultCity: 'Kavaratti',
+    shopsAct: {
+      title: 'Commercial Establishment Registration (Lakshadweep District Administration)',
+      actName: 'Kerala Shops and Commercial Establishments Act (as adapted to UT of Lakshadweep)',
+      authority: 'Department of Labour, Administration of the Union Territory of Lakshadweep',
+      portalName: 'Lakshadweep District Portal',
+      portalUrl: 'https://lakshadweep.gov.in',
+      domain: 'lakshadweep.gov.in',
+      statutoryWhy: 'Mandatory under the Shops and Commercial Establishments Regulation as applicable in UT of Lakshadweep for commercial trade operations.'
+    },
+    municipalTradeLicence: {
+      actName: 'Lakshadweep Panchayats Regulation, 1994 & Island Council Bylaws',
+      authority: (city: string) => `${city || 'Kavaratti'} Village (Dweep) Panchayat Health Section`,
+      portalUrl: () => 'https://lakshadweep.gov.in',
+      domain: 'lakshadweep.gov.in',
+      statutoryWhy: 'Mandatory trade sanitary clearance issued by the Island Dweep Panchayat Council.'
+    },
+    signboardRequirement: {
+      language: 'Malayalam and English',
+      ruleTitle: 'Lakshadweep Commercial Display Regulations',
+      ruleDescription: 'Commercial signage must display trade name in Malayalam script alongside English as per island administration guidelines.'
+    },
+    rtsActName: 'Lakshadweep Public Services Delivery Framework',
+    statutoryTimelineDays: 30,
+    singleWindowPortalName: 'Lakshadweep e-Services',
+    singleWindowPortalUrl: 'https://lakshadweep.gov.in'
   }
 };
 
@@ -950,6 +1368,66 @@ export function normalizeStateKey(stateOrCityName?: string): string {
   if (s.includes('jhar') || s.includes('ranc') || s.includes('jams') || s.includes('dhanb')) return 'jharkhand';
   if (s.includes('chhatt') || s.includes('raip') || s.includes('bila') || s.includes('bhilai')) return 'chhattisgarh';
   if (s.includes('kash') || s.includes('srin') || s.includes('jammu')) return 'jammu and kashmir';
+
+  // 15. Arunachal Pradesh
+  if (s.includes('arunachal') || s.includes('itanagar') || s.includes('naharlagun') || s.includes('tawang') || s.includes('pasighat')) {
+    return 'arunachal pradesh';
+  }
+
+  // 16. Manipur
+  if (s.includes('manipur') || s.includes('imphal') || s.includes('thoubal') || s.includes('churachandpur')) {
+    return 'manipur';
+  }
+
+  // 17. Meghalaya
+  if (s.includes('meghalaya') || s.includes('shillong') || s.includes('tura') || s.includes('jowai') || s.includes('cherrapunji')) {
+    return 'meghalaya';
+  }
+
+  // 18. Mizoram
+  if (s.includes('mizoram') || s.includes('aizawl') || s.includes('lunglei') || s.includes('champhai')) {
+    return 'mizoram';
+  }
+
+  // 19. Nagaland
+  if (s.includes('nagaland') || s.includes('kohima') || s.includes('dimapur') || s.includes('mokokchung')) {
+    return 'nagaland';
+  }
+
+  // 20. Sikkim
+  if (s.includes('sikkim') || s.includes('gangtok') || s.includes('namchi') || s.includes('gezing') || s.includes('mangan')) {
+    return 'sikkim';
+  }
+
+  // 21. Tripura
+  if (s.includes('tripura') || s.includes('agartala') || s.includes('dharmanagar')) {
+    return 'tripura';
+  }
+
+  // 22. Ladakh (UT)
+  if (s.includes('ladakh') || (s.includes('leh') && !s.includes('delhi')) || s.includes('kargil')) {
+    return 'ladakh';
+  }
+
+  // 23. Puducherry (UT)
+  if (s.includes('puducherry') || s.includes('pondicherry') || s.includes('karaikal') || s.includes('yanam') || s.includes('mahe') || s.includes('oulgaret')) {
+    return 'puducherry';
+  }
+
+  // 24. Andaman and Nicobar Islands (UT)
+  if (s.includes('andaman') || s.includes('nicobar') || s.includes('port blair')) {
+    return 'andaman and nicobar islands';
+  }
+
+  // 25. Dadra and Nagar Haveli and Daman and Diu (UT)
+  if (s.includes('daman') || s.includes('diu') || s.includes('silvassa') || s.includes('dadra') || s.includes('nagar haveli')) {
+    return 'dadra and nagar haveli and daman and diu';
+  }
+
+  // 26. Lakshadweep (UT)
+  if (s.includes('lakshadweep') || s.includes('kavaratti') || s.includes('agatti') || s.includes('andrott') || s.includes('minicoy')) {
+    return 'lakshadweep';
+  }
 
   return s;
 }

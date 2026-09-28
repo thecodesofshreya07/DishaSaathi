@@ -119,6 +119,22 @@ export function extractLocationFromQuery(query: string, options?: ParseGoalOptio
   if (q.includes('raipur') || q.includes('chhattisgarh')) return { city: 'Raipur', state: 'Chhattisgarh' };
   if (q.includes('srinagar') || q.includes('jammu')) return { city: 'Srinagar', state: 'Jammu and Kashmir' };
 
+  // 14. Arunachal, Manipur, Meghalaya, Mizoram, Nagaland, Sikkim, Tripura
+  if (q.includes('itanagar') || q.includes('arunachal')) return { city: 'Itanagar', state: 'Arunachal Pradesh' };
+  if (q.includes('imphal') || q.includes('manipur')) return { city: 'Imphal', state: 'Manipur' };
+  if (q.includes('shillong') || q.includes('meghalaya')) return { city: 'Shillong', state: 'Meghalaya' };
+  if (q.includes('aizawl') || q.includes('mizoram')) return { city: 'Aizawl', state: 'Mizoram' };
+  if (q.includes('kohima') || q.includes('dimapur') || q.includes('nagaland')) return { city: q.includes('dimapur') ? 'Dimapur' : 'Kohima', state: 'Nagaland' };
+  if (q.includes('gangtok') || q.includes('sikkim')) return { city: 'Gangtok', state: 'Sikkim' };
+  if (q.includes('agartala') || q.includes('tripura')) return { city: 'Agartala', state: 'Tripura' };
+
+  // 15. Ladakh, Puducherry, Andaman & Nicobar, DNH & DD, Lakshadweep
+  if (q.includes('ladakh') || (q.includes('leh') && !q.includes('delhi')) || q.includes('kargil')) return { city: q.includes('kargil') ? 'Kargil' : 'Leh', state: 'Ladakh' };
+  if (q.includes('puducherry') || q.includes('pondicherry')) return { city: 'Puducherry', state: 'Puducherry' };
+  if (q.includes('port blair') || q.includes('andaman') || q.includes('nicobar')) return { city: 'Port Blair', state: 'Andaman and Nicobar Islands' };
+  if (q.includes('daman') || q.includes('diu') || q.includes('silvassa') || q.includes('dadra')) return { city: q.includes('silvassa') ? 'Silvassa' : q.includes('diu') ? 'Diu' : 'Daman', state: 'Dadra and Nagar Haveli and Daman and Diu' };
+  if (q.includes('kavaratti') || q.includes('lakshadweep')) return { city: 'Kavaratti', state: 'Lakshadweep' };
+
   // Regex pattern to extract "in <location>" or "at <location>"
   const locMatch = q.match(/\b(?:in|at|for|near)\s+([a-zA-Z\u0900-\u097F]+)/i);
   if (locMatch && locMatch[1]) {
