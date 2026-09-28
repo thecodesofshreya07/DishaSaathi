@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { CivicJourney, ProcedureStep, CivicDocument, StepStatus } from '../types';
 import { getEstimatedFeeForStep } from '../utils/costCalculator';
+import { getAlternateDocuments } from '../utils/documentAlternatives';
 
 interface CompareProceduresModalProps {
   isOpen: boolean;
@@ -2462,64 +2463,16 @@ export const CompareProceduresModal: React.FC<CompareProceduresModalProps> = ({
                   </div>
                   
                   <div className="space-y-2.5">
-                    {optionA.documents.map((doc, idx) => (
-                      <div
-                        key={idx}
-                        className="p-2.5 rounded-lg bg-white dark:bg-[#08120F] border border-[#D5E3DA] dark:border-[#1A382C] text-xs space-y-1"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="font-bold text-[#11261F] dark:text-white flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7] shrink-0" />
-                            {doc.name}
-                          </span>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                              doc.type === 'Required'
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                : doc.type === 'Conditional'
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                            }`}
-                          >
-                            {doc.type}
-                          </span>
-                        </div>
-                        {doc.condition && (
-                          <p className="text-[11px] text-[#5A6D64] dark:text-[#9FB7AC] pl-5">
-                            Condition: {doc.condition}
-                          </p>
-                        )}
-                        {doc.authorityRequiredBy && (
-                          <p className="text-[10px] text-[#1B4D3E] dark:text-[#6EE7B7] pl-5">
-                            Mandated by: {doc.authorityRequiredBy}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Option B Documents (if available) */}
-                {!isSingleRouteOnly && optionB && (
-                  <div className="p-4 rounded-xl bg-[#FAF8F2] dark:bg-[#1A1710] border border-[#DFDCD4] dark:border-[#383325] space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-bold text-[#8C5819] dark:text-amber-300 uppercase tracking-wide">
-                        {optionB.title} Documents
-                      </div>
-                      <span className="text-[11px] font-medium text-[#5A6D64] dark:text-[#9FB7AC]">
-                        {optionB.documents.length} Total
-                      </span>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      {optionB.documents.map((doc, idx) => (
+                    {optionA.documents.map((doc, idx) => {
+                      const alternateDocs = getAlternateDocuments({ name: doc.name });
+                      return (
                         <div
                           key={idx}
-                          className="p-2.5 rounded-lg bg-white dark:bg-[#12100A] border border-[#E3DFC9] dark:border-[#2D2817] text-xs space-y-1"
+                          className="p-2.5 rounded-lg bg-white dark:bg-[#08120F] border border-[#D5E3DA] dark:border-[#1A382C] text-xs space-y-1"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <span className="font-bold text-[#11261F] dark:text-white flex items-center gap-1.5">
-                              <Check className="w-3.5 h-3.5 text-[#8C5819] shrink-0" />
+                              <Check className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7] shrink-0" />
                               {doc.name}
                             </span>
                             <span
@@ -2540,12 +2493,86 @@ export const CompareProceduresModal: React.FC<CompareProceduresModalProps> = ({
                             </p>
                           )}
                           {doc.authorityRequiredBy && (
-                            <p className="text-[10px] text-[#8C5819] dark:text-amber-300 pl-5">
+                            <p className="text-[10px] text-[#1B4D3E] dark:text-[#6EE7B7] pl-5">
                               Mandated by: {doc.authorityRequiredBy}
                             </p>
                           )}
+                          {alternateDocs && alternateDocs.length > 0 && (
+                            <div className="text-[11px] text-[#4A5D54] dark:text-[#9FB7AC] pl-5 pt-0.5">
+                              <span className="text-[10px] font-bold text-[#6C8075] dark:text-[#8EAAA0] uppercase tracking-wider block">
+                                Alternate document{alternateDocs.length > 1 ? 's' : ''}
+                              </span>
+                              <span className="font-medium text-[#11261F] dark:text-white">
+                                {alternateDocs.join(' or ')}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Option B Documents (if available) */}
+                {!isSingleRouteOnly && optionB && (
+                  <div className="p-4 rounded-xl bg-[#FAF8F2] dark:bg-[#1A1710] border border-[#DFDCD4] dark:border-[#383325] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-[#8C5819] dark:text-amber-300 uppercase tracking-wide">
+                        {optionB.title} Documents
+                      </div>
+                      <span className="text-[11px] font-medium text-[#5A6D64] dark:text-[#9FB7AC]">
+                        {optionB.documents.length} Total
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {optionB.documents.map((doc, idx) => {
+                        const alternateDocs = getAlternateDocuments({ name: doc.name });
+                        return (
+                          <div
+                            key={idx}
+                            className="p-2.5 rounded-lg bg-white dark:bg-[#12100A] border border-[#E3DFC9] dark:border-[#2D2817] text-xs space-y-1"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="font-bold text-[#11261F] dark:text-white flex items-center gap-1.5">
+                                <Check className="w-3.5 h-3.5 text-[#8C5819] shrink-0" />
+                                {doc.name}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                                  doc.type === 'Required'
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                    : doc.type === 'Conditional'
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                }`}
+                              >
+                                {doc.type}
+                              </span>
+                            </div>
+                            {doc.condition && (
+                              <p className="text-[11px] text-[#5A6D64] dark:text-[#9FB7AC] pl-5">
+                                Condition: {doc.condition}
+                              </p>
+                            )}
+                            {doc.authorityRequiredBy && (
+                              <p className="text-[10px] text-[#8C5819] dark:text-amber-300 pl-5">
+                                Mandated by: {doc.authorityRequiredBy}
+                              </p>
+                            )}
+                            {alternateDocs && alternateDocs.length > 0 && (
+                              <div className="text-[11px] text-[#5A6D64] dark:text-[#9FB7AC] pl-5 pt-0.5">
+                                <span className="text-[10px] font-bold text-[#8C5819] dark:text-amber-400 uppercase tracking-wider block">
+                                  Alternate document{alternateDocs.length > 1 ? 's' : ''}
+                                </span>
+                                <span className="font-medium text-[#11261F] dark:text-white">
+                                  {alternateDocs.join(' or ')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

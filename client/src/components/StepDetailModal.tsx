@@ -24,6 +24,7 @@ import { OfflineDocModal } from './OfflineDocModal';
 import { SlaEscalationModal } from './SlaEscalationModal';
 import { DigiLockerModal } from './DigiLockerModal';
 import { isDigiLockerAvailable } from '../utils/digiLockerEligibility';
+import { getAlternateDocuments } from '../utils/documentAlternatives';
 
 interface StepDetailModalProps {
   step: ProcedureStep | null;
@@ -312,6 +313,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
                   {docList.map((doc) => {
                     const isReady = doc.status === 'READY' || doc.status === 'UPLOADED';
+                    const alternateDocs = getAlternateDocuments(doc, step);
 
                     return (
                       <div
@@ -351,6 +353,16 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                             {doc.description && (
                               <div className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
                                 {doc.description}
+                              </div>
+                            )}
+                            {alternateDocs && alternateDocs.length > 0 && (
+                              <div className="mt-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                  Alternate document{alternateDocs.length > 1 ? 's' : ''}
+                                </span>
+                                <span className="font-medium text-slate-700 dark:text-slate-300">
+                                  {alternateDocs.join(' or ')}
+                                </span>
                               </div>
                             )}
                           </div>

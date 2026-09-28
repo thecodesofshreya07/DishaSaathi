@@ -11,13 +11,18 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
-  Filter,
   Award,
   Sparkles,
   Sun,
   Moon,
-  FileDown
+  FileDown,
+  User as UserIcon,
+  Mail,
+  Phone,
+  LogOut,
+  Check
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, CivicDocumentStatus } from '../types';
 import { getOfficialDocumentApplicationUrl, getDocumentProcurementInfo, OfflineOfficeDetails } from '../utils/documentSources';
 import { getHowToApplyGuide } from '../utils/documentApplicationGuide';
@@ -27,6 +32,7 @@ import { HowToApplyModal } from './HowToApplyModal';
 import { DigiLockerModal } from './DigiLockerModal';
 import { SlaEscalationModal } from './SlaEscalationModal';
 import { isDigiLockerAvailable } from '../utils/digiLockerEligibility';
+import { getAlternateDocuments } from '../utils/documentAlternatives';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -491,6 +497,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
           const isReady = doc.status === 'READY' || doc.status === 'UPLOADED';
           const proc = getDocumentProcurementInfo(doc.name, doc.sourceUrl);
           const guide = getHowToApplyGuide(doc.name);
+          const alternateDocs = getAlternateDocuments(doc, step);
 
           return (
             <div
@@ -524,6 +531,17 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({ journey, onUpdateD
                 <p className="text-[11px] text-[#5C7066] dark:text-[#A2B9AE] mt-1 leading-relaxed">
                   {doc.description || `Statutory certificate issued by ${guide.authority} for verification.`}
                 </p>
+
+                {alternateDocs && alternateDocs.length > 0 && (
+                  <div className="mt-2.5 pt-2 border-t border-dashed border-[#E2EAE5] dark:border-[#1E3B32] text-[11px]">
+                    <span className="text-[10px] font-bold text-[#6C8075] dark:text-[#8EAAA0] uppercase tracking-wider block">
+                      Alternate document{alternateDocs.length > 1 ? 's' : ''}
+                    </span>
+                    <span className="font-medium text-[#1B4D3E] dark:text-[#A7D7C5]">
+                      {alternateDocs.join(' or ')}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 pt-3 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-2">
@@ -1420,20 +1438,53 @@ export const SavedView: React.FC<{
 // 7. SETTINGS & PREFERENCES VIEW
 // ----------------------------------------------------
 export const SettingsView: React.FC<{
-  onResetRoadmap: () => void;
-}> = ({ onResetRoadmap }) => {
+  onResetRoadmap?: () => void;
+}> = () => {
   const { setTheme, isDarkMode } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Manage user phone state
+  const [phoneNumber, setPhoneNumber] = useState<string>(() => {
+    return user?.phone || localStorage.getItem('dishasaathi_user_phone') || '';
+  });
+  const [isEditingPhone, setIsEditingPhone] = useState<boolean>(false);
+  const [isPhoneSaved, setIsPhoneSaved] = useState<boolean>(false);
+
+  const handleSavePhone = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanPhone = phoneNumber.trim();
+    localStorage.setItem('dishasaathi_user_phone', cleanPhone);
+
+    const savedUserStr = localStorage.getItem('dishasaathi_user');
+    if (savedUserStr) {
+      try {
+        const u = JSON.parse(savedUserStr);
+        u.phone = cleanPhone;
+        localStorage.setItem('dishasaathi_user', JSON.stringify(u));
+      } catch {}
+    }
+
+    setIsEditingPhone(false);
+    setIsPhoneSaved(true);
+    setTimeout(() => setIsPhoneSaved(false), 3000);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200 max-w-2xl">
       <div>
         <h3 className="text-xl font-black text-[#11261F] dark:text-white">Citizen Portal Settings</h3>
         <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC]">
-          Manage appearance theme, AI engine configuration, and local state.
+          Manage appearance theme, user profile details, and account preferences.
         </p>
       </div>
 
-      <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1E19] border border-[#DCE8E1] dark:border-[#1F3E33] shadow-2xs space-y-5">
+      <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1E19] border border-[#DCE8E1] dark:border-[#1F3E33] shadow-2xs space-y-6">
         {/* Appearance & Theme Selector */}
         <div>
           <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-2.5">
@@ -1472,36 +1523,156 @@ export const SettingsView: React.FC<{
           </div>
         </div>
 
-        {/* AI Engine */}
-        <div className="pt-3 border-t border-[#EDF2EE] dark:border-[#1F3E33]">
-          <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-2">
-            AI Engine Configuration
+        {/* User Account & Profile Information */}
+        <div className="pt-4 border-t border-[#EDF2EE] dark:border-[#1F3E33]">
+          <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-3">
+            Citizen Profile & Account
           </h4>
-          <div className="p-3.5 rounded-xl bg-[#F6FAF8] dark:bg-[#12241E] border border-[#DCEAE2] dark:border-[#1F3E33] text-xs space-y-1">
-            <div className="flex items-center justify-between font-bold text-[#1B4D3E] dark:text-[#6EE7B7]">
-              <span>Google Gemini API</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px]">Active</span>
-            </div>
-            <p className="text-[#5C7066] dark:text-[#9FB7AC] text-[11px] leading-relaxed">
-              Configured via server <code className="font-mono bg-white dark:bg-[#0D1A16] px-1.5 py-0.5 rounded border border-[#D5E3DB] dark:border-[#1F3E33]">GEMINI_API_KEY</code> for real-time goal interpretation and statutory gazette rule extraction.
-            </p>
-          </div>
-        </div>
 
-        {/* Reset Data */}
-        <div className="pt-3 border-t border-[#EDF2EE] dark:border-[#1F3E33]">
-          <h4 className="text-xs font-extrabold text-[#11261F] dark:text-white uppercase tracking-wider mb-2">
-            Reset Data & Clear Cache
-          </h4>
-          <p className="text-xs text-[#5C7066] dark:text-[#9FB7AC] mb-3 leading-relaxed">
-            Reset your current civic roadmap back to initial baseline or clear local progress.
-          </p>
-          <button
-            onClick={onResetRoadmap}
-            className="px-4 py-2 rounded-xl bg-white dark:bg-[#12241E] text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs font-bold transition-all cursor-pointer"
-          >
-            Reset Active Roadmap
-          </button>
+          {isAuthenticated && user ? (
+            <div className="space-y-4">
+              {/* Profile Card Header */}
+              <div className="p-4 rounded-xl bg-[#F6FAF8] dark:bg-[#12241E] border border-[#DCEAE2] dark:border-[#1F3E33] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-[#1B4D3E] text-white font-black text-lg flex items-center justify-center ring-4 ring-[#1B4D3E]/10">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div>
+                    <h5 className="text-sm font-bold text-[#11261F] dark:text-white">
+                      {user.name}
+                    </h5>
+                    <p className="text-xs text-[#5C7066] dark:text-[#9FB7AC]">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
+                  <ShieldCheck className="w-3 h-3 text-emerald-700 dark:text-emerald-400" />
+                  <span>{user.role === 'admin' ? 'Administrator' : 'Verified Citizen'}</span>
+                </div>
+              </div>
+
+              {/* Profile Details List */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {/* Full Name */}
+                <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-[#12241E]/50 border border-slate-200 dark:border-[#1F3E33]">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                    <UserIcon className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">User Name</span>
+                  </div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    {user.name || 'Not provided'}
+                  </div>
+                </div>
+
+                {/* Email Address */}
+                <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-[#12241E]/50 border border-slate-200 dark:border-[#1F3E33]">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Email Address</span>
+                  </div>
+                  <div className="font-semibold text-slate-900 dark:text-white truncate">
+                    {user.email}
+                  </div>
+                </div>
+              </div>
+
+              {/* Phone Number Section */}
+              <div className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-[#12241E]/50 border border-slate-200 dark:border-[#1F3E33]">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                    <Phone className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Phone Number</span>
+                  </div>
+                  {isPhoneSaved && (
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Saved
+                    </span>
+                  )}
+                </div>
+
+                {isEditingPhone ? (
+                  <form onSubmit={handleSavePhone} className="flex items-center gap-2">
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-[#234A3E] bg-white dark:bg-[#0D1A16] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="px-3 py-1.5 rounded-lg bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(false)}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-300 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-900 dark:text-white">
+                      {phoneNumber ? phoneNumber : <span className="text-slate-400 font-normal italic">No phone number added</span>}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingPhone(true)}
+                      className="text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] hover:underline cursor-pointer"
+                    >
+                      {phoneNumber ? 'Change' : '+ Add Phone'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Logout Option */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-[#12241E] text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Log Out of Account</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Guest State */
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-[#F6FAF8] dark:bg-[#12241E] border border-[#DCEAE2] dark:border-[#1F3E33] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black text-base flex items-center justify-center">
+                    G
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#11261F] dark:text-white">
+                      Guest Citizen
+                    </h5>
+                    <p className="text-[11px] text-[#5C7066] dark:text-[#9FB7AC]">
+                      Local session active (progress saved locally on this browser)
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="px-3 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Sign In / Register
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

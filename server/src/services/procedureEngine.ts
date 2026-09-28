@@ -1,4 +1,5 @@
 import { CivicJourney, ProcedureStep } from '../types.js';
+import { getOfficialAlternateDocuments } from './civic/documentAlternatives.js';
 
 interface ExtractedGoal {
   task: string;
@@ -120,7 +121,12 @@ Return ONLY a valid JSON object matching this schema:
       "description": "2-3 sentences explaining what this step is",
       "whyRequired": "Clear regulatory explanation of why this step is mandatory",
       "documents": [
-        { "name": "Document Name", "isMandatory": true, "description": "brief info" }
+        { 
+          "name": "Document Name", 
+          "isMandatory": true, 
+          "description": "brief info",
+          "alternateDocuments": ["Officially Accepted Alternate Document"] // ONLY if statutory rules legally accept an alternative; if none, omit or empty array
+        }
       ],
       "prerequisites": [], // array of prior step numbers as numbers, e.g. [1, 2]
       "fee": { "amount": "₹X", "description": "Official fee note" },
@@ -163,12 +169,20 @@ Return ONLY a valid JSON object matching this schema:
               description: s.description || 'Administrative verification step.',
               status: idx === 0 ? 'In Progress' : 'Pending',
               whyRequired: s.whyRequired || 'Required by statutory compliance rules.',
-              documents: (s.documents || []).map((doc: any, dIdx: number) => ({
-                id: `doc-${idx + 1}-${dIdx + 1}`,
-                name: doc.name || 'Identity Proof',
-                description: doc.description,
-                isMandatory: doc.isMandatory !== false
-              })),
+              documents: (s.documents || []).map((doc: any, dIdx: number) => {
+                const docName = doc.name || 'Identity Proof';
+                const altDocs = (Array.isArray(doc.alternateDocuments) && doc.alternateDocuments.length > 0)
+                  ? doc.alternateDocuments
+                  : getOfficialAlternateDocuments(docName, s.title || '', extracted.location);
+
+                return {
+                  id: `doc-${idx + 1}-${dIdx + 1}`,
+                  name: docName,
+                  description: doc.description,
+                  isMandatory: doc.isMandatory !== false,
+                  alternateDocuments: altDocs
+                };
+              }),
               prerequisites,
               fee: s.fee || { amount: '₹0', description: 'Statutory fee' },
               processingTime: s.processingTime || '3-7 working days',

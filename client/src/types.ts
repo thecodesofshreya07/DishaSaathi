@@ -95,6 +95,7 @@ export interface CivicDocument {
   blockingSteps?: string[];
   sourceUrl?: string;
   verificationStatus?: CivicVerificationStatus;
+  alternateDocuments?: string[];
 }
 
 export interface ProcedureStep {

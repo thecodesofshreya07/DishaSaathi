@@ -29,6 +29,10 @@ import {
   seedDefaultUser 
 } from './services/authService.js';
 import { 
+  getOfficialAlternateDocuments, 
+  resolveAlternateDocumentViaAi 
+} from './services/civic/documentAlternatives.js';
+import { 
   authMiddleware, 
   optionalAuthMiddleware, 
   AuthenticatedRequest 
@@ -827,6 +831,32 @@ app.post('/api/journey/reset', async (req: Request, res: Response) => {
     message: 'Journey reset to fresh state',
     journey: currentJourney
   });
+});
+
+// Statutory Document Alternatives Endpoint (Grounded in Official Gazettes & AI)
+app.post('/api/documents/alternatives', async (req: Request, res: Response) => {
+  const { documentName, stepTitle, jurisdiction } = req.body;
+  if (!documentName) {
+    return res.status(400).json({ success: false, error: 'Document name is required' });
+  }
+
+  // 1. Try deterministic statutory gazette rules
+  const deterministic = getOfficialAlternateDocuments(documentName, stepTitle, jurisdiction);
+  if (deterministic && deterministic.length > 0) {
+    return res.json({ success: true, alternates: deterministic, source: 'GAZETTE_REGISTRY' });
+  }
+
+  // 2. Try AI-powered statutory resolution
+  try {
+    const aiAlternates = await resolveAlternateDocumentViaAi(documentName, stepTitle || '', jurisdiction);
+    return res.json({
+      success: true,
+      alternates: aiAlternates || null,
+      source: aiAlternates ? 'AI_GAZETTE_REASONING' : 'NO_STATUTORY_ALTERNATE'
+    });
+  } catch (err: any) {
+    return res.json({ success: true, alternates: null, source: 'NO_STATUTORY_ALTERNATE' });
+  }
 });
 
 // ============================================================

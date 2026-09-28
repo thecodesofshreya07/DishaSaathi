@@ -15,6 +15,7 @@ import {
   sanitizeRoadmap 
 } from './roadmapValidator.js';
 import { getJurisdictionProfile } from './jurisdictionRegistry.js';
+import { getOfficialAlternateDocuments } from './documentAlternatives.js';
 
 /**
  * Infers document category from document title and description
@@ -227,6 +228,8 @@ export function buildRoadmap(
         docDesc = jurisdictionProfile.signboardRequirement.ruleDescription;
       }
 
+      const alternateDocs = doc.alternateDocuments || getOfficialAlternateDocuments(docName, stepTitle, jurisdictionProfile.state);
+
       return {
         id: doc.id,
         name: docName,
@@ -236,7 +239,8 @@ export function buildRoadmap(
         status: doc.status || 'NOT_READY',
         isMandatory: doc.isMandatory,
         sourceUrl: doc.sourceUrl || stepSource.url,
-        verificationStatus: doc.verificationStatus || proc.verificationStatus
+        verificationStatus: doc.verificationStatus || proc.verificationStatus,
+        alternateDocuments: alternateDocs
       };
     });
 
