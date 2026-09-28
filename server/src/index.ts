@@ -785,31 +785,40 @@ app.get('/api/journey/adaptive-action', (req: Request, res: Response) => {
 
 // 10. Goal Refinement & Non-destructive Roadmap Diff (Section 24, 25, 26)
 app.post('/api/journey/refine', async (req: Request, res: Response) => {
-  if (!currentJourney) {
-    return res.status(404).json({ success: false, error: 'No active roadmap' });
+  const { goal, city, state, additionalContext, journey } = req.body;
+  const targetJourney: CivicJourney | null = journey || currentJourney;
+  if (!targetJourney) {
+    return res.status(404).json({ success: false, error: 'No active roadmap found to refine' });
   }
 
-  const { goal, city, state, additionalContext } = req.body;
-  const targetQuery = goal || currentJourney.query;
-  const targetLocation = city && state ? `${city}, ${state}` : currentJourney.location;
+  const targetQuery = (goal || targetJourney.query || targetJourney.title || '').trim();
+  let targetLocation = targetJourney.location || 'Mumbai, Maharashtra';
+  if (city) {
+    targetLocation = `${city}${state ? `, ${state}` : ''}`;
+  }
 
-  const parsedGoal = await parseCitizenGoal(targetQuery, {
-    locationOverride: targetLocation,
-    context: additionalContext
-  });
+  try {
+    const parsedGoal = await parseCitizenGoal(targetQuery, {
+      locationOverride: targetLocation,
+      context: additionalContext
+    });
 
-  const candidateProcs = findRelevantProcedures(parsedGoal);
-  const newRoadmap = buildRoadmap(parsedGoal, candidateProcs);
-  const { diff, adaptedJourney } = computeRoadmapDiff(currentJourney, newRoadmap);
+    const candidateProcs = findRelevantProcedures(parsedGoal);
+    const newRoadmap = buildRoadmap(parsedGoal, candidateProcs);
+    const { diff, adaptedJourney } = computeRoadmapDiff(targetJourney, newRoadmap);
 
-  currentJourney = adaptedJourney;
+    currentJourney = adaptedJourney;
 
-  res.json({
-    success: true,
-    journey: currentJourney,
-    diff,
-    recommendation: getNextAction(currentJourney)
-  });
+    res.json({
+      success: true,
+      journey: adaptedJourney,
+      diff,
+      recommendation: getNextAction(adaptedJourney)
+    });
+  } catch (err: any) {
+    console.error('Error during roadmap refinement:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to refine roadmap' });
+  }
 });
 
 // 11. Roadmap Re-Check against Knowledge Base (Section 21)

@@ -39,7 +39,7 @@ interface RoadmapContextType {
   hasSavedProgress: boolean;
   resumeSavedProgress: () => void;
   adaptiveRecommendation: ActionRecommendation | null;
-  refineGoal: (params: { goal?: string; city?: string; state?: string; additionalContext?: string }) => Promise<{ success: boolean; diff?: RoadmapDiff }>;
+  refineGoal: (params: { goal?: string; city?: string; state?: string; additionalContext?: string; journey?: CivicJourney }) => Promise<{ success: boolean; diff?: RoadmapDiff; message?: string }>;
   recheckRoadmap: () => Promise<{ success: boolean; message: string }>;
   isCopilotOpen: boolean;
   setIsCopilotOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -655,12 +655,16 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const refineGoal = async (params: { goal?: string; city?: string; state?: string; additionalContext?: string }) => {
+  const refineGoal = async (params: { goal?: string; city?: string; state?: string; additionalContext?: string; journey?: CivicJourney }) => {
     try {
+      const targetJourney = params.journey || journey;
       const res = await fetch('/api/journey/refine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
+        body: JSON.stringify({
+          ...params,
+          journey: targetJourney
+        })
       });
       if (res.ok) {
         const data = await res.json();
@@ -671,10 +675,11 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
           return { success: true, diff: data.diff };
         }
       }
-      return { success: false };
-    } catch (err) {
+      const errData = await res.json().catch(() => null);
+      return { success: false, message: errData?.error || 'Server could not refine roadmap' };
+    } catch (err: any) {
       console.error('Failed to refine goal', err);
-      return { success: false };
+      return { success: false, message: err?.message || 'Failed to refine goal' };
     }
   };
 
