@@ -43,8 +43,14 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
     switch (intent) {
       case 'START_BUSINESS':
         if (isFoodBusiness) {
-          // Bakeries require food-specific safety & health compliance
-          return proc.domain === 'FOOD_BUSINESS';
+          // Food businesses require food-specific safety & health compliance plus commercial establishment registration
+          return (
+            proc.domain === 'FOOD_BUSINESS' ||
+            proc.id === 'proc-pan-entity' ||
+            proc.id === 'proc-udyam-msme' ||
+            proc.id === 'proc-gumasta-shop' ||
+            proc.id === 'proc-gst-registration'
+          );
         } else {
           // General non-food business: legal identity, MSME, shop establishment, and GST
           return (
@@ -159,7 +165,7 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
     } else if (intent === 'REGISTER_VEHICLE') {
       candidates = procedureKnowledgeBase.filter((p) => p.domain === 'TRANSPORT');
     } else if (intent === 'START_BUSINESS') {
-      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'FOOD_BUSINESS' || p.id === 'proc-pan-entity' || p.id === 'proc-gumasta-shop');
+      candidates = procedureKnowledgeBase.filter((p) => p.domain === 'FOOD_BUSINESS' || p.id === 'proc-pan-entity' || p.id === 'proc-udyam-msme' || p.id === 'proc-gumasta-shop' || p.id === 'proc-gst-registration');
     } else if (intent === 'GET_CERTIFICATE') {
       candidates = procedureKnowledgeBase.filter((p) => p.domain === 'VITAL_RECORDS');
     }

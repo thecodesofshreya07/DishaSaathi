@@ -4,7 +4,7 @@ import {
   FileDiff,
   ExternalLink,
   CheckCircle2,
-  Sparkles
+  Sparkles 
 } from 'lucide-react';
 import { GovernmentUpdate } from '../types';
 

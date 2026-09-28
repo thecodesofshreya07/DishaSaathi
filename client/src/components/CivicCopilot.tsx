@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  X,
+  X, 
   Send,
   Compass,
   Layers,
