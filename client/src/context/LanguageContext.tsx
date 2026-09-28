@@ -986,13 +986,18 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
+    // Only restore a saved language if the user EXPLICITLY changed it (flag check)
+    // This prevents auto-translating for new visitors who share the same browser/deploy
     const saved = localStorage.getItem('dishasaathi_lang') as Language;
-    return saved === 'hi' || saved === 'mr' || saved === 'en' ? saved : 'en';
+    const userChose = localStorage.getItem('dishasaathi_lang_chosen') === 'true';
+    if (userChose && (saved === 'hi' || saved === 'mr' || saved === 'en')) return saved;
+    return 'en';
   });
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('dishasaathi_lang', lang);
+    localStorage.setItem('dishasaathi_lang_chosen', 'true'); // mark as explicit user choice
     document.documentElement.lang = lang;
     triggerGoogleTranslate(lang);
   }, []);
@@ -1004,7 +1009,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     document.documentElement.lang = language;
-    triggerGoogleTranslate(language);
+    // Only auto-trigger Google Translate on mount if language is non-English
+    // Prevents new visitors from seeing a translated page unexpectedly
+    if (language !== 'en') {
+      triggerGoogleTranslate(language);
+    }
   }, [language]);
 
   return (
