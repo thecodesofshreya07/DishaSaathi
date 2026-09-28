@@ -14,12 +14,12 @@ export const documentApplicationGuides: Record<string, DocumentHowToApplyGuide> 
   'Aadhaar': {
     documentName: 'Aadhaar Card (New Enrolment / Biometric Update / e-KYC)',
     portalName: 'UIDAI myAadhaar Portal & Seva Kendra System',
-    directUrl: 'https://appointments.uidai.gov.in/bookappointment.aspx',
+    directUrl: 'https://myaadhaar.uidai.gov.in/',
     authority: 'Unique Identification Authority of India (UIDAI)',
     estimatedTime: 'Appointment: 1 Day | Enrolment Generation: 5 - 10 Days',
     fee: '₹0 (New Enrolment) / ₹50 (Demographic Update) / ₹100 (Biometric Update)',
     steps: [
-      'Open the official UIDAI appointment booking portal (https://appointments.uidai.gov.in).',
+      'Open the official UIDAI myAadhaar portal (https://myaadhaar.uidai.gov.in) and click "Book an Appointment" or "Login with Aadhaar OTP".',
       'Select your City/Location (e.g., Mumbai, Pune, Thane) and click "Proceed to Book Appointment".',
       'Enter your mobile number, solve captcha, and enter the generated OTP.',
       'Select procedure type: "New Aadhaar Enrolment" or "Update Existing Aadhaar".',

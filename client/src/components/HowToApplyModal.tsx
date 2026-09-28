@@ -97,7 +97,8 @@ export const HowToApplyModal: React.FC<HowToApplyModalProps> = ({
               href={guide.directUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer active:scale-95"
             >
               <span>Open Portal ↗</span>
               <ExternalLink className="w-3.5 h-3.5" />
