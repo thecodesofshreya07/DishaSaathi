@@ -130,6 +130,23 @@ export const CivicCopilot: React.FC<CivicCopilotProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isThinking]);
 
+  // Synchronize copilot greeting whenever active journey changes
+  useEffect(() => {
+    setMessages([
+      {
+        id: `init-${journey.id || Date.now()}`,
+        sender: 'assistant',
+        text: `Hello! I am DishaSaathi, your civic journey companion for "${journey.title}". Ask me about what to do next, missing documents, parallel actions, or where to apply.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        suggestedFollowUps: [
+          'What should I do next?',
+          'What documents am I missing?',
+          'What can I do in parallel?'
+        ]
+      }
+    ]);
+  }, [journey.id, journey.title]);
+
   if (!isOpen) return null;
 
   const handleSend = async (queryText?: string) => {

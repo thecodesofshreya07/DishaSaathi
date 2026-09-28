@@ -631,6 +631,7 @@ export const RoadmapPage: React.FC = () => {
       {/* E. AI Assistant Modal */}
       {isAiModalOpen && (
         <AiAssistantModal
+          key={activeJourney.id}
           journey={activeJourney}
           onClose={() => {
             setIsAiModalOpen(false);
@@ -657,6 +658,7 @@ export const RoadmapPage: React.FC = () => {
       {/* G. Civic Copilot Drawer */}
       <ErrorBoundary fallbackTitle="Civic Copilot Error">
         <CivicCopilot
+          key={activeJourney.id}
           journey={activeJourney}
           isOpen={isCopilotOpen}
           onClose={() => setIsCopilotOpen(false)}

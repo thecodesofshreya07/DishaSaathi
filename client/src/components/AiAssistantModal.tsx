@@ -56,6 +56,28 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
 
+  React.useEffect(() => {
+    const current = focusStepId
+      ? journey.steps.find((s) => s.id === focusStepId)
+      : journey.steps.find((s) => s.status === 'In Progress') || journey.steps[0];
+    setActiveStep(current);
+    setMessages([
+      {
+        sender: 'assistant',
+        text: `Hello! I am your DishaSaathi Civic Navigator. You are viewing "${journey.title}" in ${journey.location}.${
+          current
+            ? ` Currently focused on Step ${current.stepNumber}: "${current.title.replace(/^\d+\.\s*/, '')}" (${current.authority || current.department}).`
+            : ''
+        } Ask any question about procedural prerequisites, document checklists, or official fees.`,
+        sourceTitle: current?.source?.title,
+        sourceUrl: current?.source?.url,
+        department: current?.authority || current?.department,
+        relatedStepNumber: current?.stepNumber,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  }, [journey.id, journey.title, focusStepId]);
+
   // Section 19: Quick Questions
   const suggestedQuestions = [
     'Why do I need this?',
