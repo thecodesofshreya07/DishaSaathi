@@ -30,9 +30,9 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
   if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0) {
     const groqCandidateModels = [
       process.env.GROQ_MODEL,
-      'qwen/qwen3.8-27b',
       'openai/gpt-oss-120b',
-      'openai/gpt-oss-20b'
+      'openai/gpt-oss-20b',
+      'qwen/qwen3.8-27b'
     ].filter(Boolean) as string[];
 
     for (const model of groqCandidateModels) {

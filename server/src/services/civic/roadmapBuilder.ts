@@ -306,11 +306,10 @@ export async function answerContextualQuestion(
   const qLower = question.toLowerCase();
   const apiKey = process.env.GEMINI_API_KEY;
 
-  // 1. If Gemini API key is available, run grounded contextual generation
-  if (apiKey && currentStep) {
+  // 1. Run grounded contextual generation via Universal LLM (Groq / Gemini / OpenRouter)
+  if (currentStep) {
     try {
-      const { GoogleGenAI } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey });
+      const { callUniversalLlm } = await import('./universalLlm.js');
 
       const readyDocs = currentStep.documents.filter((d) => d.status === 'READY').map((d) => d.name);
       const missingDocs = currentStep.documents.filter((d) => d.status !== 'READY').map((d) => d.name);
@@ -326,8 +325,8 @@ Parallel steps: ${JSON.stringify(currentStep.parallelWith || [])}
 All Documents: ${currentStep.documents.map((d) => d.name).join(', ')}
 Ready Documents: ${readyDocs.join(', ') || 'None marked ready yet'}
 Missing Documents: ${missingDocs.join(', ') || 'All marked ready'}
-Official Portal / Source: ${currentStep.source.title} (${currentStep.source.url})
-Verification Status: ${currentStep.verificationStatus}
+Official Portal / Source: ${currentStep.source?.title || 'Official Portal'} (${currentStep.source?.url || 'https://india.gov.in'})
+Verification Status: ${currentStep.verificationStatus || 'VERIFIED'}
 
 The citizen asks: "${question}"
 
@@ -341,9 +340,9 @@ GUIDELINES:
 - If asking "Can I do this before Step X?", evaluate if Step X is a prerequisite or parallel.
 - If uncertain or asked something not covered in the data, state: "I don't have enough verified information to answer that confidently. Here is what we know: ... What you should verify: ..."`;
 
-      const response = await ai.models.generateContent({
-        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-        contents: prompt
+      const response = await callUniversalLlm({
+        prompt,
+        temperature: 0.2
       });
 
       if (response && response.text) {
