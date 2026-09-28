@@ -232,8 +232,12 @@ export interface LanguageStrings {
   flowchartDesc: string;
   flowchartCompleted: string;
   flowchartCurrent: string;
-  flowchartUpcoming: string;
+    flowchartUpcoming: string;
   flowchartBlocked: string;
+  voiceReadStep: string;
+  voiceStopReading: string;
+  voiceListenAssistant: string;
+  voiceReadingNow: string;
 }
 
 const translations: Record<Language, LanguageStrings> = {
@@ -455,6 +459,10 @@ const translations: Record<Language, LanguageStrings> = {
     flowchartCurrent: 'Current',
     flowchartUpcoming: 'Upcoming',
     flowchartBlocked: 'Blocked',
+    voiceReadStep: 'Read step aloud',
+    voiceStopReading: 'Stop reading',
+    voiceListenAssistant: 'Listen to answer',
+    voiceReadingNow: 'Reading aloud...',
   },
 
   hi: {
@@ -675,6 +683,10 @@ const translations: Record<Language, LanguageStrings> = {
     flowchartCurrent: 'प्रगति में',
     flowchartUpcoming: 'आगामी',
     flowchartBlocked: 'अवरुद्ध',
+    voiceReadStep: 'चरण बोलकर सुनें',
+    voiceStopReading: 'बोलना बंद करें',
+    voiceListenAssistant: 'उत्तर सुनें',
+    voiceReadingNow: 'पढ़ा जा रहा है...',
   },
 
   mr: {
@@ -895,6 +907,10 @@ const translations: Record<Language, LanguageStrings> = {
     flowchartCurrent: 'सुरू आहे',
     flowchartUpcoming: 'पुढील',
     flowchartBlocked: 'थांबलेले',
+    voiceReadStep: 'टप्पा बोलून ऐका',
+    voiceStopReading: 'वाचन थांबवा',
+    voiceListenAssistant: 'उत्तर ऐका',
+    voiceReadingNow: 'वाचत आहे...',
   },
 };
 

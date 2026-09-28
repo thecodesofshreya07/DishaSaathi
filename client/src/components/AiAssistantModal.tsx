@@ -6,9 +6,14 @@ import {
   Compass,
   ShieldCheck,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { CivicJourney, ProcedureStep } from '../types';
+import { useLanguage } from '../context/LanguageContext';
+import { useTextToSpeech } from '../hooks/useTextToSpeech';
+import { SpeechLanguage } from '../utils/textToSpeech';
 
 interface AiAssistantModalProps {
   journey: CivicJourney;
@@ -32,6 +37,9 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
   onClose,
   focusStepId
 }) => {
+  const { t, language } = useLanguage();
+  const { isSpeaking, activeId, speak, stop, isSupported } = useTextToSpeech();
+
   // Focus step if passed, else active step, else step 1
   const targetedStep = focusStepId
     ? journey.steps.find((s) => s.id === focusStepId)
@@ -55,6 +63,38 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+
+  React.useEffect(() => {
+    return () => {
+      stop();
+    };
+  }, [stop]);
+
+  const handleToggleMessageSpeech = (index: number, defaultText: string) => {
+    const speechId = `msg-${index}`;
+    if (isSpeaking && activeId === speechId) {
+      stop();
+    } else {
+      const domEl = document.getElementById(`assistant-msg-${index}`);
+      const textToRead = domEl?.innerText?.trim() || defaultText;
+      speak(textToRead, speechId, language as SpeechLanguage);
+    }
+  };
+
+  const handleToggleLatestSpeech = () => {
+    if (isSpeaking) {
+      stop();
+      return;
+    }
+    const assistantMsgs = messages
+      .map((m, idx) => ({ ...m, idx }))
+      .filter((m) => m.sender === 'assistant');
+    if (assistantMsgs.length === 0) return;
+    const latest = assistantMsgs[assistantMsgs.length - 1];
+    const domEl = document.getElementById(`assistant-msg-${latest.idx}`);
+    const textToRead = domEl?.innerText?.trim() || latest.text;
+    speak(textToRead, `msg-${latest.idx}`, language as SpeechLanguage);
+  };
 
   React.useEffect(() => {
     const current = focusStepId
@@ -250,12 +290,43 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-white transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {isSupported && (
+              <button
+                type="button"
+                onClick={handleToggleLatestSpeech}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                  isSpeaking
+                    ? 'bg-amber-400 text-[#12382D] animate-pulse ring-2 ring-amber-300'
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                }`}
+                title={isSpeaking ? (t.voiceStopReading || 'Stop reading') : (t.voiceListenAssistant || 'Listen to answer')}
+                aria-label={isSpeaking ? (t.voiceStopReading || 'Stop reading') : (t.voiceListenAssistant || 'Listen to answer')}
+              >
+                {isSpeaking ? (
+                  <>
+                    <VolumeX className="w-3.5 h-3.5" />
+                    <span>{t.voiceStopReading || 'Stop'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-3.5 h-3.5 text-amber-300" />
+                    <span>{t.voiceListenAssistant || 'Listen'}</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                stop();
+                onClose();
+              }}
+              className="p-2 rounded-full hover:bg-white/10 text-white transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Step Selector Tab Bar if multi-step journey */}
@@ -301,25 +372,54 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
                   </div>
                 )}
 
-                <p className="font-medium text-slate-800">{msg.text}</p>
+                <p id={`assistant-msg-${i}`} className="font-medium text-slate-800">{msg.text}</p>
 
-                {/* Grounded Source Footer */}
-                {msg.sender === 'assistant' && (msg.sourceTitle || msg.sourceUrl) && (
+                {/* Grounded Source Footer & Voice Button */}
+                {msg.sender === 'assistant' && (
                   <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1 text-[10px] text-slate-500">
-                    <span className="flex items-center gap-1 font-semibold text-emerald-800">
-                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                      <span>{msg.department || msg.sourceTitle}</span>
-                    </span>
-                    {msg.sourceUrl && (
-                      <a
-                        href={msg.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-0.5 text-emerald-700 hover:underline font-bold"
+                    <div className="flex items-center gap-2">
+                      {(msg.sourceTitle || msg.sourceUrl) && (
+                        <span className="flex items-center gap-1 font-semibold text-emerald-800">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          <span>{msg.department || msg.sourceTitle}</span>
+                        </span>
+                      )}
+                      {msg.sourceUrl && (
+                        <a
+                          href={msg.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-0.5 text-emerald-700 hover:underline font-bold"
+                        >
+                          <span>Official Portal</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      )}
+                    </div>
+
+                    {isSupported && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleMessageSpeech(i, msg.text)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                          isSpeaking && activeId === `msg-${i}`
+                            ? 'bg-emerald-600 text-white animate-pulse'
+                            : 'bg-[#EAF2ED] hover:bg-[#D5E3DB] text-[#1B4D3E] border border-[#CDE3D7]'
+                        }`}
+                        title={isSpeaking && activeId === `msg-${i}` ? (t.voiceStopReading || 'Stop') : (t.voiceListenAssistant || 'Listen')}
                       >
-                        <span>Official Portal</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
+                        {isSpeaking && activeId === `msg-${i}` ? (
+                          <>
+                            <VolumeX className="w-3 h-3" />
+                            <span>{t.voiceStopReading || 'Stop'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-3 h-3" />
+                            <span>{t.voiceListenAssistant || 'Listen'}</span>
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
                 )}

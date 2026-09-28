@@ -14,10 +14,15 @@ import {
   Check,
   Eye,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { ProcedureStep, CivicJourney, CivicDocument, CivicDocumentStatus, CivicDocumentCategory } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { useTextToSpeech } from '../hooks/useTextToSpeech';
+import { getStepModalSpokenText } from '../utils/stepSpeechHelper';
+import { SpeechLanguage } from '../utils/textToSpeech';
 import { getDocumentProcurementInfo, getDocumentApplicationUrl, OfflineOfficeDetails } from '../utils/documentSources';
 import { SourceExcerptModal } from './SourceExcerptModal';
 import { OfflineDocModal } from './OfflineDocModal';
@@ -45,7 +50,10 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
   onNavigateToStep,
   onOpenAiAssistant
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { isSpeaking, speak, stop, isSupported } = useTextToSpeech();
+  const modalBodyRef = React.useRef<HTMLDivElement>(null);
+
   const [showTransparency, setShowTransparency] = useState(false);
   const [isExcerptModalOpen, setIsExcerptModalOpen] = useState(false);
   const [isSlaModalOpen, setIsSlaModalOpen] = useState(false);
@@ -60,7 +68,20 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  React.useEffect(() => {
+    stop();
+  }, [step?.id, stop]);
+
   if (!step) return null;
+
+  const handleToggleVoice = () => {
+    if (isSpeaking) {
+      stop();
+    } else {
+      const textToRead = getStepModalSpokenText(step, language as SpeechLanguage, modalBodyRef.current);
+      speak(textToRead, 'step-modal');
+    }
+  };
 
   // Find prerequisite steps (checking prerequisites & dependsOn)
   const allPrereqIds = Array.from(new Set([...(step.prerequisites || []), ...(step.dependsOn || [])]));
@@ -118,9 +139,9 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
       <div className="absolute inset-0" onClick={onClose} />
 
       {/* Centered Modal Dialog Card (Strictly within viewport, no overflow cutoff) */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-[#0D1A16] rounded-3xl shadow-2xl border border-slate-200 dark:border-[#1E3B32] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 z-10">
+      <div className="relative w-full max-w-xl max-h-[85vh] bg-white dark:bg-[#0D1A16] rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-[#1E3B32] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 z-10">
         {/* Fixed Header */}
-        <div className="px-6 py-4 bg-slate-50 dark:bg-[#10241E] border-b border-slate-200 dark:border-[#1E3B32] flex items-start justify-between gap-4 shrink-0">
+        <div className="px-5 py-3.5 bg-slate-50 dark:bg-[#10241E] border-b border-slate-200 dark:border-[#1E3B32] flex items-start justify-between gap-3 shrink-0">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <span className="w-6 h-6 rounded-full bg-[#1B4D3E] dark:bg-[#22C55E] text-white dark:text-[#0D1A16] text-xs font-bold flex items-center justify-center shadow-xs">
@@ -130,16 +151,46 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                 {step.category}
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white leading-snug">
+            <h2 data-speech-id="title" className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white leading-snug">
               {cleanTitle}
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-1 font-medium">
               <Building className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7]" />
-              <span>Authority: <strong className="text-slate-900 dark:text-white">{step.authority || step.department}</strong></span>
+              <span>Authority: <strong data-speech-id="authority" className="text-slate-900 dark:text-white">{step.authority || step.department}</strong></span>
             </p>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {isSupported && (
+              <button
+                type="button"
+                onClick={handleToggleVoice}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                  isSpeaking
+                    ? 'bg-emerald-600 text-white animate-pulse ring-2 ring-emerald-400/50'
+                    : 'bg-[#EAF2ED] dark:bg-[#18382F] hover:bg-[#D6E7DC] dark:hover:bg-[#1E453A] text-[#1B4D3E] dark:text-[#6EE7B7] border border-[#CDE3D7] dark:border-[#245244]'
+                }`}
+                title={isSpeaking ? (t.voiceStopReading || 'Stop reading') : (t.voiceReadStep || 'Read step aloud')}
+                aria-label={isSpeaking ? (t.voiceStopReading || 'Stop reading') : (t.voiceReadStep || 'Read step aloud')}
+              >
+                {isSpeaking ? (
+                  <>
+                    <VolumeX className="w-4 h-4 text-white" />
+                    <span className="hidden sm:inline text-[11px] font-bold">
+                      {t.voiceStopReading || 'Stop'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-4 h-4 text-[#1B4D3E] dark:text-[#6EE7B7]" />
+                    <span className="hidden sm:inline text-[11px] font-bold">
+                      {t.voiceReadStep || 'Listen'}
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               onClick={() => setShowTransparency(!showTransparency)}
               className="p-2 rounded-xl hover:bg-slate-200/80 dark:hover:bg-[#1E3B32] text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
@@ -148,7 +199,10 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
               <Eye className="w-4 h-4" />
             </button>
             <button
-              onClick={onClose}
+              onClick={() => {
+                stop();
+                onClose();
+              }}
               className="p-2 rounded-xl hover:bg-slate-200/80 dark:hover:bg-[#1E3B32] text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
               title="Close"
             >
@@ -156,6 +210,26 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Live Audio Narration Bar */}
+        {isSpeaking && (
+          <div className="bg-emerald-50 dark:bg-emerald-950/60 border-b border-emerald-200 dark:border-emerald-800/60 px-6 py-2 flex items-center justify-between text-xs text-emerald-900 dark:text-emerald-200 animate-in fade-in duration-150 shrink-0">
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-bounce" />
+              <span className="font-semibold">{t.voiceReadingNow || 'Reading step aloud...'}</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-bold uppercase tracking-wider">
+                {language === 'hi' ? 'हिन्दी' : language === 'mr' ? 'मराठी' : 'English'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={stop}
+              className="text-emerald-700 dark:text-emerald-300 hover:text-emerald-950 dark:hover:text-white font-bold cursor-pointer text-xs underline"
+            >
+              {t.voiceStopReading || 'Stop'}
+            </button>
+          </div>
+        )}
 
         {/* SECTION 3: "Why Am I Seeing This?" In-Drawer Banner */}
         {showTransparency && (
@@ -177,10 +251,10 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
         )}
 
         {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-[#0D1A16]">
+        <div ref={modalBodyRef} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4 bg-white dark:bg-[#0D1A16]">
           {/* Blocked Warning Banner if prerequisite missing */}
           {isBlocked && (
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
+            <div data-speech-id="blocked" className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
               <Lock className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h4 className="text-xs font-extrabold text-rose-900 uppercase tracking-wide">
@@ -207,7 +281,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
 
           {/* Parallel Execution Notice */}
           {parallelSteps.length > 0 && (
-            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-start gap-2.5">
+            <div data-speech-id="parallel" className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-start gap-2.5">
               <Zap className="w-4 h-4 text-amber-600 fill-amber-500 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-amber-900">
                 <strong className="font-bold">Parallel Execution Opportunity: </strong>
@@ -226,7 +300,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
               <FileText className="w-4 h-4 text-[#1B4D3E]" />
               <span>What is this?</span>
             </h3>
-            <p className="text-sm text-slate-800 leading-relaxed font-medium bg-slate-50/70 p-3.5 rounded-xl border border-slate-200">
+            <p data-speech-id="summary" className="text-sm text-slate-800 leading-relaxed font-medium bg-slate-50/70 p-3.5 rounded-xl border border-slate-200">
               {step.plainLanguageSummary || step.description}
             </p>
           </div>
@@ -238,7 +312,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                 <HelpCircle className="w-4 h-4 text-emerald-700" />
                 <span>Why do I need it?</span>
               </h3>
-              <p className="text-xs text-slate-700 leading-relaxed font-medium">
+              <p data-speech-id="why" className="text-xs text-slate-700 leading-relaxed font-medium">
                 {step.whyRequired}
               </p>
             </div>
@@ -250,7 +324,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                 Official Fee
               </span>
-              <span className="text-sm font-extrabold text-slate-900 mt-0.5 block">
+              <span data-speech-id="fee" className="text-sm font-extrabold text-slate-900 mt-0.5 block">
                 {step.fee?.amount || 'Statutory Fee'}
               </span>
               {step.fee?.description && (
@@ -264,7 +338,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                 Processing Time
               </span>
-              <span className="text-sm font-extrabold text-slate-900 mt-0.5 block">
+              <span data-speech-id="time" className="text-sm font-extrabold text-slate-900 mt-0.5 block">
                 {step.processingTime || '1 - 2 weeks'}
               </span>
               <span className="text-[10px] text-slate-500">Government turnaround</span>
@@ -274,7 +348,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                 Application Mode
               </span>
-              <span className="text-sm font-extrabold text-slate-900 mt-0.5 block">
+              <span data-speech-id="mode" className="text-sm font-extrabold text-slate-900 mt-0.5 block">
                 {step.applicationMode || 'Online'}
               </span>
               <span className="text-[10px] text-slate-500">Digital submission</span>
@@ -347,7 +421,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                           </button>
 
                           <div>
-                            <div className={`text-xs font-bold ${isReady ? 'text-emerald-950 line-through/20' : 'text-slate-900'}`}>
+                            <div data-speech-id="doc-name" className={`text-xs font-bold ${isReady ? 'text-emerald-950 line-through/20' : 'text-slate-900'}`}>
                               {doc.name}
                             </div>
                             {doc.description && (
@@ -622,7 +696,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
         )}
 
         {/* Modal Footer with Actions (Sticky & Fixed at bottom) */}
-        <div className="px-6 py-3.5 bg-slate-50 dark:bg-[#10241E] border-t border-slate-200 dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="px-5 py-3 bg-slate-50 dark:bg-[#10241E] border-t border-slate-200 dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-2.5 shrink-0">
           {onOpenAiAssistant && (
             <button
               onClick={() => {
