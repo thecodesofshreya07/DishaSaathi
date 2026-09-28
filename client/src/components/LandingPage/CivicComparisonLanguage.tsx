@@ -167,7 +167,7 @@ export const CivicComparisonLanguage: React.FC = () => {
 
             <div className="mt-6">
               <button
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/roadmap', { state: { tab: 'home' } })}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1B4D3E] text-white text-xs font-bold hover:bg-[#133A2E] transition-all cursor-pointer shadow-xs"
               >
                 <span>Explain simply</span>

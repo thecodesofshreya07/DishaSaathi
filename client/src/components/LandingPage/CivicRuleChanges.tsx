@@ -26,7 +26,7 @@ export const CivicRuleChanges: React.FC = () => {
             <div>
               <button
                 type="button"
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/roadmap', { state: { tab: 'home' } })}
                 className="px-5 py-2.5 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-xs sm:text-sm font-bold shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2 cursor-pointer active:scale-98"
               >
                 <span>{t.btnHowItWorks}</span>
@@ -155,7 +155,7 @@ export const CivicRuleChanges: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate('/create')}
+                  onClick={() => navigate('/roadmap', { state: { tab: 'updates' } })}
                   className="w-full py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-[10px] font-bold text-center flex items-center justify-center gap-1 cursor-pointer transition-colors"
                 >
                   <span>{t.btnWhatChanged}</span>

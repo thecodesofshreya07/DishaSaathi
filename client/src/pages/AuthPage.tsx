@@ -69,7 +69,9 @@ export const AuthPage: React.FC = () => {
         }
         const res = await register(name, email, password, phone);
         if (res.success) {
-          navigate('/roadmap');
+          const redirectTarget = searchParams.get('redirect') || (location.state as any)?.from || '/roadmap';
+          const initialQuery = (location.state as any)?.initialQuery;
+          navigate(redirectTarget, { state: initialQuery ? { initialQuery } : undefined });
         } else {
           setError(res.error || 'Registration failed');
         }
@@ -79,7 +81,9 @@ export const AuthPage: React.FC = () => {
           if (res.user?.role === 'admin' || email.trim().toLowerCase().includes('admin')) {
             navigate('/admin');
           } else {
-            navigate('/roadmap');
+            const redirectTarget = searchParams.get('redirect') || (location.state as any)?.from || '/roadmap';
+            const initialQuery = (location.state as any)?.initialQuery;
+            navigate(redirectTarget, { state: initialQuery ? { initialQuery } : undefined });
           }
         } else {
           setError(res.error || 'Invalid email or password');

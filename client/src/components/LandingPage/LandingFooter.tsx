@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Search, Globe } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const LandingFooter: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const query = searchQuery.trim() || t.ctaPlaceholder;
-    navigate('/create', { state: { initialQuery: query } });
+    if (isAuthenticated) {
+      navigate('/create', { state: { initialQuery: query } });
+    } else {
+      navigate('/signup?redirect=/create', { state: { initialQuery: query } });
+    }
   };
 
   const scrollTo = (id: string) => {

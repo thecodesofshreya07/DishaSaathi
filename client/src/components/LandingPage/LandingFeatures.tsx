@@ -72,7 +72,7 @@ export const LandingFeatures: React.FC = () => {
             <div>
               <button
                 type="button"
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/roadmap', { state: { tab: 'explore' } })}
                 className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
               >
                 <span>{t.learnMore}</span>
@@ -110,7 +110,7 @@ export const LandingFeatures: React.FC = () => {
             <div>
               <button
                 type="button"
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/roadmap', { state: { tab: 'services' } })}
                 className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
               >
                 <span>{t.learnMore}</span>
@@ -149,7 +149,7 @@ export const LandingFeatures: React.FC = () => {
             <div>
               <button
                 type="button"
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/roadmap', { state: { tab: 'updates' } })}
                 className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
               >
                 <span>{t.learnMore}</span>
@@ -202,7 +202,7 @@ export const LandingFeatures: React.FC = () => {
             <div>
               <button
                 type="button"
-                onClick={() => navigate('/create')}
+                onClick={() => navigate('/roadmap', { state: { tab: 'home' } })}
                 className="inline-flex items-center gap-1 text-xs font-bold text-[#1B4D3E] hover:underline cursor-pointer"
               >
                 <span>{t.learnMore}</span>

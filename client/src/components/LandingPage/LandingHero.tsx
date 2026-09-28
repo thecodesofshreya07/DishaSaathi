@@ -15,10 +15,12 @@ import {
   Check
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const LandingHero: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
 
   return (
     <section className="relative overflow-hidden bg-[#F9FAF8] pt-8 sm:pt-14 pb-12 sm:pb-16 border-b border-[#E5EAE7]">
@@ -45,7 +47,13 @@ export const LandingHero: React.FC = () => {
             <div className="pt-2 flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate('/create')}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    navigate('/create');
+                  } else {
+                    navigate('/signup?redirect=/create');
+                  }
+                }}
                 className="px-6 py-3.5 rounded-2xl bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <span>{t.heroCTA || 'Start Your Journey'}</span>

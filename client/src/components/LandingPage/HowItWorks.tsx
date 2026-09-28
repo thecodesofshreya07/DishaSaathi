@@ -38,7 +38,10 @@ export const HowItWorks: React.FC = () => {
             </div>
 
             {/* Input Visual Box */}
-            <div className="p-3 bg-[#F9FAF8] rounded-2xl border border-[#E0EBE4] flex items-center justify-between gap-2">
+            <div
+              onClick={() => navigate('/roadmap', { state: { tab: 'home' } })}
+              className="p-3 bg-[#F9FAF8] rounded-2xl border border-[#E0EBE4] flex items-center justify-between gap-2 cursor-pointer hover:border-[#1B4D3E]/40 transition-colors"
+            >
               <span className="text-[11px] text-[#0D1F1A] font-medium truncate">
                 {t.card1Query}
               </span>
@@ -163,14 +166,14 @@ export const HowItWorks: React.FC = () => {
 
               <div className="pt-2 border-t border-[#FFD9B3] space-y-1.5">
                 <div
-                  onClick={() => navigate('/create')}
+                  onClick={() => navigate('/roadmap', { state: { tab: 'updates' } })}
                   className="text-[10px] font-bold text-[#8C5200] hover:underline cursor-pointer"
                 >
                   {t.btnWhatChanged}
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate('/create')}
+                  onClick={() => navigate('/roadmap', { state: { tab: 'updates' } })}
                   className="w-full py-1.5 rounded-xl bg-[#1B4D3E] text-white text-[10px] font-bold text-center cursor-pointer hover:bg-[#133A2E] transition-colors"
                 >
                   {t.card4Btn}

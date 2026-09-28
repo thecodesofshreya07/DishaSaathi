@@ -49,10 +49,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ? [
         { id: 'home', label: t.sidebarHome || 'Home', icon: Home },
         { id: 'explore', label: t.sidebarExplore || 'Explore', icon: Compass },
-        { id: 'ward-map', label: 'Ward Map', icon: MapPin },
-        { id: 'evolution', label: 'Evolution Replay', icon: History },
         { id: 'services', label: t.sidebarServices || 'Services', icon: Search },
         { id: 'updates', label: t.sidebarUpdates || 'Govt Updates', icon: Bell, badge: updatesCount },
+        { id: 'ward-map', label: 'Ward Map', icon: MapPin },
+        { id: 'evolution', label: 'Evolution Replay', icon: History },
         { id: 'settings', label: t.sidebarSettings || 'Settings', icon: Settings },
       ]
     : [

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowRight, Globe, ChevronDown } from 'lucide-react';
 import { useLanguage, Language } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 const LANG_LABELS: Record<Language, string> = { en: 'En', hi: 'हि', mr: 'म' };
 const LANG_NAMES: Record<Language, string> = { en: 'English', hi: 'हिन्दी', mr: 'मराठी' };
@@ -11,6 +12,7 @@ export const LandingNavbar: React.FC = () => {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
+  const { isAuthenticated } = useAuth();
 
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
@@ -111,7 +113,13 @@ export const LandingNavbar: React.FC = () => {
             {/* Primary Journey CTA Button */}
             <button
               type="button"
-              onClick={() => navigate('/create')}
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/create');
+                } else {
+                  navigate('/signup?redirect=/create');
+                }
+              }}
               className="px-4 lg:px-5 py-2.5 rounded-full bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-98"
             >
               <span>{t.navStartJourney}</span>
@@ -175,7 +183,11 @@ export const LandingNavbar: React.FC = () => {
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
-                navigate('/create');
+                if (isAuthenticated) {
+                  navigate('/create');
+                } else {
+                  navigate('/signup?redirect=/create');
+                }
               }}
               className="w-full py-3 rounded-xl bg-[#1B4D3E] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5 shadow-xs"
             >

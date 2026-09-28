@@ -17,6 +17,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useRoadmap } from '../../context/RoadmapContext';
+import { useAuth } from '../../context/AuthContext';
 import { initialDefaultJourneys } from '../../data/defaultJourneys';
 import { CivicJourney } from '../../types';
 
@@ -37,6 +38,7 @@ const journeyTags: Record<string, string[]> = {
 export const PopularRoadmapsShowcase: React.FC = () => {
   const navigate = useNavigate();
   const { selectJourney } = useRoadmap();
+  const { isAuthenticated } = useAuth();
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
   const categories = [
@@ -237,7 +239,13 @@ export const PopularRoadmapsShowcase: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => navigate('/create')}
+            onClick={() => {
+              if (isAuthenticated) {
+                navigate('/create');
+              } else {
+                navigate('/signup?redirect=/create');
+              }
+            }}
             className="shrink-0 px-7 py-3.5 rounded-2xl bg-[#1B4D3E] hover:bg-[#133A2E] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-98"
           >
             <span>Generate Custom Roadmap</span>
