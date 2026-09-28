@@ -143,7 +143,7 @@ export async function callUniversalLlm(options: LlmCallOptions): Promise<LlmCall
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY.trim()}`,
-            'HTTP-Referer': 'http://localhost:5000',
+            'HTTP-Referer': process.env.APP_URL || 'https://dishasaathi.onrender.com',
             'X-Title': 'DishaSaathi'
           },
           body: JSON.stringify(body)
