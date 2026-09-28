@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers, FileDown, Network, AlertTriangle } from 'lucide-react';
+import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers, FileDown, Network, AlertTriangle, MapPin, Sparkles } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -361,116 +361,126 @@ export const RoadmapPage: React.FC = () => {
                 <div className="space-y-6 animate-in fade-in duration-200">
                   {/* Top Navigation Bar: Back to All Journeys & Action Toolbar */}
                   {/* Top Navigation Bar: Back to All Journeys & Action Toolbar */}
-                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E2EAE5] dark:border-[#1E3B32] rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-2xs">
+                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E2EAE5] dark:border-[#1E3B32] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col gap-4">
+                    {/* BLOCK 1: Top Navigation Bar & Journey Metadata Badges */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#EEF3F0] dark:border-[#1A332B]">
+                      <button
+                        type="button"
+                        onClick={() => setJourneyViewMode('cards')}
+                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#F0F5F2] hover:bg-[#E2EBE5] dark:bg-[#142A22] dark:hover:bg-[#1A382D] text-xs font-extrabold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs"
+                        title="Back to all saved journeys"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>All Journeys</span>
+                      </button>
 
-                    {/* Top Row: Back Button, Title, and Status Badges */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <button
-                          type="button"
-                          onClick={() => setJourneyViewMode('cards')}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0F5F2] hover:bg-[#E2EBE5] dark:bg-[#142A22] dark:hover:bg-[#1A382D] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs"
-                          title="Back to all saved journeys"
-                        >
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>All Journeys</span>
-                        </button>
-
-                        <div className="h-5 w-px bg-[#E2EAE5] dark:bg-[#1E3B32] shrink-0" />
-
-                        <h2 className="text-base sm:text-lg font-extrabold text-[#11261F] dark:text-white tracking-tight truncate">
-                          {activeJourney.title}
-                        </h2>
-                      </div>
-
-                      {/* Clean Badges (always preserved in one line, no wrapping) */}
-                      <div className="flex items-center gap-2 flex-wrap shrink-0 text-[11px]">
-                        <span className="font-bold px-2.5 py-1 rounded-full bg-[#EBF5EF] text-[#1B4D3E] dark:bg-[#17382D] dark:text-[#6EE7B7] whitespace-nowrap shrink-0">
+                      {/* Metadata Badges */}
+                      <div className="flex items-center gap-2 flex-wrap text-xs">
+                        <span className="font-extrabold px-3 py-1 rounded-full bg-[#EBF5EF] text-[#1B4D3E] dark:bg-[#17382D] dark:text-[#6EE7B7] border border-[#CDE5D7] dark:border-[#224A3E]">
                           {activeJourney.totalSteps > 0
-                            ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete (${activeJourney.completedSteps || 0}/${activeJourney.totalSteps || 0})`
+                            ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete (${activeJourney.completedSteps || 0}/${activeJourney.totalSteps || 0} Steps)`
                             : 'In Progress'}
                         </span>
-                        <span className="font-semibold px-2.5 py-1 rounded-full bg-[#FAF7F0] text-[#784D13] dark:bg-[#211B10] dark:text-amber-300 border border-[#EADFC7] dark:border-[#382E1E] whitespace-nowrap shrink-0">
+                        <span className="font-bold px-3 py-1 rounded-full bg-[#FAF7F0] text-[#784D13] dark:bg-[#211B10] dark:text-amber-300 border border-[#EADFC7] dark:border-[#382E1E]">
                           Fees: {calculateTotalJourneyCost(activeJourney.steps).label}
                         </span>
-                        <span className="text-[#65786E] dark:text-[#9FB7AC] whitespace-nowrap shrink-0">
-                          • {activeJourney.location || 'Municipal Guidance'}
+                        <span className="font-semibold px-2.5 py-1 text-[#4A5D54] dark:text-[#9FB7AC] flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-[#1B4D3E] dark:text-[#6EE7B7]" />
+                          {activeJourney.location || 'Municipal Jurisdiction'}
                         </span>
                       </div>
                     </div>
 
-                    {/* Subtle Separator */}
-                    <div className="h-px bg-[#EEF3F0] dark:bg-[#1A332B] w-full" />
+                    {/* BLOCK 2: Full Title Block - NEVER TRUNCATED */}
+                    <div className="space-y-1.5 py-1">
+                      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#1B4D3E] dark:text-[#6EE7B7]">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Civic Execution Roadmap</span>
+                        {activeJourney.category && (
+                          <span className="text-slate-400 dark:text-slate-500">• {activeJourney.category}</span>
+                        )}
+                      </div>
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#11261F] dark:text-white tracking-tight leading-snug break-words">
+                        {activeJourney.title}
+                      </h1>
+                      {activeJourney.query && activeJourney.query.toLowerCase() !== activeJourney.title.toLowerCase() && (
+                        <p className="text-xs sm:text-sm text-[#4A5D54] dark:text-[#A2B9AE]">
+                          Goal: &ldquo;{activeJourney.query}&rdquo;
+                        </p>
+                      )}
+                    </div>
 
-                    {/* Bottom Row: Action Toolbar (6 clean buttons with perfect wrap & spacing) */}
-                    <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setIsGraphModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
-                        title="Open interactive visual dependency graph"
-                      >
-                        <Network className="w-3.5 h-3.5 shrink-0" />
-                        <span>Visual Graph</span>
-                      </button>
+                    {/* BLOCK 3: Dedicated Action Toolbar (Manageable in block below title) */}
+                    <div className="bg-[#F8FAF9] dark:bg-[#11221B] border border-[#E2EAE5] dark:border-[#1E3B32] rounded-xl p-3 sm:p-3.5">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setIsGraphModalOpen(true)}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#0D1A16] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-98"
+                          title="Open interactive visual dependency graph"
+                        >
+                          <Network className="w-4 h-4 shrink-0 text-[#1B4D3E] dark:text-[#6EE7B7]" />
+                          <span>Visual Graph</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={handleDownloadRoadmap}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98"
-                        title="Download official visual roadmap graph as PDF"
-                      >
-                        <FileDown className="w-3.5 h-3.5 shrink-0" />
-                        <span>Download PDF</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={handleDownloadRoadmap}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer active:scale-98"
+                          title="Download official visual roadmap graph as PDF"
+                        >
+                          <FileDown className="w-4 h-4 shrink-0" />
+                          <span>Download PDF</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setIsCompareOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
-                        title="Compare statutory routes and procedures side-by-side"
-                      >
-                        <Layers className="w-3.5 h-3.5 shrink-0" />
-                        <span>Compare Options</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsCompareOpen(true)}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#0D1A16] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-98"
+                          title="Compare statutory routes and procedures side-by-side"
+                        >
+                          <Layers className="w-4 h-4 shrink-0 text-[#1B4D3E] dark:text-[#6EE7B7]" />
+                          <span>Compare Options</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setIsSimulatorOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#10221B] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
-                        title="Check consequences of skipping or omitting any step"
-                      >
-                        <Scale className="w-3.5 h-3.5 shrink-0" />
-                        <span>What If I Skip?</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsSimulatorOpen(true)}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F2F7F4] dark:bg-[#0D1A16] dark:hover:bg-[#163328] border border-[#D0DDD5] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-98"
+                          title="Check consequences of skipping or omitting any step"
+                        >
+                          <Scale className="w-4 h-4 shrink-0 text-[#1B4D3E] dark:text-[#6EE7B7]" />
+                          <span>What If I Skip?</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const stepToEscalate = (activeJourney.steps && activeJourney.steps.length > 0)
-                            ? activeJourney.steps[0]
-                            : null;
-                          if (stepToEscalate) {
-                            setActiveSlaStep(stepToEscalate);
-                            setIsSlaModalOpen(true);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF6EE] dark:bg-[#151E19] dark:hover:bg-[#201D14] border border-[#E0D8C5] dark:border-[#38301B] text-[#784D13] dark:text-amber-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
-                        title="Application taking too long? Generate a formal legal complaint letter."
-                      >
-                        <Clock className="w-3.5 h-3.5 shrink-0 text-[#8C5819]" />
-                        <span>SLA Escalation</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const stepToEscalate = (activeJourney.steps && activeJourney.steps.length > 0)
+                              ? activeJourney.steps[0]
+                              : null;
+                            if (stepToEscalate) {
+                              setActiveSlaStep(stepToEscalate);
+                              setIsSlaModalOpen(true);
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF6EE] dark:bg-[#0D1A16] dark:hover:bg-[#201D14] border border-[#E0D8C5] dark:border-[#38301B] text-[#784D13] dark:text-amber-300 text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-98"
+                          title="Application taking too long? Generate a formal legal complaint letter."
+                        >
+                          <Clock className="w-4 h-4 shrink-0 text-[#8C5819]" />
+                          <span>SLA Escalation</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => setIsEmailModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F0F5FA] dark:bg-[#101E22] dark:hover:bg-[#142A30] border border-[#CAD8E2] dark:border-[#1E3B48] text-[#1E5276] dark:text-sky-300 text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
-                        title="Send this complete civic roadmap to your email address"
-                      >
-                        <Mail className="w-3.5 h-3.5 shrink-0 text-[#1E5276]" />
-                        <span>Email</span>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEmailModalOpen(true)}
+                          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F0F5FA] dark:bg-[#0D1A16] dark:hover:bg-[#142A30] border border-[#CAD8E2] dark:border-[#1E3B48] text-[#1E5276] dark:text-sky-300 text-xs font-bold transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-98"
+                          title="Send this complete civic roadmap to your email address"
+                        >
+                          <Mail className="w-4 h-4 shrink-0 text-[#1E5276]" />
+                          <span>Email Roadmap</span>
+                        </button>
+                      </div>
                     </div>
 
                   </div>

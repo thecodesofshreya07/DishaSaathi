@@ -239,7 +239,7 @@ export const SlaEscalationModal: React.FC<SlaEscalationModalProps> = ({
             <div className={`px-3 py-1.5 rounded-xl text-white font-black text-xs shrink-0 shadow-2xs ${
               isOverdue ? 'bg-amber-600' : 'bg-emerald-600'
             }`}>
-              {isOverdue ? `+${overdueDays} Days Overdue` : `Within SLA`}
+              {isOverdue ? `+${overdueDays} Days Overdue` : `Within SLA (${Math.max(0, mandatedDays - daysElapsed)}d left)`}
             </div>
           </div>
 
@@ -254,21 +254,23 @@ export const SlaEscalationModal: React.FC<SlaEscalationModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
-                  Days Since Submission
+                <label htmlFor="days-since-submission-input" className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                  Days Since Submission (Default: 0)
                 </label>
                 <input
+                  id="days-since-submission-input"
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  value={daysElapsed}
+                  value={daysElapsed.toString()}
                   onChange={(e) => {
                     const clean = e.target.value.replace(/[^0-9]/g, '');
                     setDaysElapsed(clean === '' ? 0 : parseInt(clean, 10));
                   }}
                   placeholder="0"
-                  className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] text-xs font-bold text-[#11261F] dark:text-white focus:outline-hidden focus:border-[#1B4D3E]"
+                  className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-[#0D1A16] border border-[#DCE8E1] dark:border-[#1E3B32] text-xs font-bold text-[#11261F] dark:text-white focus:outline-hidden focus:border-[#1B4D3E] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
+                <span className="text-[9px] text-[#556960] dark:text-[#8FA89D] mt-0.5 block">Normal number input • No stepper arrows</span>
               </div>
 
               <div>
