@@ -16,6 +16,7 @@ import {
   Car,
   Layers,
   AlertTriangle,
+  Sparkles,
   X
 } from 'lucide-react';
 import { CivicJourney } from '../types';
@@ -27,6 +28,7 @@ interface JourneyCardsViewProps {
   onSelectJourney: (journeyId: string) => void;
   onCreateNewJourney: (goal: string) => void;
   onDeleteJourney?: (journeyId: string) => void;
+  onLoadDemo?: () => void;
   isLoading?: boolean;
 }
 
@@ -34,6 +36,7 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
   journeys,
   onSelectJourney,
   onDeleteJourney,
+  onLoadDemo,
   isLoading: _isLoading = false
 }) => {
   const navigate = useNavigate();
@@ -184,6 +187,41 @@ export const JourneyCardsView: React.FC<JourneyCardsViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Empty State Banner for New Users */}
+      {journeys.length === 0 && (
+        <div className="bg-white dark:bg-[#0D1A16] border border-[#D5E3DB] dark:border-[#1E3B32] rounded-3xl p-8 sm:p-10 text-center shadow-xs space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-[#EAF2ED] dark:bg-[#18392F] text-[#1B4D3E] dark:text-[#6EE7B7] flex items-center justify-center mx-auto shadow-xs">
+            <Compass className="w-8 h-8" />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-lg font-black text-[#11261F] dark:text-white">
+              No Civic Journeys Created Yet
+            </h3>
+            <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] leading-relaxed">
+              Start your first municipal or state procedure roadmap. You can generate custom roadmaps for business setups, trade licenses, property compliance, and more.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <button
+              onClick={handleStartNewJourney}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1B4D3E] hover:bg-[#153D31] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Your First Roadmap</span>
+            </button>
+            {onLoadDemo && (
+              <button
+                onClick={onLoadDemo}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#142A22] border border-[#D5E3DB] dark:border-[#224A3E] text-[#1B4D3E] dark:text-[#6EE7B7] text-xs font-bold hover:bg-[#F2F7F4] dark:hover:bg-[#1A382D] transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Load Sample Roadmap (Bakery / MSME)</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Journeys Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

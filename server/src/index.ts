@@ -174,8 +174,8 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, error: 'Email and password are required' });
   }
   try {
-    const { user, token, savedJourney } = await loginUser(email, password);
-    res.json({ success: true, user, token, journey: savedJourney });
+    const { user, token, savedJourney, savedJourneys } = await loginUser(email, password);
+    res.json({ success: true, user, token, journey: savedJourney, journeys: savedJourneys || [] });
   } catch (err: any) {
     res.status(401).json({ success: false, error: err.message || 'Invalid credentials' });
   }
@@ -186,10 +186,11 @@ app.get('/api/auth/me', authMiddleware, async (req: AuthenticatedRequest, res: R
     return res.status(401).json({ success: false, error: 'Not authenticated' });
   }
   try {
-    const journey = await getUserJourney(req.user.id);
-    res.json({ success: true, user: req.user, journey });
+    const journeys = await getUserJourneys(req.user.id);
+    const journey = journeys.length > 0 ? journeys[0] : null;
+    res.json({ success: true, user: req.user, journey, journeys });
   } catch (err: any) {
-    res.json({ success: true, user: req.user, journey: null });
+    res.json({ success: true, user: req.user, journey: null, journeys: [] });
   }
 });
 
@@ -543,12 +544,25 @@ const handleUpdateStepStatus = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status, journeyId } = req.body;
 
-  let targetJourney = currentJourney;
+  let targetJourney: CivicJourney | null = null;
+  let isUserOwned = false;
   const user = (req as AuthenticatedRequest).user;
-  if (user && journeyId) {
+
+  if (user) {
     const userJourneys = await getUserJourneys(user.id);
-    const found = userJourneys.find((j) => j.id === journeyId);
-    if (found) targetJourney = found;
+    if (journeyId) {
+      targetJourney = userJourneys.find((j) => j.id === journeyId) || null;
+    }
+    if (!targetJourney && userJourneys.length > 0) {
+      targetJourney = userJourneys.find((j) => j.steps && j.steps.some(s => s.id === id)) || userJourneys[0];
+    }
+    if (targetJourney) {
+      isUserOwned = true;
+    }
+  }
+
+  if (!targetJourney) {
+    targetJourney = currentJourney;
   }
 
   if (!targetJourney) {
@@ -596,9 +610,9 @@ const handleUpdateStepStatus = async (req: Request, res: Response) => {
     currentJourney = targetJourney;
   }
 
-  // Sync to SQLite database if citizen is logged in
-  if (user && targetJourney) {
-    saveUserJourney(user.id, targetJourney);
+  // Sync to database ONLY if this journey belongs to the authenticated user
+  if (user && isUserOwned) {
+    await saveUserJourney(user.id, targetJourney);
   }
 
   res.json({
@@ -612,15 +626,36 @@ app.patch('/api/journey/steps/:id/status', optionalAuthMiddleware, handleUpdateS
 app.post('/api/journey/steps/:id/status', optionalAuthMiddleware, handleUpdateStepStatus);
 
 // 4b. Update document status ("I have this document" checklist tracking)
-app.patch('/api/journey/steps/:stepId/documents/:docId/status', optionalAuthMiddleware, (req: Request, res: Response) => {
-  if (!currentJourney) {
+app.patch('/api/journey/steps/:stepId/documents/:docId/status', optionalAuthMiddleware, async (req: Request, res: Response) => {
+  const { stepId, docId } = req.params;
+  const { status, journeyId } = req.body;
+  const user = (req as AuthenticatedRequest).user;
+
+  let targetJourney: CivicJourney | null = null;
+  let isUserOwned = false;
+
+  if (user) {
+    const userJourneys = await getUserJourneys(user.id);
+    if (journeyId) {
+      targetJourney = userJourneys.find(j => j.id === journeyId) || null;
+    }
+    if (!targetJourney && userJourneys.length > 0) {
+      targetJourney = userJourneys.find(j => j.steps && j.steps.some(s => s.id === stepId)) || userJourneys[0];
+    }
+    if (targetJourney) {
+      isUserOwned = true;
+    }
+  }
+
+  if (!targetJourney) {
+    targetJourney = currentJourney;
+  }
+
+  if (!targetJourney) {
     return res.status(404).json({ success: false, error: 'No active journey' });
   }
 
-  const { stepId, docId } = req.params;
-  const { status } = req.body;
-
-  const step = currentJourney.steps.find((s) => s.id === stepId);
+  const step = targetJourney.steps.find((s) => s.id === stepId);
   if (!step) {
     return res.status(404).json({ success: false, error: 'Step not found' });
   }
@@ -637,7 +672,7 @@ app.patch('/api/journey/steps/:stepId/documents/:docId/status', optionalAuthMidd
   let readyDocs = 0;
   let mandatoryPending = 0;
 
-  for (const s of currentJourney.steps) {
+  for (const s of targetJourney.steps) {
     for (const d of s.documents) {
       totalDocs++;
       if (d.status === 'READY' || d.status === 'UPLOADED') {
@@ -648,19 +683,23 @@ app.patch('/api/journey/steps/:stepId/documents/:docId/status', optionalAuthMidd
     }
   }
 
-  currentJourney.totalDocuments = totalDocs;
-  currentJourney.readyDocuments = readyDocs;
-  currentJourney.pendingDocuments = mandatoryPending;
+  targetJourney.totalDocuments = totalDocs;
+  targetJourney.readyDocuments = readyDocs;
+  targetJourney.pendingDocuments = mandatoryPending;
 
-  // Sync to SQLite database if citizen is logged in
-  if ((req as AuthenticatedRequest).user && currentJourney) {
-    saveUserJourney((req as AuthenticatedRequest).user!.id, currentJourney);
+  if (targetJourney === currentJourney) {
+    currentJourney = targetJourney;
+  }
+
+  // Sync to database ONLY if this journey belongs to the authenticated user
+  if (user && isUserOwned) {
+    await saveUserJourney(user.id, targetJourney);
   }
 
   res.json({
     success: true,
     document: doc,
-    journey: currentJourney
+    journey: targetJourney
   });
 });
 

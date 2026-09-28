@@ -31,7 +31,7 @@ const defaultAuthValue: AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>(defaultAuthValue);
 
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -63,6 +63,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (data.user) {
               setUser(data.user);
               localStorage.setItem('dishasaathi_user', JSON.stringify(data.user));
+              if (Array.isArray(data.journeys)) {
+                localStorage.setItem(`dishasaathi_journeys_${data.user.id}`, JSON.stringify(data.journeys));
+              }
             }
           } else {
             // Token expired or invalid
@@ -91,6 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(data.token);
         localStorage.setItem('dishasaathi_user', JSON.stringify(data.user));
         localStorage.setItem('dishasaathi_token', data.token);
+        if (Array.isArray(data.journeys)) {
+          localStorage.setItem(`dishasaathi_journeys_${data.user.id}`, JSON.stringify(data.journeys));
+        }
         return { success: true, user: data.user };
       }
       return { success: false, error: data.error || 'Invalid credentials' };
@@ -112,6 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(data.token);
         localStorage.setItem('dishasaathi_user', JSON.stringify(data.user));
         localStorage.setItem('dishasaathi_token', data.token);
+        // Explicitly seed brand new user's journey cache to empty list
+        localStorage.setItem(`dishasaathi_journeys_${data.user.id}`, JSON.stringify([]));
+        localStorage.removeItem('dishasaathi_saved_journey');
         return { success: true, user: data.user };
       }
       return { success: false, error: data.error || 'Registration failed' };
@@ -125,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     localStorage.removeItem('dishasaathi_user');
     localStorage.removeItem('dishasaathi_token');
+    localStorage.removeItem('dishasaathi_saved_journey');
   };
 
   return (

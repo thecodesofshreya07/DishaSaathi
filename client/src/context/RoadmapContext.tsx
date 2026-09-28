@@ -43,6 +43,7 @@ interface RoadmapContextType {
   recheckRoadmap: () => Promise<{ success: boolean; message: string }>;
   isCopilotOpen: boolean;
   setIsCopilotOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  loadDemoJourneys: () => void;
 }
 
 const defaultIntake: GoalIntake = {
@@ -92,16 +93,40 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch (e) {
       console.warn('Could not load user journeys from local cache', e);
     }
-    return initialDefaultJourneys;
+    // Brand new or logged-in citizens start with an empty workspace; guests see initial default journeys
+    return user ? [] : initialDefaultJourneys;
   });
 
   // Active Journey ID
   const [activeJourneyId, setActiveJourneyId] = useState<string | null>(() => {
+    if (user?.id) {
+      try {
+        const raw = localStorage.getItem(`dishasaathi_journeys_${user.id}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed[0].id;
+        }
+      } catch {}
+      return null;
+    }
     return initialDefaultJourneys.length > 0 ? initialDefaultJourneys[0].id : null;
   });
 
   // Currently active journey
   const [journey, setJourney] = useState<CivicJourney | null>(() => {
+    if (user?.id) {
+      try {
+        const raw = localStorage.getItem(`dishasaathi_journeys_${user.id}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+            if (valid.length > 0) return valid[0];
+          }
+        }
+      } catch {}
+      return null;
+    }
     return initialDefaultJourneys.length > 0 ? initialDefaultJourneys[0] : null;
   });
 
@@ -118,7 +143,7 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
           try {
             const userKey = user?.id ? `dishasaathi_journeys_${user.id}` : 'dishasaathi_guest_journeys';
             localStorage.setItem(userKey, JSON.stringify(nextList));
-            localStorage.setItem('dishasaathi_saved_journey', JSON.stringify(newJourney));
+            localStorage.setItem(user?.id ? `dishasaathi_saved_journey_${user.id}` : 'dishasaathi_saved_journey', JSON.stringify(newJourney));
           } catch (e) {
             console.warn('Cache write error:', e);
           }
@@ -168,28 +193,73 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [activeJourneyId, journeys]);
 
+  // Track currently active user ID and hydration status to prevent cross-user leakage
+  const currentLoadedUserIdRef = React.useRef<string | null>(user?.id || null);
+  const isHydratedRef = React.useRef<boolean>(false);
+
   // Load user-specific journeys from Database on login / account switch
   useEffect(() => {
-    if (user && token) {
-      // 1. Try immediate cached data for this specific user
-      try {
-        const cached = localStorage.getItem(`dishasaathi_journeys_${user.id}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed)) {
-            const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
-            if (valid.length > 0) {
-              setJourneys(valid);
-              setActiveJourneyId(valid[0].id);
-              setJourney(valid[0]);
+    const currentUserId = user?.id || null;
+
+    // Detect user change (login, logout, switch account)
+    if (currentLoadedUserIdRef.current !== currentUserId) {
+      currentLoadedUserIdRef.current = currentUserId;
+      isHydratedRef.current = false;
+
+      if (!currentUserId) {
+        // Switched to Guest: load guest journeys or default template
+        try {
+          const guestRaw = localStorage.getItem('dishasaathi_guest_journeys');
+          if (guestRaw) {
+            const parsed = JSON.parse(guestRaw);
+            if (Array.isArray(parsed)) {
+              const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+              if (valid.length > 0) {
+                setJourneys(valid);
+                setActiveJourneyId(valid[0].id);
+                setJourney(valid[0]);
+                isHydratedRef.current = true;
+                return;
+              }
             }
           }
-        }
-      } catch (e) {
-        console.warn('Local cache read error:', e);
-      }
+        } catch {}
+        setJourneys(initialDefaultJourneys);
+        setActiveJourneyId(initialDefaultJourneys[0]?.id || null);
+        setJourney(initialDefaultJourneys[0] || null);
+        isHydratedRef.current = true;
+        return;
+      } else {
+        // Switched to a logged-in user:
+        // Try local storage for THIS SPECIFIC user first
+        let localFound = false;
+        try {
+          const userRaw = localStorage.getItem(`dishasaathi_journeys_${currentUserId}`);
+          if (userRaw) {
+            const parsed = JSON.parse(userRaw);
+            if (Array.isArray(parsed)) {
+              const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
+              if (valid.length > 0) {
+                setJourneys(valid);
+                setActiveJourneyId(valid[0].id);
+                setJourney(valid[0]);
+                localFound = true;
+              }
+            }
+          }
+        } catch {}
 
-      // 2. Fetch fresh journeys strictly from DB for this user
+        if (!localFound) {
+          // Immediately set clean empty state for new user while fetching DB (do NOT show old user's journey)
+          setJourneys([]);
+          setActiveJourneyId(null);
+          setJourney(null);
+        }
+      }
+    }
+
+    // Now fetch fresh data from DB for the logged-in user
+    if (user && token) {
       fetch('/api/user/journeys', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -198,6 +268,9 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
           throw new Error('Failed to fetch user journeys from database');
         })
         .then((data) => {
+          // Guard: make sure user didn't change while fetch was running
+          if (currentLoadedUserIdRef.current !== user.id) return;
+
           const loadedJourneys = (data.success && Array.isArray(data.journeys)) ? data.journeys : [];
           if (loadedJourneys.length > 0) {
             const valid = loadedJourneys.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
@@ -206,40 +279,20 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
             setActiveJourneyId(valid[0].id);
             setJourney(valid[0]);
           } else {
-            setJourneys(initialDefaultJourneys);
-            localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(initialDefaultJourneys));
-            if (initialDefaultJourneys.length > 0) {
-              setActiveJourneyId(initialDefaultJourneys[0].id);
-              setJourney(initialDefaultJourneys[0]);
-            }
+            // Brand new citizen account: exactly 0 journeys (clean workspace, never copy others)
+            setJourneys([]);
+            localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify([]));
+            setActiveJourneyId(null);
+            setJourney(null);
           }
+          isHydratedRef.current = true;
         })
-        .catch((err) => console.warn('Backend user journeys sync:', err));
+        .catch((err) => {
+          console.warn('Backend user journeys sync:', err);
+          isHydratedRef.current = true;
+        });
     } else {
-      // Guest mode: load from guest cache or default journeys
-      try {
-        const guestRaw = localStorage.getItem('dishasaathi_guest_journeys');
-        if (guestRaw) {
-          const parsed = JSON.parse(guestRaw);
-          if (Array.isArray(parsed)) {
-            const valid = parsed.map(validateStoredJourney).filter(Boolean) as CivicJourney[];
-            if (valid.length > 0) {
-              setJourneys(valid);
-              setActiveJourneyId(valid[0].id);
-              setJourney(valid[0]);
-              return;
-            }
-          }
-        }
-      } catch {}
-      setJourneys(initialDefaultJourneys);
-      if (initialDefaultJourneys.length > 0) {
-        setActiveJourneyId(initialDefaultJourneys[0].id);
-        setJourney(initialDefaultJourneys[0]);
-      } else {
-        setActiveJourneyId(null);
-        setJourney(null);
-      }
+      isHydratedRef.current = true;
     }
   }, [user?.id, token]);
 
@@ -282,6 +335,28 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Load demo sample roadmap for citizen if requested
+  const loadDemoJourneys = () => {
+    setJourneys(initialDefaultJourneys);
+    if (initialDefaultJourneys.length > 0) {
+      setActiveJourneyId(initialDefaultJourneys[0].id);
+      setJourney(initialDefaultJourneys[0]);
+      if (user?.id) {
+        localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(initialDefaultJourneys));
+        if (token) {
+          fetch('/api/user/journeys', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ journeys: initialDefaultJourneys })
+          }).catch((err) => console.warn('Demo journeys sync error:', err));
+        }
+      }
+    }
+  };
+
   // Sync adaptive recommendation whenever journey changes
   useEffect(() => {
     if (journey) {
@@ -297,11 +372,13 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [journey]);
 
-  // Sync journeys to DB & local storage when journeys changes
+  // Sync journeys to DB & local storage ONLY when user has modified journeys (never during account switch)
   useEffect(() => {
-    if (user?.id) {
+    // CRITICAL: Only sync if hydration has finished and this is the active user
+    if (!isHydratedRef.current) return;
+    if (user?.id && currentLoadedUserIdRef.current === user.id) {
       localStorage.setItem(`dishasaathi_journeys_${user.id}`, JSON.stringify(journeys));
-      if (token && journeys.length > 0) {
+      if (token) {
         fetch('/api/user/journeys', {
           method: 'POST',
           headers: {
@@ -311,8 +388,10 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
           body: JSON.stringify({ journeys })
         }).catch((err) => console.warn('Cloud DB multi-journey sync error:', err));
       }
+    } else if (!user) {
+      localStorage.setItem('dishasaathi_guest_journeys', JSON.stringify(journeys));
     }
-  }, [journeys, user?.id, token]);
+  }, [journeys]);
 
   // Sync intake to storage
   useEffect(() => {
@@ -594,12 +673,15 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const res = await fetch(`/api/journey/steps/${stepId}/documents/${docId}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status, journeyId: journey?.id })
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.journey) {
+        if (data.journey && (!user || data.journey.id === journey?.id)) {
           setJourney(data.journey);
           setJourneys((prev) => prev.map((j) => (j.id === data.journey.id ? data.journey : j)));
         }
@@ -641,7 +723,8 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const resumeSavedProgress = () => {
     try {
-      const saved = localStorage.getItem('dishasaathi_saved_journey');
+      const key = user?.id ? `dishasaathi_saved_journey_${user.id}` : 'dishasaathi_saved_journey';
+      const saved = localStorage.getItem(key);
       if (saved) {
         const parsed = JSON.parse(saved) as CivicJourney;
         if (parsed) {
@@ -731,7 +814,8 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
         refineGoal,
         recheckRoadmap,
         isCopilotOpen,
-        setIsCopilotOpen
+        setIsCopilotOpen,
+        loadDemoJourneys
       }}
     >
       {children}
@@ -767,7 +851,8 @@ const defaultRoadmapValue: RoadmapContextType = {
   refineGoal: async () => ({ success: false }),
   recheckRoadmap: async () => ({ success: false, message: '' }),
   isCopilotOpen: false,
-  setIsCopilotOpen: () => {}
+  setIsCopilotOpen: () => {},
+  loadDemoJourneys: () => {}
 };
 
 export const useRoadmap = () => {

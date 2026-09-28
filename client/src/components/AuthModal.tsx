@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, User, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
-
-const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
+import { useAuth } from '../context/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -9,7 +8,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  // auth handled via direct API calls (no RoadmapContext dependency)
+  const { login, register } = useAuth();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -31,22 +30,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           setLoading(false);
           return;
         }
-        const res = await fetch(`${API_BASE}/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
-        }).then(r => r.json());
+        const res = await register(name.trim(), email.trim(), password);
         if (res.success) {
           onClose();
         } else {
           setError(res.error || 'Failed to register account');
         }
       } else {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        }).then(r => r.json());
+        const res = await login(email.trim(), password);
         if (res.success) {
           onClose();
         } else {

@@ -61,7 +61,8 @@ export const RoadmapPage: React.FC = () => {
     resumeSavedProgress,
     resetToDefault,
     isCopilotOpen,
-    setIsCopilotOpen
+    setIsCopilotOpen,
+    loadDemoJourneys
   } = useRoadmap();
 
   // Active Tab: 'home' | 'journeys' | 'services' | 'updates' | 'documents' | 'deadlines' | 'saved' | 'passport' | 'settings'
@@ -352,6 +353,7 @@ export const RoadmapPage: React.FC = () => {
                     setJourneyViewMode('detail');
                   }}
                   onDeleteJourney={deleteJourney}
+                  onLoadDemo={loadDemoJourneys}
                   isLoading={loading}
                 />
               ) : (
