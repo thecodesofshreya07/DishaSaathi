@@ -455,97 +455,326 @@ function getJourneyContextComparisons(journey?: CivicJourney | null): Comparison
     ];
   }
 
-  // ── 4. DEFAULT: FOOD / BUSINESS / COMMERCE ──
+  // ── 4. EDUCATION / SCHOOL / COACHING / PRESCHOOL ──
+  if (
+    combinedText.includes('school') ||
+    combinedText.includes('college') ||
+    combinedText.includes('education') ||
+    combinedText.includes('coaching') ||
+    combinedText.includes('tuition') ||
+    combinedText.includes('preschool') ||
+    combinedText.includes('kindergarten') ||
+    combinedText.includes('academy') ||
+    combinedText.includes('playschool') ||
+    combinedText.includes('institute')
+  ) {
+    return [
+      {
+        id: 'school_trust_vs_preschool_academy',
+        name: `Formal Recognized School (RTE Act) vs. Preschool / Private Academy (${cityLabel})`,
+        description: `Compare regulatory approvals, trust formation, building bylaws, and fees for formal schools versus preschools/coaching.`,
+        domain: 'business',
+        optionA: {
+          id: 'formal_school_trust',
+          title: `Formal Recognized School (K-10 / K-12)`,
+          subtitle: `Registered Educational Trust / Society with State Education Dept / Board recognition`,
+          badge: 'RTE Recognition • Board Affiliated',
+          estimatedDays: '120–180 Days',
+          governmentFees: '₹25,000 – ₹60,000 (Statutory Inspection & Fee)',
+          requiredDocsCount: 14,
+          physicalVisits: '4–5 Field Inspections (DEO, Municipal & Fire)',
+          complianceLevel: 'High',
+          suitableFor: `Founders establishing a formal primary/secondary school awarding recognized board certificates.`,
+          steps: [
+            {
+              title: `Educational Trust / Section 8 Society Registration`,
+              authority: `${stateLabel} Charity Commissioner / MCA`,
+              status: 'mandatory',
+              note: `Mandatory non-profit educational charter for operating recognized schools`
+            },
+            {
+              title: `Land Title, Playground Norms & Structural Stability Clearance`,
+              authority: `${authorityPrefix} (Building Proposal Dept)`,
+              status: 'mandatory',
+              note: `Mandatory land compliance, playground norms, and structural fitness audit`
+            },
+            {
+              title: `Commercial Fire Safety & Emergency Evacuation NOC`,
+              authority: `${isMumbai ? 'Mumbai Fire Brigade' : 'Municipal Fire Dept'}`,
+              status: 'mandatory',
+              note: `Dual staircase compliance, fire hydrants, and emergency evacuation certificate`
+            },
+            {
+              title: `District Education Officer (DEO) RTE Recognition & School Approval`,
+              authority: `${stateLabel} School Education Department`,
+              status: 'mandatory',
+              note: `Statutory inspection under Section 18 of the Right to Education (RTE) Act`
+            }
+          ],
+          keyDocuments: [
+            'Registered Educational Trust Deed / Society Bylaws (12A/80G)',
+            'Municipal Land Title Deed or 30-Year Registered Lease Agreement',
+            'Municipal Competent Authority Building Structural Fitness Certificate',
+            'Chief Fire Officer (CFO) Final Fire Safety Compliance NOC',
+            'District Education Officer (DEO) Statutory Recognition Order'
+          ]
+        },
+        optionB: {
+          id: 'preschool_coaching_academy',
+          title: `Preschool, Daycare or Private Coaching Academy`,
+          subtitle: `Commercial education service without statutory board curriculum or non-profit trust mandate`,
+          badge: 'Fast Commercial Launch • 100% Online',
+          estimatedDays: '10–18 Days',
+          governmentFees: '₹2,500 – ₹5,000 (Municipal & MSME Registration)',
+          requiredDocsCount: 5,
+          physicalVisits: '0–1 Office Visit',
+          complianceLevel: 'Low',
+          suitableFor: `Edupreneurs starting pre-primary playgroups, daycare centers, supplementary tuition institutes, or skill academies.`,
+          steps: [
+            {
+              title: `Udyam MSME Government Registration (Educational Services)`,
+              authority: `Ministry of Micro, Small & Medium Enterprises (MSME)`,
+              status: 'mandatory',
+              note: `Free lifetime central government enterprise registration for education services`
+            },
+            {
+              title: `Shop & Establishment Act (Gumasta) Intimation`,
+              authority: `${stateLabel} Labour Department / ${cityLabel} Municipal Corporation`,
+              status: 'mandatory',
+              note: `Commercial establishment registration for leased/owned commercial premises`
+            },
+            {
+              title: `Premises Commercial Lease Agreement & Society NOC`,
+              authority: `Premises Owner / Cooperative Housing Society`,
+              status: 'mandatory',
+              note: `Written consent from society/landlord for child daycare or student classes`
+            },
+            {
+              title: `Basic Premises Fire Extinguisher & First-Aid Clearance`,
+              authority: `Local Fire Station / Municipal Health Dept`,
+              status: 'optional',
+              note: `Emergency exit signage and ABC dry powder fire extinguishers`
+            }
+          ],
+          keyDocuments: [
+            'Applicant Aadhaar Card & PAN Card',
+            'Registered Premises Commercial Lease or Ownership Deed',
+            'Building / Society No-Objection Certificate (NOC)',
+            'Udyam Central Government Registration Certificate',
+            'Municipal Shop Act Registration / Intimation Slip'
+          ]
+        },
+        recommendationA: `Pick Formal Recognized School if you plan to award state or central board certificates and operate formal K-10/K-12 classes.`,
+        recommendationB: `Pick Preschool / Private Academy if you are launching pre-primary, daycare, or supplementary tutoring: launch in 2 weeks with minimal regulatory red-tape.`
+      }
+    ];
+  }
+
+  // ── 5. FOOD / RESTAURANT / BAKERY / CATERING ──
+  if (
+    combinedText.includes('food') ||
+    combinedText.includes('bakery') ||
+    combinedText.includes('restaurant') ||
+    combinedText.includes('cafe') ||
+    combinedText.includes('kitchen') ||
+    combinedText.includes('fssai') ||
+    combinedText.includes('catering') ||
+    combinedText.includes('dine') ||
+    combinedText.includes('eating') ||
+    combinedText.includes('hotel') ||
+    combinedText.includes('sweet')
+  ) {
+    return [
+      {
+        id: 'food_business_home_vs_comm',
+        name: `Home Cloud Kitchen vs. Commercial Restaurant (${cityLabel})`,
+        description: `Compare licensing, fees, and fire/health inspections between home-based and commercial setups.`,
+        domain: 'business',
+        optionA: {
+          id: 'cloud_kitchen',
+          title: `Home / Cloud Kitchen Setup`,
+          subtitle: `Residential delivery-only food preparation (under ₹12L annual revenue)`,
+          badge: 'Fast Launch • ₹2,500 Fees',
+          estimatedDays: '10–14 Days',
+          governmentFees: '₹2,000 – ₹3,500',
+          requiredDocsCount: 5,
+          physicalVisits: '0 Office Visits (100% Online)',
+          complianceLevel: 'Low',
+          suitableFor: `Home bakers, tiffin services, and cloud kitchens operating from residential premises.`,
+          steps: [
+            {
+              title: `FSSAI Basic Registration (Form A)`,
+              authority: `Food Safety Authority of India (FSSAI)`,
+              status: 'mandatory',
+              note: `₹100/year annual statutory fee for revenue under ₹12 Lakhs`
+            },
+            {
+              title: `Shop & Establishment Self-Intimation`,
+              authority: `${stateLabel} Labour Department`,
+              status: 'mandatory',
+              note: `Online self-declaration without commercial site inspection`
+            },
+            {
+              title: `Commercial Fire Safety NOC`,
+              authority: `${isMumbai ? 'Mumbai Fire Brigade' : 'Municipal Fire Dept'}`,
+              status: 'waived',
+              note: `Exempt for residential kitchens using standard domestic utilities`
+            },
+            {
+              title: `Police Eating House License`,
+              authority: `City Police Licensing Branch`,
+              status: 'waived',
+              note: `Exempt since no dine-in customer seating exists`
+            }
+          ],
+          keyDocuments: [
+            'Aadhaar & PAN Card of Applicant',
+            'Residential Electricity Bill / Lease Agreement',
+            'Society / Landlord NOC for Food Preparation',
+            'Kitchen Hygiene Self-Declaration'
+          ]
+        },
+        optionB: {
+          id: 'dine_in_restaurant',
+          title: `Commercial Dine-In Restaurant`,
+          subtitle: `Physical retail restaurant with customer dining, trade waste, and fire audits`,
+          badge: 'Full Commercial License',
+          estimatedDays: '40–55 Days',
+          governmentFees: '₹18,000 – ₹35,000',
+          requiredDocsCount: 14,
+          physicalVisits: '3–4 Ward Inspections',
+          complianceLevel: 'High',
+          suitableFor: `Full-service dine-in cafes and restaurants with customer seating in ${cityLabel}.`,
+          steps: [
+            {
+              title: `FSSAI State Food License (Form B)`,
+              authority: `Food Safety Authority of India`,
+              status: 'mandatory',
+              note: `Includes food safety supervisor training and water test audits`
+            },
+            {
+              title: `Commercial Fire Safety Clearance & Hydrant Audit`,
+              authority: `${isMumbai ? 'Mumbai Fire Brigade' : 'Municipal Fire Dept'}`,
+              status: 'mandatory',
+              note: `Site inspection of exhaust ducts, exits, and fire hydrants`
+            },
+            {
+              title: `Municipal Health & Trade License`,
+              authority: `${authorityPrefix}`,
+              status: 'mandatory',
+              note: `Sanitation inspection and trade waste clearance`
+            }
+          ],
+          keyDocuments: [
+            'Commercial Registered Lease Agreement (Minimum 3 Years)',
+            'Building Sanction Plan Approved by Municipal Corporation',
+            'Fire Safety Layout Drawing & NOC',
+            'Pollution Control Board Consent to Operate (CTO)'
+          ]
+        },
+        recommendationA: `Pick Home Cloud Kitchen if you are starting out: save ₹15,000+ in fees and launch in under 2 weeks.`,
+        recommendationB: `Pick Commercial Restaurant if you require physical customer seating and commercial brand presence.`
+      }
+    ];
+  }
+
+  // ── 6. DYNAMIC CONTEXTUAL FALLBACK (Direct Standard vs. Single-Window Route) ──
+  const cleanTitle = (journey?.title || 'Civic Procedure')
+    .replace(/^setup\s+/i, '')
+    .replace(/\s+roadmap.*$/i, '')
+    .trim();
+
   return [
     {
-      id: 'food_business_home_vs_comm',
-      name: `Home Cloud Kitchen vs. Commercial Restaurant (${cityLabel})`,
-      description: `Compare licensing, fees, and fire/health inspections between home-based and commercial setups.`,
-      domain: 'business',
+      id: `dynamic_comp_${journey?.id || 'standard'}`,
+      name: `Direct Department Route vs. Single-Window Fast-Track (${cleanTitle})`,
+      description: `Compare timeline, government fees, and statutory requirements for direct departmental filing versus expedited single-window processing.`,
+      domain: 'general',
       optionA: {
-        id: 'cloud_kitchen',
-        title: `Home / Cloud Kitchen Setup`,
-        subtitle: `Residential delivery-only food preparation (under ₹12L annual revenue)`,
-        badge: 'Fast Launch • ₹2,500 Fees',
-        estimatedDays: '10–14 Days',
-        governmentFees: '₹2,000 – ₹3,500',
-        requiredDocsCount: 5,
-        physicalVisits: '0 Office Visits (100% Online)',
-        complianceLevel: 'Low',
-        suitableFor: `Home bakers, tiffin services, and cloud kitchens operating from residential premises.`,
-        steps: [
-          {
-            title: `FSSAI Basic Registration (Form A)`,
-            authority: `Food Safety Authority of India (FSSAI)`,
-            status: 'mandatory',
-            note: `₹100/year annual statutory fee for revenue under ₹12 Lakhs`
-          },
-          {
-            title: `Shop & Establishment Self-Intimation`,
-            authority: `${stateLabel} Labour Department`,
-            status: 'mandatory',
-            note: `Online self-declaration without commercial site inspection`
-          },
-          {
-            title: `Commercial Fire Safety NOC`,
-            authority: `${isMumbai ? 'Mumbai Fire Brigade' : 'Municipal Fire Dept'}`,
-            status: 'waived',
-            note: `Exempt for residential kitchens using standard domestic utilities`
-          },
-          {
-            title: `Police Eating House License`,
-            authority: `City Police Licensing Branch`,
-            status: 'waived',
-            note: `Exempt since no dine-in customer seating exists`
-          }
-        ],
+        id: 'direct_dept_route',
+        title: `Self-Service Direct Department Route`,
+        subtitle: `Apply directly through individual municipal and state department portals (${cityLabel})`,
+        badge: 'Lowest Cost • Direct Submission',
+        estimatedDays: '15–25 Days',
+        governmentFees: '₹1,500 – ₹4,000 (Pure Statutory Fees)',
+        requiredDocsCount: Math.min((journey?.steps || []).length * 2, 8) || 5,
+        physicalVisits: '1–2 Department Visits',
+        complianceLevel: 'Moderate',
+        suitableFor: `Applicants handling individual document submissions directly on official government portals.`,
+        steps: (journey?.steps && journey.steps.length > 0)
+          ? journey.steps.slice(0, 4).map((s) => ({
+              title: s.title.replace(/^\d+\.\s*/, ''),
+              authority: s.authority || s.department || `${cityLabel} Authority`,
+              status: 'mandatory' as const,
+              note: `Direct statutory filing via official portal`
+            }))
+          : [
+              {
+                title: `Primary Statutory Application & Aadhaar e-KYC`,
+                authority: `${authorityPrefix}`,
+                status: 'mandatory' as const,
+                note: `Direct online application submission`
+              },
+              {
+                title: `Document Scrutiny & Municipal Inspection`,
+                authority: `${cityLabel} Municipal Department`,
+                status: 'mandatory' as const,
+                note: `Verification of identity, address, and premises compliance`
+              },
+              {
+                title: `Statutory Fee Payment & Certificate Issuance`,
+                authority: `State Government Portal`,
+                status: 'mandatory' as const,
+                note: `Download digitally signed approved certificate`
+              }
+            ],
         keyDocuments: [
-          'Aadhaar & PAN Card of Applicant',
-          'Residential Electricity Bill / Lease Agreement',
-          'Society / Landlord NOC for Food Preparation',
-          'Kitchen Hygiene Self-Declaration'
+          'Aadhaar & PAN Identity Proof of Applicant',
+          'Premises Ownership Proof or Registered Commercial Lease Agreement',
+          'Municipal Property Tax Receipt (No Dues)',
+          'Bank Account Proof / Cancelled Cheque'
         ]
       },
       optionB: {
-        id: 'dine_in_restaurant',
-        title: `Commercial Dine-In Restaurant`,
-        subtitle: `Physical retail restaurant with customer dining, trade waste, and fire audits`,
-        badge: 'Full Commercial License',
-        estimatedDays: '40–55 Days',
-        governmentFees: '₹18,000 – ₹35,000',
-        requiredDocsCount: 14,
-        physicalVisits: '3–4 Ward Inspections',
-        complianceLevel: 'High',
-        suitableFor: `Full-service dine-in cafes and restaurants with customer seating in ${cityLabel}.`,
+        id: 'single_window_expedited',
+        title: `Single-Window Fast-Track Route`,
+        subtitle: `Consolidated single-window state clearance under Right to Public Services Act`,
+        badge: 'Statutory Timelines • Streamlined',
+        estimatedDays: '7–12 Days',
+        governmentFees: '₹3,500 – ₹7,500 (Includes Expedited Processing)',
+        requiredDocsCount: Math.min((journey?.steps || []).length * 2 + 2, 10) || 6,
+        physicalVisits: '0 Office Visits (100% Online)',
+        complianceLevel: 'Low',
+        suitableFor: `Applicants seeking fast-tracked government clearances bound by legal statutory SLA time-limits.`,
         steps: [
           {
-            title: `FSSAI State Food License (Form B)`,
-            authority: `Food Safety Authority of India`,
-            status: 'mandatory',
-            note: `Includes food safety supervisor training and water test audits`
+            title: `Single-Window Investor / Citizen Portal Registration`,
+            authority: `${stateLabel} Single-Window Clearance Portal (Maitri / State SWC)`,
+            status: 'mandatory' as const,
+            note: `Unified Common Application Form (CAF) routing to all departments simultaneously`
           },
           {
-            title: `Commercial Fire Safety Clearance & Hydrant Audit`,
-            authority: `${isMumbai ? 'Mumbai Fire Brigade' : 'Municipal Fire Dept'}`,
-            status: 'mandatory',
-            note: `Site inspection of exhaust ducts, exits, and fire hydrants`
+            title: `Parallel Inter-Departmental Scrutiny (Right to Services Act)`,
+            authority: `District Industrial Facilitation Council / Ward Officer`,
+            status: 'mandatory' as const,
+            note: `Departments legally bound to approve within statutory SLA timeframe`
           },
           {
-            title: `Municipal Health & Trade License`,
-            authority: `${authorityPrefix}`,
-            status: 'mandatory',
-            note: `Sanitation inspection and trade waste clearance`
+            title: `Composite Digital Clearance Certificate Download`,
+            authority: `Unified Government Portal`,
+            status: 'mandatory' as const,
+            note: `Single QR-coded composite approval slip valid across all authorities`
           }
         ],
         keyDocuments: [
-          'Commercial Registered Lease Agreement (Minimum 3 Years)',
-          'Building Sanction Plan Approved by Municipal Corporation',
-          'Fire Safety Layout Drawing & NOC',
-          'Pollution Control Board Consent to Operate (CTO)'
+          'Unified Common Application Form (CAF) with Aadhaar OTP',
+          'Registered Premises Deed with Approved Cadastral / Floor Plan',
+          'Director / Proprietor KYC & Identity Documents',
+          'Digital Signature Certificate (DSC) / Mobile OTP Verification'
         ]
       },
-      recommendationA: `Pick Home Cloud Kitchen if you are starting out: save ₹15,000+ in fees and launch in under 2 weeks.`,
-      recommendationB: `Pick Commercial Restaurant if you require physical customer seating and commercial brand presence.`
+      recommendationA: `Pick Direct Route if you prefer applying directly on individual department portals and paying only minimum statutory fees.`,
+      recommendationB: `Pick Single-Window Fast-Track if you want all clearances processed concurrently under the Right to Public Services Act within 12 days.`
     }
   ];
 }
