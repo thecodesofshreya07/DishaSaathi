@@ -56,6 +56,7 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
     docId: string;
   } | null>(null);
   const [showPrereqWarning, setShowPrereqWarning] = useState(false);
+  const [showDocWarning, setShowDocWarning] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
   if (!step) return null;
@@ -85,6 +86,8 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
   // Document readiness calculation
   const totalDocs = step.documents.length;
   const readyDocs = step.documents.filter((d) => d.status === 'READY' || d.status === 'UPLOADED').length;
+  const unreadyDocs = step.documents.filter((d) => d.status !== 'READY' && d.status !== 'UPLOADED');
+  const hasUnreadyDocs = unreadyDocs.length > 0;
   const docReadinessPercent = totalDocs > 0 ? Math.round((readyDocs / totalDocs) * 100) : 100;
 
   // Group documents by category (Section 8)
@@ -559,6 +562,53 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
           </div>
         )}
 
+        {/* Document Readiness warning banner when clicked while documents are pending */}
+        {showDocWarning && hasUnreadyDocs && (
+          <div className="mx-6 mb-2 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2 animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-100">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Required Documents Incomplete</span>
+            </div>
+            <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+              All documents in this step must be marked as Ready before completing this step. Pending document(s): <strong>{unreadyDocs.map((d) => d.name).join(', ')}</strong>.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={async () => {
+                  setIsUpdating(true);
+                  try {
+                    if (onUpdateDocumentStatus) {
+                      for (const doc of unreadyDocs) {
+                        await onUpdateDocumentStatus(step.id, doc.id, 'READY');
+                      }
+                    }
+                    await onUpdateStatus(step.id, 'Completed');
+                    setShowDocWarning(false);
+                    onClose();
+                  } catch (err) {
+                    console.error('Error readying documents:', err);
+                  } finally {
+                    setIsUpdating(false);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{isUpdating ? 'Updating...' : 'Mark All Documents Ready & Complete Step'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDocWarning(false)}
+                className="px-2.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-semibold text-xs cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Modal Footer with Actions (Sticky & Fixed at bottom) */}
         <div className="px-6 py-3.5 bg-slate-50 dark:bg-[#10241E] border-t border-slate-200 dark:border-[#1E3B32] flex flex-wrap items-center justify-between gap-3 shrink-0">
           {onOpenAiAssistant && (
@@ -582,6 +632,10 @@ export const StepDetailModal: React.FC<StepDetailModalProps> = ({
                 onClick={async () => {
                   if (isBlocked) {
                     setShowPrereqWarning(true);
+                    return;
+                  }
+                  if (hasUnreadyDocs) {
+                    setShowDocWarning(true);
                     return;
                   }
                   setIsUpdating(true);

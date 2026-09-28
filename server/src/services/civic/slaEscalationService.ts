@@ -171,12 +171,28 @@ export interface GrievanceDraftResponse {
 export function generateStatutoryGrievanceDraft(req: GrievanceDraftRequest): GrievanceDraftResponse {
   const sla = getStepSlaInfo(req.stepTitle, req.department);
   const mandatedDays = sla.mandatedSlaDays;
-  const daysElapsed = req.daysElapsed || (mandatedDays + 7);
+  const daysElapsed = typeof req.daysElapsed === 'number' && !isNaN(req.daysElapsed) ? req.daysElapsed : 0;
   const overdueDays = Math.max(0, daysElapsed - mandatedDays);
   const isOverdue = daysElapsed > mandatedDays;
   const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
   const ackNo = req.applicationNumber || 'APP/' + Math.floor(100000 + Math.random() * 900000);
   const subDate = req.submissionDate || new Date(Date.now() - daysElapsed * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const timelineElapsedText = isOverdue
+    ? `• Actual Time Elapsed to Date : ${daysElapsed} Days (${overdueDays} Days Overdue)`
+    : `• Actual Time Elapsed to Date : ${daysElapsed} Days (Current Status: Within Mandated SLA Window - ${Math.max(0, mandatedDays - daysElapsed)} Days Remaining)`;
+
+  const subjectLine = isOverdue
+    ? `STATUTORY GRIEVANCE / FIRST APPEAL FOR UNREASONABLE DELAY BEYOND MANDATED CITIZEN CHARTER SLA`
+    : `FORMAL INTIMATION & STATUTORY TRACKING REQUEST UNDER CITIZEN CHARTER SLA`;
+
+  const reliefSought = isOverdue
+    ? `In view of the statutory delay of ${overdueDays} days beyond the legal SLA, I respectfully request:
+   a) Immediate disposal and issuance of the requested certificate / license.
+   b) In the alternative, a written explanation specifying the cogent reasons for the delay in accordance with statutory obligations.`
+    : `As the application is currently within the notified statutory processing window, I respectfully request:
+   a) Verification and processing within the legally guaranteed ${mandatedDays}-day Citizen Charter timeline.
+   b) Immediate formal intimation if any additional verification is necessitated.`;
 
   const letter = `To,
 The First Appellate Authority / Designated Grievance Officer,
@@ -185,21 +201,21 @@ ${req.location || 'Municipal Corporation / State Jurisdiction'}, Republic of Ind
 
 Date: ${today}
 
-SUBJECT: STATUTORY GRIEVANCE / FIRST APPEAL FOR UNREASONABLE DELAY BEYOND MANDATED CITIZEN CHARTER SLA
+SUBJECT: ${subjectLine}
 Ref: Application / Acknowledgement Receipt No: ${ackNo}
 Service: ${req.stepTitle}
 Statutory Authority: ${sla.actName}
 
 Respected Sir / Madam,
 
-I, ${req.citizenName || 'the Applicant'}, am writing to formally place on record an official grievance regarding the delay in the processing and issuance of my application for "${req.stepTitle}".
+I, ${req.citizenName || 'the Applicant'}, am writing to formally place on record an official communication regarding the processing and issuance of my application for "${req.stepTitle}".
 
 1. APPLICATION DETAILS & TIMELINE:
    • Application Reference Number : ${ackNo}
    • Date of Formal Submission   : ${subDate}
    • Legally Mandated SLA Window : ${mandatedDays} Calendar/Working Days (Under ${sla.actName})
-   • Actual Time Elapsed to Date : ${daysElapsed} Days (${overdueDays} Days Overdue)
-   • Current Application Status  : Pending / No Official Communication Received
+   ${timelineElapsedText}
+   • Current Application Status  : In Scrutiny / Pending Official Action
 
 2. STATUTORY LEGAL GROUNDS:
    Under the provisions of the Right to Public Services (RTS) Act and the Departmental Citizens' Charter, citizens are legally entitled to receive notified public services within the prescribed timeline of ${mandatedDays} days. 
@@ -207,9 +223,7 @@ I, ${req.citizenName || 'the Applicant'}, am writing to formally place on record
    All required statutory documents and fees were duly remitted at the time of initial application. No deficiency memo (Form Rejection/Query) was communicated to me within the statutory scrutiny period.
 
 3. RELIEF SOUGHT:
-   In view of the statutory delay of ${overdueDays} days beyond the legal SLA, I respectfully request:
-   a) Immediate disposal and issuance of the requested certificate / license.
-   b) In the alternative, a written explanation specifying the cogent reasons for the delay in accordance with statutory obligations.
+   ${reliefSought}
 
 Thanking You,
 

@@ -129,6 +129,40 @@ export const procedureKnowledgeBase: BaseCivicProcedure[] = [
     verificationStatus: 'VERIFIED'
   },
   {
+    id: 'proc-salon-health-license',
+    code: 'SALON_HEALTH_LICENSE',
+    title: 'Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)',
+    plainLanguageSummary: 'Obtain statutory municipal health and trade clearance to lawfully operate a personal grooming, salon, or beauty establishment.',
+    whyRequired: 'Mandatory under municipal law (MMC Act Section 394 in Mumbai / Karnataka Municipal Corporations Act in Bengaluru) ensuring sanitary sterilisation equipment, clean water drainage, and public health sanitation compliance.',
+    authority: 'Municipal Corporation Health Department (Public Health Department)',
+    category: 'Health & Municipal Clearance',
+    jurisdiction: { country: 'India' },
+    domain: 'PERSONAL_CARE_SERVICES',
+    dependsOn: ['proc-pan-entity', 'proc-udyam-msme', 'proc-gumasta-shop'],
+    canRunInParallelWith: ['proc-gst-registration'],
+    documents: [
+      { id: 'doc-salon-1', name: 'Commercial Premises Lease Deed / Property Tax Receipt', isMandatory: true, description: 'Registered proof of commercial occupancy' },
+      { id: 'doc-salon-2', name: 'Aadhaar & PAN Identity Proof of Applicant', isMandatory: true, description: 'Statutory personal identification' },
+      { id: 'doc-salon-3', name: 'Premises Floor Plan Layout Showing Styling Chairs & Steriliser', isMandatory: true, description: 'CAD or scaled drawing of salon work area' },
+      { id: 'doc-salon-4', name: 'Sterilisation & Hot Water Facility Declaration', isMandatory: true, description: 'Hygiene and equipment sanitation proof' },
+      { id: 'doc-salon-5', name: 'Society / Landlord No-Objection Certificate (NOC)', isMandatory: false, description: 'Conditional: required if premises is in a co-operative housing society' }
+    ],
+    fee: { amount: 'Schedule of Fees (Varies by area & chairs)', description: 'Statutory municipal fee schedule; verify current rate with local Ward Health Officer' },
+    estimatedTime: 'Statutory 30 days under Right to Public Services Act (RTS / Sakala)',
+    applicationMode: 'Online',
+    applicationUrl: 'https://serviceonline.gov.in',
+    source: {
+      id: 'src-salon-licence',
+      title: 'Municipal Public Health & Trade Licensing Regulations',
+      url: 'https://serviceonline.gov.in',
+      department: 'Municipal Corporation Public Health Department',
+      domain: 'gov.in',
+      lastChecked: '2026-09-28',
+      verificationStatus: 'Verified'
+    },
+    verificationStatus: 'VERIFIED'
+  },
+  {
     id: 'proc-fssai-food',
     code: 'FSSAI_FOOD',
     title: 'FSSAI Food Safety Registration / State License',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers, FileDown, Network } from 'lucide-react';
+import { Clock, ArrowLeft, Scale, ShieldAlert, X, Mail, AlertOctagon, Layers, FileDown, Network, AlertTriangle } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { HeroBanner } from '../components/HeroBanner';
@@ -167,9 +167,10 @@ export const RoadmapPage: React.FC = () => {
   ) => {
     const result = await updateStepStatusContext(stepId, status);
     if (!result.success && result.blocked) {
-      setBlockedStepError(result.message || 'Prerequisite procedure steps must be completed first.');
+      setBlockedStepError(result.message || 'Prerequisite procedure steps or documents must be completed first.');
       return;
     }
+    setBlockedStepError(null);
     // Keep live selectedStep in sync with active journey
     setSelectedStep((prev) => (prev && prev.id === stepId ? { ...prev, status } : prev));
   };
@@ -359,43 +360,50 @@ export const RoadmapPage: React.FC = () => {
               ) : (
                 <div className="space-y-6 animate-in fade-in duration-200">
                   {/* Top Navigation Bar: Back to All Journeys & Action Toolbar */}
-                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E2EAE5] dark:border-[#1E3B32] rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 shadow-2xs">
+                  {/* Top Navigation Bar: Back to All Journeys & Action Toolbar */}
+                  <div className="bg-white dark:bg-[#0D1A16] border border-[#E2EAE5] dark:border-[#1E3B32] rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-2xs">
 
-                    {/* Left: Journey Info */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <button
-                        onClick={() => setJourneyViewMode('cards')}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0F5F2] hover:bg-[#E2EBE5] dark:bg-[#142A22] dark:hover:bg-[#1A382D] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all shrink-0 cursor-pointer"
-                        title="Back to all saved journeys"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">All Journeys</span>
-                      </button>
+                    {/* Top Row: Back Button, Title, and Status Badges */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <button
+                          type="button"
+                          onClick={() => setJourneyViewMode('cards')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0F5F2] hover:bg-[#E2EBE5] dark:bg-[#142A22] dark:hover:bg-[#1A382D] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs"
+                          title="Back to all saved journeys"
+                        >
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                          <span>All Journeys</span>
+                        </button>
 
-                      <div className="h-5 w-px bg-[#E2EAE5] dark:bg-[#1E3B32] shrink-0" />
+                        <div className="h-5 w-px bg-[#E2EAE5] dark:bg-[#1E3B32] shrink-0" />
 
-                      <div className="min-w-0">
                         <h2 className="text-base sm:text-lg font-extrabold text-[#11261F] dark:text-white tracking-tight truncate">
                           {activeJourney.title}
                         </h2>
-                        <div className="flex items-center gap-2 flex-wrap mt-1 text-[11px]">
-                          <span className="font-bold px-2.5 py-0.5 rounded-full bg-[#EBF5EF] text-[#1B4D3E] dark:bg-[#17382D] dark:text-[#6EE7B7]">
-                            {activeJourney.totalSteps > 0
-                              ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete (${activeJourney.completedSteps || 0}/${activeJourney.totalSteps || 0})`
-                              : 'In Progress'}
-                          </span>
-                          <span className="font-semibold px-2.5 py-0.5 rounded-full bg-[#FAF7F0] text-[#784D13] dark:bg-[#211B10] dark:text-amber-300 border border-[#EADFC7] dark:border-[#382E1E]">
-                            Fees: {calculateTotalJourneyCost(activeJourney.steps).label}
-                          </span>
-                          <span className="text-[#65786E] dark:text-[#9FB7AC]">
-                            • {activeJourney.location || 'Municipal Guidance'}
-                          </span>
-                        </div>
+                      </div>
+
+                      {/* Clean Badges (always preserved in one line, no wrapping) */}
+                      <div className="flex items-center gap-2 flex-wrap shrink-0 text-[11px]">
+                        <span className="font-bold px-2.5 py-1 rounded-full bg-[#EBF5EF] text-[#1B4D3E] dark:bg-[#17382D] dark:text-[#6EE7B7] whitespace-nowrap shrink-0">
+                          {activeJourney.totalSteps > 0
+                            ? `${Math.round(((activeJourney.completedSteps || 0) / activeJourney.totalSteps) * 100)}% Complete (${activeJourney.completedSteps || 0}/${activeJourney.totalSteps || 0})`
+                            : 'In Progress'}
+                        </span>
+                        <span className="font-semibold px-2.5 py-1 rounded-full bg-[#FAF7F0] text-[#784D13] dark:bg-[#211B10] dark:text-amber-300 border border-[#EADFC7] dark:border-[#382E1E] whitespace-nowrap shrink-0">
+                          Fees: {calculateTotalJourneyCost(activeJourney.steps).label}
+                        </span>
+                        <span className="text-[#65786E] dark:text-[#9FB7AC] whitespace-nowrap shrink-0">
+                          • {activeJourney.location || 'Municipal Guidance'}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Right: Clean, Unified Action Toolbar */}
-                    <div className="flex items-center gap-2 flex-wrap shrink-0 w-full lg:w-auto justify-start lg:justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-[#EEF3F0] dark:border-[#1A332B]">
+                    {/* Subtle Separator */}
+                    <div className="h-px bg-[#EEF3F0] dark:bg-[#1A332B] w-full" />
+
+                    {/* Bottom Row: Action Toolbar (6 clean buttons with perfect wrap & spacing) */}
+                    <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
                       <button
                         type="button"
                         onClick={() => setIsGraphModalOpen(true)}
@@ -425,6 +433,7 @@ export const RoadmapPage: React.FC = () => {
                         <Layers className="w-3.5 h-3.5 shrink-0" />
                         <span>Compare Options</span>
                       </button>
+
                       <button
                         type="button"
                         onClick={() => setIsSimulatorOpen(true)}

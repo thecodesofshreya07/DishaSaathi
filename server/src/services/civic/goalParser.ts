@@ -6,27 +6,104 @@ interface ParseGoalOptions {
 }
 
 /**
+ * Dynamic location extractor supporting Indian cities and common phonetic typos (e.g. navglore)
+ */
+export function extractLocationFromQuery(query: string, options?: ParseGoalOptions): { city: string; state: string } {
+  const q = (query || '').toLowerCase().trim();
+  let city = 'Mumbai';
+  let state = 'Maharashtra';
+
+  if (options?.locationOverride) {
+    const parts = options.locationOverride.split(',').map((p) => p.trim());
+    if (parts[0]) city = parts[0];
+    if (parts[1]) state = parts[1];
+    return { city, state };
+  }
+
+  // 1. Karnataka cities & common phonetic typos (e.g. navglore, bangalore, mangalore)
+  if (
+    q.includes('navglore') ||
+    q.includes('bangalore') ||
+    q.includes('bengaluru') ||
+    q.includes('banglore') ||
+    q.includes('बंगळुरू') ||
+    q.includes('बेंगळुरू')
+  ) {
+    return { city: 'Bengaluru', state: 'Karnataka' };
+  }
+  if (q.includes('mangalore') || q.includes('mangaluru')) {
+    return { city: 'Mangaluru', state: 'Karnataka' };
+  }
+  if (q.includes('mysore') || q.includes('mysuru')) {
+    return { city: 'Mysuru', state: 'Karnataka' };
+  }
+  if (q.includes('hubli') || q.includes('dharwad')) {
+    return { city: 'Hubli-Dharwad', state: 'Karnataka' };
+  }
+  if (q.includes('belgaum') || q.includes('belagavi')) {
+    return { city: 'Belagavi', state: 'Karnataka' };
+  }
+  if (q.includes('pune') || q.includes('पुणे')) {
+    return { city: 'Pune', state: 'Maharashtra' };
+  }
+  if (q.includes('nagpur') || q.includes('नागपूर')) {
+    return { city: 'Nagpur', state: 'Maharashtra' };
+  }
+  if (q.includes('nashik') || q.includes('नाशिक')) {
+    return { city: 'Nashik', state: 'Maharashtra' };
+  }
+  if (q.includes('thane') || q.includes('ठाणे')) {
+    return { city: 'Thane', state: 'Maharashtra' };
+  }
+  if (q.includes('navi mumbai') || q.includes('नवी मुंबई')) {
+    return { city: 'Navi Mumbai', state: 'Maharashtra' };
+  }
+  if (q.includes('mumbai') || q.includes('मुंबई') || q.includes('bombay')) {
+    return { city: 'Mumbai', state: 'Maharashtra' };
+  }
+  if (q.includes('delhi') || q.includes('दिल्ली')) {
+    return { city: 'Delhi', state: 'Delhi' };
+  }
+  if (q.includes('hyderabad') || q.includes('हैदराबाद')) {
+    return { city: 'Hyderabad', state: 'Telangana' };
+  }
+  if (q.includes('chennai') || q.includes('चेन्नई')) {
+    return { city: 'Chennai', state: 'Tamil Nadu' };
+  }
+  if (q.includes('kolkata') || q.includes('कलकत्ता') || q.includes('कोलकाता')) {
+    return { city: 'Kolkata', state: 'West Bengal' };
+  }
+  if (q.includes('ahmedabad') || q.includes('अहमदाबाद')) {
+    return { city: 'Ahmedabad', state: 'Gujarat' };
+  }
+  if (q.includes('jaipur') || q.includes('जयपुर')) {
+    return { city: 'Jaipur', state: 'Rajasthan' };
+  }
+
+  // Regex pattern to extract "in <location>" or "at <location>"
+  const locMatch = q.match(/\b(?:in|at|for|near)\s+([a-zA-Z\u0900-\u097F]+)/i);
+  if (locMatch && locMatch[1]) {
+    const rawPlace = locMatch[1].trim();
+    const ignored = ['a', 'the', 'my', 'this', 'our', 'commercial', 'small', 'new', 'shop', 'salon', 'parlour', 'business'];
+    if (!ignored.includes(rawPlace.toLowerCase())) {
+      city = rawPlace.charAt(0).toUpperCase() + rawPlace.slice(1);
+      state = (city.toLowerCase().includes('navg') || city.toLowerCase().includes('bang') || city.toLowerCase().includes('mang'))
+        ? 'Karnataka'
+        : 'State Jurisdiction';
+      return { city, state };
+    }
+  }
+
+  return { city, state };
+}
+
+/**
  * Intelligent deterministic fallback parser for Indian Civic procedures.
  * Used when Gemini API quota (429) is exhausted or API is unavailable.
  */
 function parseGoalDeterministically(query: string, options?: ParseGoalOptions): StructuredGoal {
   const q = query.toLowerCase().trim();
-
-  // Extract location
-  let city = 'Mumbai';
-  let state = 'Maharashtra';
-  if (options?.locationOverride) {
-    const parts = options.locationOverride.split(',').map((p) => p.trim());
-    if (parts[0]) city = parts[0];
-    if (parts[1]) state = parts[1];
-  } else {
-    if (q.includes('delhi')) { city = 'Delhi'; state = 'Delhi'; }
-    else if (q.includes('bangalore') || q.includes('bengaluru')) { city = 'Bengaluru'; state = 'Karnataka'; }
-    else if (q.includes('pune') || q.includes('पुणे')) { city = 'Pune'; state = 'Maharashtra'; }
-    else if (q.includes('mumbai') || q.includes('मुंबई') || q.includes('bombay')) { city = 'Mumbai'; state = 'Maharashtra'; }
-    else if (q.includes('delhi') || q.includes('दिल्ली')) { city = 'Delhi'; state = 'Delhi'; }
-    else if (q.includes('bangalore') || q.includes('bengaluru') || q.includes('बंगळुरू')) { city = 'Bengaluru'; state = 'Karnataka'; }
-  }
+  const { city, state } = extractLocationFromQuery(query, options);
 
   // 1. Driving Licence (RTO / Sarathi Parivahan) - English, Marathi, Hindi & Phonetic
   const isDrivingLicence =
@@ -152,6 +229,22 @@ function parseGoalDeterministically(query: string, options?: ParseGoalOptions): 
       clarificationNeeded: false
     };
   } else if (
+    q.includes('salon') || q.includes('saloon') || q.includes('parlour') ||
+    q.includes('parlor') || q.includes('beauty') || q.includes('hair') ||
+    q.includes('spa') || q.includes('barber')
+  ) {
+    result = {
+      rawGoal: query,
+      intent: 'START_BUSINESS',
+      domain: 'PERSONAL_CARE_SERVICES',
+      activity: 'SALON_SETUP',
+      location: { city, state, country: 'India' },
+      context: { scale: 'small', type: 'commercial', additionalNotes: options?.context || '' },
+      entities: { businessType: 'Hair Dressing Saloon / Beauty Parlour', scale: 'micro/small' },
+      confidence: 0.98,
+      clarificationNeeded: false
+    };
+  } else if (
     q.includes('bakery') || q.includes('cafe') || q.includes('restaurant') ||
     q.includes('food') || q.includes('sweet') || q.includes('hotel') ||
     q.includes('canteen') || q.includes('cloud kitchen') || q.includes('dhaba')
@@ -238,8 +331,8 @@ Return ONLY a valid JSON object matching this schema:
   "domain": "e.g. PROPERTY_RENTAL, PROPERTY_ACQUISITION, URBAN_DEVELOPMENT, FOOD_BUSINESS, TRANSPORT, VITAL_RECORDS, etc.",
   "activity": "e.g. DRIVING_LICENSE, RENTAL_AGREEMENT, FLAT_PURCHASE, RESIDENTIAL_CONSTRUCTION, BAKERY, TWO_WHEELER, BIRTH_CERTIFICATE, etc.",
   "location": {
-    "city": "Detected or provided city (default to Mumbai if mentioned or context indicates Maharashtra, else India)",
-    "state": "Detected or provided state (default to Maharashtra if Mumbai, else India)",
+    "city": "The exact city extracted from user query (e.g. if user says 'in navglore' or 'in bangalore', extract 'Bengaluru'; if 'in mangalore', extract 'Mangaluru'; if 'in pune', extract 'Pune'; if 'in delhi', extract 'Delhi'; only use Mumbai if user actually specifies Mumbai or Maharashtra context)",
+    "state": "The corresponding state (e.g. 'Karnataka' for Bengaluru/Mangaluru/Navglore, 'Maharashtra' for Mumbai/Pune, 'Delhi' for Delhi, etc.)",
     "country": "India"
   },
   "context": {
@@ -319,9 +412,41 @@ Return ONLY a valid JSON object matching this schema:
           parsed.clarificationNeeded = false;
         }
 
-        if (qLower.includes('mumbai') || qLower.includes('मुंबई') || qLower.includes('bombay')) {
-          parsed.location.city = parsed.location.city || 'Mumbai';
-          parsed.location.state = parsed.location.state || 'Maharashtra';
+        const detectedLoc = extractLocationFromQuery(query, options);
+        if (
+          qLower.includes('navglore') ||
+          qLower.includes('bangalore') ||
+          qLower.includes('bengaluru') ||
+          qLower.includes('banglore') ||
+          qLower.includes('mangalore') ||
+          qLower.includes('mysore')
+        ) {
+          parsed.location.city = detectedLoc.city;
+          parsed.location.state = 'Karnataka';
+        } else if (
+          parsed.location.city?.toLowerCase() === 'mumbai' &&
+          !qLower.includes('mumbai') &&
+          !qLower.includes('bombay') &&
+          !qLower.includes('मुंबई')
+        ) {
+          parsed.location.city = detectedLoc.city;
+          parsed.location.state = detectedLoc.state;
+        }
+
+        // Salon & Beauty Parlour setup
+        if (
+          qLower.includes('salon') || qLower.includes('saloon') || qLower.includes('parlour') ||
+          qLower.includes('parlor') || qLower.includes('beauty') || qLower.includes('hair') ||
+          qLower.includes('spa') || qLower.includes('barber')
+        ) {
+          parsed.intent = 'START_BUSINESS';
+          parsed.domain = 'PERSONAL_CARE_SERVICES';
+          parsed.activity = 'SALON_SETUP';
+          parsed.entities = {
+            ...parsed.entities,
+            businessType: 'Hair Dressing Saloon / Beauty Parlour'
+          };
+          parsed.clarificationNeeded = false;
         }
 
         parsed.isFallback = false;

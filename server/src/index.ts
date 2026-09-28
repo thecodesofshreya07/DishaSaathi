@@ -924,7 +924,7 @@ app.post('/api/civic/sla-escalation', async (req: Request, res: Response) => {
       department,
       applicationNumber,
       submissionDate,
-      daysElapsed: Number(daysElapsed) || undefined,
+      daysElapsed: daysElapsed !== undefined ? Number(daysElapsed) : 0,
       contactEmail,
       contactPhone,
       location

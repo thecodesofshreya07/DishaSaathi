@@ -578,6 +578,21 @@ export const RoadmapProvider: React.FC<{ children: React.ReactNode }> = ({ child
           message: `Prerequisite steps must be completed first: ${prereqTitles.join(', ')}`
         };
       }
+
+      // 1b. Document Readiness Check: If even one document is not ready, block completion
+      const docs = step.documents || [];
+      const unreadyDocs = docs.filter(
+        (doc) => doc.status !== 'READY' && doc.status !== 'UPLOADED'
+      );
+
+      if (unreadyDocs.length > 0) {
+        const unreadyNames = unreadyDocs.map((d) => d.name).join(', ');
+        return {
+          success: false,
+          blocked: true,
+          message: `All documents in this step must be marked as Ready before completing this step. Pending: ${unreadyNames}`
+        };
+      }
     }
 
     // 2. Immediate Optimistic State Update

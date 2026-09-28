@@ -51,6 +51,24 @@ export function matchProceduresForGoal(goal: StructuredGoal): ProcedureMatchResu
             proc.id === 'proc-gumasta-shop' ||
             proc.id === 'proc-gst-registration'
           );
+        } else if (
+          activity === 'SALON_SETUP' ||
+          domain === 'PERSONAL_CARE_SERVICES' ||
+          businessType.includes('salon') ||
+          businessType.includes('saloon') ||
+          businessType.includes('parlour') ||
+          businessType.includes('beauty') ||
+          businessType.includes('hair') ||
+          businessType.includes('spa')
+        ) {
+          // Salon & Beauty Parlour: Legal Identity, MSME, Shop Act, Municipal Health Trade License, and GST
+          return (
+            proc.id === 'proc-pan-entity' ||
+            proc.id === 'proc-udyam-msme' ||
+            proc.id === 'proc-gumasta-shop' ||
+            proc.id === 'proc-salon-health-license' ||
+            proc.id === 'proc-gst-registration'
+          );
         } else {
           // General non-food business: legal identity, MSME, shop establishment, and GST
           return (

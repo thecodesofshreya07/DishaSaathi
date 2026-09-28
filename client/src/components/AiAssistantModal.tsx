@@ -229,12 +229,12 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[620px] animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[min(620px,calc(100vh-1rem))] h-[620px] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-[#1B4D3E] to-[#12382D] text-white flex items-center justify-between">
+        <div className="px-6 py-4 bg-gradient-to-r from-[#1B4D3E] to-[#12382D] text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs overflow-hidden">
+            <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
               <img src="/images/logo.png" alt="DishaSaathi Logo" className="w-full h-full object-contain" />
             </div>
             <div>
@@ -252,14 +252,14 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
+            className="p-2 rounded-full hover:bg-white/10 text-white transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Step Selector Tab Bar if multi-step journey */}
-        <div className="bg-[#EAF2ED] border-b border-[#D5E3DB] px-4 py-2 flex items-center gap-2 overflow-x-auto text-xs">
+        <div className="bg-[#EAF2ED] border-b border-[#D5E3DB] px-4 py-2 flex items-center gap-2 overflow-x-auto text-xs shrink-0">
           <span className="font-bold text-[#143B2F] flex-shrink-0 text-[11px] uppercase tracking-wider">
             Step Focus:
           </span>
@@ -279,7 +279,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         </div>
 
         {/* Chat message history */}
-        <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/50">
+        <div className="flex-1 min-h-0 p-4 sm:p-5 overflow-y-auto space-y-4 bg-slate-50/50">
           {messages.map((msg, i) => (
             <div
               key={i}
@@ -347,16 +347,16 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         </div>
 
         {/* Suggested Quick Question Chips (Section 19) */}
-        <div className="px-5 py-2.5 bg-white border-t border-slate-100">
+        <div className="px-4 sm:px-5 py-2.5 bg-white border-t border-slate-100 shrink-0">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
               Quick Prompts:
             </span>
             {suggestedQuestions.map((sq) => (
               <button
                 key={sq}
                 onClick={() => handleSend(sq)}
-                className="px-3 py-1 rounded-full bg-[#EAF2ED] hover:bg-[#D5E3DB] text-[#1B4D3E] text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0"
+                className="px-3 py-1 rounded-full bg-[#EAF2ED] hover:bg-[#D5E3DB] text-[#1B4D3E] text-xs font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer"
               >
                 {sq}
               </button>
@@ -365,7 +365,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 bg-white border-t border-slate-200 flex items-center gap-2">
+        <div className="p-3 sm:p-4 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0">
           <input
             type="text"
             value={inputValue}
@@ -376,7 +376,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
           />
           <button
             onClick={() => handleSend()}
-            className="w-10 h-10 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white flex items-center justify-center transition-colors shadow-2xs"
+            className="w-10 h-10 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white flex items-center justify-center transition-colors shadow-2xs shrink-0 cursor-pointer"
           >
             <Send className="w-4 h-4" />
           </button>

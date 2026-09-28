@@ -168,20 +168,95 @@ export function buildRoadmap(
   let mandatoryDocCount = 0;
   let totalDocCount = 0;
 
+  const isKarnataka = (goal.location.state || '').toLowerCase().includes('karnataka') ||
+    (goal.location.city || '').toLowerCase().includes('bengaluru') ||
+    (goal.location.city || '').toLowerCase().includes('bangalore') ||
+    (goal.location.city || '').toLowerCase().includes('navg') ||
+    (goal.location.city || '').toLowerCase().includes('mangalore');
+
+  const isMaharashtra = (goal.location.state || '').toLowerCase().includes('maharashtra') ||
+    (goal.location.city || '').toLowerCase().includes('mumbai') ||
+    (goal.location.city || '').toLowerCase().includes('pune');
+
   const steps: ProcedureStep[] = sortedProcs.map((proc, index) => {
+    let stepTitle = proc.title;
+    let stepAuthority = proc.authority;
+    let stepDescription = proc.plainLanguageSummary;
+    let stepWhyRequired = proc.whyRequired;
+    let stepApplicationUrl = proc.applicationUrl;
+    let stepSource = proc.source;
+
+    // Dynamically localize procedures based on citizen's specific jurisdiction
+    if (proc.id === 'proc-gumasta-shop') {
+      if (isKarnataka) {
+        stepTitle = 'Shop & Commercial Establishment Registration (e-Karmika)';
+        stepAuthority = 'Department of Labour, Government of Karnataka';
+        stepDescription = 'Register your physical commercial premises under the Karnataka Shops and Commercial Establishments Act, 1961 via the official e-Karmika portal.';
+        stepWhyRequired = 'Mandatory statutory requirement under the Karnataka Shops and Commercial Establishments Act, 1961 to lawfully operate a commercial business and employ staff in Karnataka.';
+        stepApplicationUrl = 'https://ekarmika.karnataka.gov.in';
+        stepSource = {
+          id: 'src-karnataka-shops',
+          title: 'e-Karmika Karnataka Citizen Services Portal',
+          url: 'https://ekarmika.karnataka.gov.in',
+          department: 'Department of Labour, Government of Karnataka',
+          domain: 'karnataka.gov.in',
+          lastChecked: '2026-09-28',
+          verificationStatus: 'Verified'
+        };
+      } else if (!isMaharashtra) {
+        stepTitle = `Shop & Commercial Establishment Registration (${goal.location.state || 'State'})`;
+        stepAuthority = `${goal.location.state || 'State'} Labour Department`;
+        stepDescription = `Register your commercial premises under the ${goal.location.state || 'State'} Shops and Commercial Establishments Act.`;
+        stepWhyRequired = `Statutory registration required to operate commercial premises and hire personnel under the ${goal.location.state || 'State'} Shops Act.`;
+      }
+    } else if (proc.id === 'proc-salon-health-license') {
+      if (isKarnataka) {
+        const isBlr = (goal.location.city || '').toLowerCase().includes('bengaluru') || (goal.location.city || '').toLowerCase().includes('bangalore') || (goal.location.city || '').toLowerCase().includes('navg');
+        stepTitle = 'Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)';
+        stepAuthority = isBlr ? 'Bruhat Bengaluru Mahanagara Palike (BBMP) Health Department' : `${goal.location.city} City Corporation Health Department`;
+        stepDescription = 'Obtain statutory municipal health and trade clearance under the Karnataka Municipal Corporations Act.';
+        stepWhyRequired = 'Mandatory under Section 353 of the Karnataka Municipal Corporations Act for personal grooming and hairdressing establishments to ensure sanitary sterilization and waste management.';
+        stepApplicationUrl = 'https://bbmp.gov.in';
+        stepSource = {
+          id: 'src-bbmp-health',
+          title: 'BBMP Health & Trade Licensing Regulations',
+          url: 'https://bbmp.gov.in',
+          department: isBlr ? 'Bruhat Bengaluru Mahanagara Palike (BBMP)' : `${goal.location.city} City Corporation`,
+          domain: 'bbmp.gov.in',
+          lastChecked: '2026-09-28',
+          verificationStatus: 'Verified'
+        };
+      } else if (isMaharashtra) {
+        const isMum = (goal.location.city || '').toLowerCase().includes('mumbai');
+        stepTitle = 'Municipal Health & Trade Licence (Hair Dressing Saloon / Beauty Parlour)';
+        stepAuthority = isMum ? 'Brihanmumbai Municipal Corporation (BMC) Public Health Department' : `${goal.location.city} Municipal Corporation Health Department`;
+        stepDescription = 'Obtain statutory municipal health trade license under Section 394 of the Mumbai Municipal Corporation Act (MMC Act).';
+        stepWhyRequired = 'Section 394 of the MMC Act mandates that all hair dressing saloons and beauty parlours maintain sterilized instruments, clean drainage, and adequate ventilation.';
+        stepApplicationUrl = 'https://portal.mcgm.gov.in';
+      }
+    }
+
     // Enrich each document with structured categories, readiness status, and verification
     const enrichedDocuments: CivicDocument[] = proc.documents.map((doc) => {
       totalDocCount++;
       if (doc.isMandatory) mandatoryDocCount++;
+
+      let docDesc = doc.description;
+      if (proc.id === 'proc-gumasta-shop' && doc.id === 'doc-gumasta-4') {
+        docDesc = isKarnataka
+          ? 'Must display commercial establishment trade name in Kannada and English under Karnataka State Rules'
+          : 'Must display name in Marathi Devanagari script and English under Maharashtra State Rules';
+      }
+
       return {
         id: doc.id,
         name: doc.name,
-        description: doc.description,
-        requiredFor: proc.title,
+        description: docDesc,
+        requiredFor: stepTitle,
         category: doc.category || inferDocumentCategory(doc.name, doc.description),
         status: doc.status || 'NOT_READY',
         isMandatory: doc.isMandatory,
-        sourceUrl: doc.sourceUrl || proc.source.url,
+        sourceUrl: doc.sourceUrl || stepSource.url,
         verificationStatus: doc.verificationStatus || proc.verificationStatus
       };
     });
@@ -195,13 +270,13 @@ export function buildRoadmap(
     return {
       id: proc.id,
       stepNumber: index + 1,
-      title: proc.title,
+      title: stepTitle,
       category: proc.category,
-      department: proc.authority,
-      authority: proc.authority,
-      description: proc.plainLanguageSummary,
-      plainLanguageSummary: proc.plainLanguageSummary,
-      whyRequired: proc.whyRequired,
+      department: stepAuthority,
+      authority: stepAuthority,
+      description: stepDescription,
+      plainLanguageSummary: stepDescription,
+      whyRequired: stepWhyRequired,
       status,
       documents: enrichedDocuments,
       prerequisites: proc.dependsOn,
@@ -210,19 +285,19 @@ export function buildRoadmap(
       fee: proc.fee,
       processingTime: proc.estimatedTime,
       applicationMode: proc.applicationMode,
-      applicationUrl: proc.applicationUrl,
-      source: proc.source,
-      sourceTitle: proc.source.title,
-      sourceAuthority: proc.source.department,
-      sourceUrl: proc.source.url,
-      lastVerified: proc.source.lastChecked,
+      applicationUrl: stepApplicationUrl,
+      source: stepSource,
+      sourceTitle: stepSource.title,
+      sourceAuthority: stepSource.department,
+      sourceUrl: stepSource.url,
+      lastVerified: stepSource.lastChecked,
       verificationStatus: proc.verificationStatus,
       whyAmISeeingThis: {
         goal: goal.rawGoal,
         activity: goal.activity.replace(/_/g, ' '),
         location: `${goal.location.city}, ${goal.location.state}`,
-        relevantProcedure: proc.title,
-        source: `${proc.source.department} (${proc.source.domain})`,
+        relevantProcedure: stepTitle,
+        source: `${stepSource.department} (${stepSource.domain})`,
         verificationStatus: proc.verificationStatus
       },
       position: {
@@ -234,7 +309,9 @@ export function buildRoadmap(
 
   // Generate dynamic human-friendly title
   let journeyTitle = `${goal.activity.replace(/_/g, ' ')} Pathway`;
-  if (goal.intent === 'START_BUSINESS') {
+  if (goal.activity === 'SALON_SETUP') {
+    journeyTitle = `Salon & Beauty Parlour Setup Roadmap — ${goal.location.city}`;
+  } else if (goal.intent === 'START_BUSINESS') {
     journeyTitle = `${goal.entities.businessType ? goal.entities.businessType.toUpperCase() : 'Business'} Setup Roadmap — ${goal.location.city}`;
   } else if (goal.intent === 'PROPERTY_RENTAL' || goal.activity === 'RENTAL_AGREEMENT') {
     journeyTitle = `Residential Rental & Tenant Compliance Roadmap — ${goal.location.city || 'Mumbai'}`;
