@@ -85,7 +85,15 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
     try {
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // ignore
+        }
+        recognitionRef.current = null;
       }
 
       const recognition = new SpeechRecognition();
@@ -118,11 +126,19 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
       };
 
       recognition.onerror = (event: any) => {
-        console.warn('Speech recognition error:', event.error);
-        if (event.error === 'not-allowed') {
+        // 'aborted' is fired when speech recognition is stopped/restarted/cleaned up normally
+        // 'no-speech' is fired when no speech was detected within the timeout window
+        if (event.error === 'aborted' || event.error === 'no-speech') {
+          return;
+        }
+
+        console.warn('Speech recognition warning:', event.error);
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
           setErrorMessage('Microphone access was denied. Please allow microphone permissions in your browser address bar.');
-        } else if (event.error === 'no-speech') {
-          // Keep listening or prompt user
+        } else if (event.error === 'audio-capture') {
+          setErrorMessage('No microphone detected. Please check your system audio settings.');
+        } else if (event.error === 'network') {
+          setErrorMessage('Speech recognition network error. Please try speaking again.');
         } else {
           setErrorMessage(`Voice recognition note: ${event.error}`);
         }
@@ -144,11 +160,20 @@ export const VoiceAssistantModal: React.FC<VoiceAssistantModalProps> = ({
 
   const stopListening = () => {
     if (recognitionRef.current) {
+      recognitionRef.current.onresult = null;
+      recognitionRef.current.onerror = null;
+      recognitionRef.current.onend = null;
       try {
         recognitionRef.current.stop();
-      } catch (err) {
+      } catch {
         // ignore
       }
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null;
     }
     setIsListening(false);
   };

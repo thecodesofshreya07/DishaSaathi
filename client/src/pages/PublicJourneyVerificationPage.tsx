@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -12,15 +12,20 @@ import {
   Building2,
   ArrowLeft,
   QrCode,
-  Sparkles
+  Sparkles,
+  FileDown
 } from 'lucide-react';
 import { useRoadmap } from '../context/RoadmapContext';
 import { CivicJourney } from '../types';
+import { generateRoadmapPdf } from '../utils/pdfGenerator';
 
 export const PublicJourneyVerificationPage: React.FC = () => {
   const { journeyId } = useParams<{ journeyId?: string }>();
+  const [searchParams] = useSearchParams();
   const { journeys, journey: activeJourney } = useRoadmap();
   const [copied, setCopied] = useState(false);
+  const [pdfDownloaded, setPdfDownloaded] = useState(false);
+  const hasAutoDownloaded = useRef(false);
 
   const allJourneys = journeys.length > 0 ? journeys : (activeJourney ? [activeJourney] : []);
   
@@ -28,38 +33,48 @@ export const PublicJourneyVerificationPage: React.FC = () => {
     if (journeyId && journeyId !== 'all') {
       return journeyId;
     }
-    return allJourneys.length > 1 && !journeyId ? 'all' : (allJourneys[0]?.id || 'all');
+    return allJourneys[0]?.id || '';
   });
 
-  const isMaster = selectedId === 'all';
-  const matchedJourney: CivicJourney | null = isMaster
-    ? null
-    : allJourneys.find((j) => j.id === selectedId) || activeJourney || allJourneys[0] || null;
-
-  // Master stats
-  const totalStagesAcrossAll = allJourneys.reduce((sum, j) => sum + (j.steps?.length || j.totalSteps || 5), 0);
-  const completedStagesAcrossAll = allJourneys.reduce(
-    (sum, j) => sum + (j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0),
-    0
-  );
+  const matchedJourney: CivicJourney | null =
+    allJourneys.find((j) => j.id === selectedId) || activeJourney || allJourneys[0] || null;
 
   const steps = matchedJourney?.steps || [];
-  const completedCount = isMaster
-    ? completedStagesAcrossAll
-    : steps.filter((s) => s.status === 'Completed').length;
-  const inProgressCount = isMaster
-    ? allJourneys.reduce((sum, j) => sum + (j.steps?.filter((s) => s.status === 'In Progress').length || 0), 0)
-    : steps.filter((s) => s.status === 'In Progress').length;
-  const totalSteps = isMaster ? totalStagesAcrossAll : steps.length || matchedJourney?.totalSteps || 5;
+  const completedCount = steps.filter((s) => s.status === 'Completed').length;
+  const inProgressCount = steps.filter((s) => s.status === 'In Progress').length;
+  const totalSteps = steps.length || matchedJourney?.totalSteps || 5;
   const progressPercent = Math.round((completedCount / (totalSteps || 1)) * 100);
 
-  const verificationId = `DS-VERIFY-${(matchedJourney?.id || 'PORTFOLIO').replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase()}`;
+  const verificationId = `DS-VERIFY-${(matchedJourney?.id || 'ROADMAP').replace(/[^a-zA-Z0-9]/g, '').slice(-6).toUpperCase()}`;
+
+  // Handle PDF Generation and Download
+  const handleDownloadPdf = () => {
+    if (!matchedJourney) return;
+    try {
+      generateRoadmapPdf(matchedJourney, 'Verified Citizen');
+      setPdfDownloaded(true);
+    } catch (e) {
+      console.error('Failed to generate PDF:', e);
+    }
+  };
+
+  // Auto-download when user scanned the QR code containing ?download=pdf
+  useEffect(() => {
+    const shouldDownload = searchParams.get('download') === 'pdf' || searchParams.get('download') === '1';
+    if (shouldDownload && matchedJourney && !hasAutoDownloaded.current) {
+      hasAutoDownloaded.current = true;
+      const timer = setTimeout(() => {
+        handleDownloadPdf();
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [matchedJourney?.id, searchParams]);
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: `Civic Clearance Verification: ${isMaster ? 'Master Citizen Portfolio' : matchedJourney?.title}`,
-        text: `Verified clearance progress: ${completedCount} of ${totalSteps} stages cleared.`,
+        title: `Civic Clearance Verification: ${matchedJourney?.title}`,
+        text: `Verified clearance progress: ${completedCount} of ${totalSteps} stages cleared. Download official PDF roadmap.`,
         url: window.location.href
       }).catch(() => {});
     } else {
@@ -86,11 +101,20 @@ export const PublicJourneyVerificationPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={handleDownloadPdf}
+              className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-98"
+            >
+              <FileDown className="w-3.5 h-3.5 text-slate-950" />
+              <span>{pdfDownloaded ? 'PDF Downloaded' : 'Download PDF'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleShare}
               className="px-3 py-1.5 rounded-xl border border-[#DCE8E1] dark:border-[#1E3B32] bg-[#F7FAF8] dark:bg-[#12241E] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] hover:bg-emerald-50 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>{copied ? 'Link Copied!' : 'Share Status'}</span>
+              <span>{copied ? 'Link Copied!' : 'Share'}</span>
             </button>
             <button
               type="button"
@@ -98,7 +122,7 @@ export const PublicJourneyVerificationPage: React.FC = () => {
               className="px-3 py-1.5 rounded-xl bg-[#1B4D3E] text-white text-xs font-bold hover:bg-[#143B2F] transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Print Certificate</span>
+              <span className="hidden sm:inline">Print</span>
             </button>
           </div>
         </div>
@@ -107,56 +131,22 @@ export const PublicJourneyVerificationPage: React.FC = () => {
       {/* Main Verification Card */}
       <main className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         
-        {/* Multi-Journey Tabs (when citizen has multiple journeys) */}
-        {allJourneys.length > 1 && (
-          <div className="bg-white dark:bg-[#0D1A16] p-3 rounded-2xl border border-[#DCE8E1] dark:border-[#1E3B32] shadow-2xs space-y-2">
-            <div className="text-[11px] font-bold text-[#5C7066] dark:text-[#8C9B94] px-1">
-              Select Civic Procedure to View Verification:
+        {/* QR Scan Success Download Banner */}
+        {pdfDownloaded && (
+          <div className="p-3.5 rounded-2xl bg-emerald-500 text-white shadow-md flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+              <span className="text-xs font-bold">
+                Official Gazette-verified Roadmap PDF for "{matchedJourney?.title}" has been saved to your device.
+              </span>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-              <button
-                type="button"
-                onClick={() => setSelectedId('all')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
-                  isMaster
-                    ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-xs'
-                    : 'bg-[#F2F7F4] dark:bg-[#142B23] text-[#4A5D54] dark:text-[#9FB7AC] border-[#DCE8E0] dark:border-[#1E3B32]'
-                }`}
-              >
-                <span>Master Portfolio</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                  isMaster ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
-                }`}>
-                  {allJourneys.length}
-                </span>
-              </button>
-
-              {allJourneys.map((j) => {
-                const isSelected = selectedId === j.id;
-                const jCompleted = j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0;
-                const jTotal = j.steps?.length || j.totalSteps || 5;
-
-                return (
-                  <button
-                    key={j.id}
-                    type="button"
-                    onClick={() => setSelectedId(j.id)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
-                      isSelected
-                        ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-xs'
-                        : 'bg-[#F2F7F4] dark:bg-[#142B23] text-[#4A5D54] dark:text-[#9FB7AC] border-[#DCE8E0] dark:border-[#1E3B32]'
-                    }`}
-                  >
-                    <span className="max-w-[150px] truncate">{j.title}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}>
-                      {jCompleted}/{jTotal}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              className="text-xs underline font-extrabold cursor-pointer hover:opacity-90 shrink-0"
+            >
+              Download Again
+            </button>
           </div>
         )}
 
@@ -170,34 +160,42 @@ export const PublicJourneyVerificationPage: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-200 block">
-                    Public Civic Clearance Verification
+                    Public Civic Clearance Verification & PDF Roadmap
                   </span>
                   <h1 className="text-base sm:text-lg font-black text-white">
-                    {isMaster ? 'Master Citizen Compliance Portfolio' : 'Official Milestone & Progress Audit'}
+                    {matchedJourney?.title || 'Civic Procedure Roadmap'}
                   </h1>
                 </div>
               </div>
 
-              <div className="px-3 py-1 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md text-right">
-                <span className="text-[10px] text-emerald-200 block">Verification ID</span>
-                <span className="text-xs font-mono font-bold text-white">{verificationId}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 shadow-sm cursor-pointer active:scale-98"
+                >
+                  <FileDown className="w-3.5 h-3.5 text-slate-950" />
+                  <span>Download Roadmap PDF</span>
+                </button>
+                <div className="px-3 py-1 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md text-right">
+                  <span className="text-[10px] text-emerald-200 block">Verification ID</span>
+                  <span className="text-xs font-mono font-bold text-white">{verificationId}</span>
+                </div>
               </div>
             </div>
 
             {/* Target Goal & Location */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
               <div>
-                <span className="text-emerald-200 block font-medium">
-                  {isMaster ? 'Active Civic Procedures:' : 'Registered Civic Goal:'}
-                </span>
+                <span className="text-emerald-200 block font-medium">Registered Civic Goal:</span>
                 <span className="text-sm sm:text-base font-black text-white mt-0.5 block">
-                  {isMaster ? `${allJourneys.length} Procedures in Citizen Portfolio` : matchedJourney?.title}
+                  {matchedJourney?.title}
                 </span>
               </div>
               <div>
                 <span className="text-emerald-200 block font-medium">Active Jurisdiction:</span>
                 <span className="text-sm font-bold text-emerald-100 mt-0.5 block">
-                  {isMaster ? 'All Municipal Wards & Transport Divisions' : matchedJourney?.location || 'Mumbai, Maharashtra'}
+                  {matchedJourney?.location || 'Mumbai, Maharashtra'}
                 </span>
               </div>
             </div>
@@ -228,67 +226,36 @@ export const PublicJourneyVerificationPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Detailed Stage-by-Stage Breakdown or Portfolio Overview */}
+        {/* Detailed Stage-by-Stage Breakdown */}
         <div className="bg-white dark:bg-[#0D1A16] rounded-3xl border border-[#DCE8E1] dark:border-[#1E3B32] p-5 sm:p-7 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[#EDF2EE] dark:border-[#1E3B32]">
             <div>
               <h2 className="text-base font-black text-[#11261F] dark:text-white">
-                {isMaster ? 'All Civic Procedures in Portfolio' : 'Audited Clearance Stages'}
+                Audited Clearance Stages & Documents
               </h2>
               <p className="text-xs text-[#5C7066] dark:text-[#8C9B94] mt-0.5">
-                {isMaster
-                  ? 'Click on any procedure below to inspect its itemized statutory milestones and clearance proofs.'
-                  : 'Real-time breakdown of completed, ongoing, and upcoming statutory requirements.'}
+                Real-time breakdown of completed, ongoing, and upcoming statutory requirements.
               </p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200">
-              Live Verified
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer"
+              >
+                <FileDown className="w-3.5 h-3.5" />
+                <span>Save Official PDF</span>
+              </button>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200">
+                Live Verified
+              </span>
+            </div>
           </div>
 
           <div className="space-y-3">
-            {isMaster ? (
-              allJourneys.map((j) => {
-                const jCompleted = j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0;
-                const jTotal = j.steps?.length || j.totalSteps || 5;
-                const jPct = Math.round((jCompleted / (jTotal || 1)) * 100);
-
-                return (
-                  <div
-                    key={j.id}
-                    onClick={() => setSelectedId(j.id)}
-                    className="p-4 rounded-2xl border border-[#E8ECE9] dark:border-[#1E3B32] hover:border-[#1B4D3E] transition-all cursor-pointer bg-[#FBFDFB] dark:bg-[#12241E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs group"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                          {j.category || 'Statutory'}
-                        </span>
-                        <span className="text-[10px] text-slate-400">{j.location}</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#11261F] dark:text-white group-hover:text-[#1B4D3E] dark:group-hover:text-[#6EE7B7] transition-colors">
-                        {j.title}
-                      </h3>
-                    </div>
-
-                    <div className="flex items-center gap-4 justify-between sm:justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-                      <div className="text-right">
-                        <div className="font-black text-[#1B4D3E] dark:text-[#6EE7B7] text-xs">
-                          {jCompleted} / {jTotal} Stages Cleared
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-bold">{jPct}% Completed</div>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold group-hover:bg-[#1B4D3E] group-hover:text-white transition-all">
-                        Inspect
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              steps.map((step, idx) => {
-                const isCompleted = step.status === 'Completed';
-                const isInProgress = step.status === 'In Progress';
+            {steps.map((step, idx) => {
+              const isCompleted = step.status === 'Completed';
+              const isInProgress = step.status === 'In Progress';
 
                 return (
                   <div
@@ -352,8 +319,7 @@ export const PublicJourneyVerificationPage: React.FC = () => {
                     </div>
                   </div>
                 );
-              })
-            )}
+              })}
           </div>
         </div>
 

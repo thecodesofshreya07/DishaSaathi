@@ -36,6 +36,8 @@ import {
 import { generateStatutoryGrievanceDraft, getStepSlaInfo } from './services/civic/slaEscalationService.js';
 import { fetchFromDigiLocker } from './services/civic/digilockerService.js';
 import { sendRoadmapEmail, sendEscalationNoticeEmail, sendEmailViaBrevo } from './services/civic/emailService.js';
+import { generateRoadmapPdfBuffer } from './services/civic/pdfService.js';
+import { getLocalIpAddress } from './utils/networkUtils.js';
 
 dotenv.config();
 
@@ -58,6 +60,22 @@ app.use(express.json());
 let currentJourney: CivicJourney | null = null;
 let updates: GovernmentUpdate[] = JSON.parse(JSON.stringify(initialGovernmentUpdates));
 
+// Helper to ensure currentJourney is initialized
+async function ensureDefaultJourney(): Promise<CivicJourney> {
+  if (currentJourney) return currentJourney;
+  try {
+    const structuredGoal = await parseCitizenGoal('Open a bakery in Mumbai', {});
+    const procedures = findRelevantProcedures(structuredGoal);
+    currentJourney = buildRoadmap(structuredGoal, procedures);
+  } catch (e) {
+    console.error('Failed to create default journey:', e);
+  }
+  return currentJourney!;
+}
+
+// Pre-warm default journey on launch
+ensureDefaultJourney().catch(() => {});
+
 // 1. Health check endpoint (Phase 1 Requirement)
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
@@ -67,6 +85,70 @@ app.get('/api/health', (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     scenario: 'Municipal Bureaucracy Path Visualizer (PSWB02)'
   });
+});
+
+// Network Info Endpoint for Phone QR Discovery (Returns local Wi-Fi / LAN IP so phones connect without localhost errors)
+app.get('/api/network-info', (_req: Request, res: Response) => {
+  const ip = getLocalIpAddress();
+  res.json({
+    success: true,
+    ip,
+    port: PORT,
+    clientPort: 5173,
+    directPdfUrl: `http://${ip}:${PORT}/api/journey/current/download-pdf`,
+    clientUrl: `http://${ip}:5173`
+  });
+});
+
+// Direct Phone Binary PDF Download Endpoint
+app.get('/api/journey/:id/download-pdf', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const citizenName = (req.query.citizenName as string) || 'Verified Citizen';
+
+  let targetJourney: CivicJourney | null = null;
+
+  if (currentJourney && (currentJourney.id === id || id === 'current')) {
+    targetJourney = currentJourney;
+  } else if (id && id.includes('flat')) {
+    const g = await parseCitizenGoal('Purchase a flat in Mumbai', {});
+    targetJourney = buildRoadmap(g, findRelevantProcedures(g));
+  } else if (id && id.includes('license')) {
+    const g = await parseCitizenGoal('Four-wheeler driving license in Mumbai', {});
+    targetJourney = buildRoadmap(g, findRelevantProcedures(g));
+  } else if (id && id.includes('bakery')) {
+    const g = await parseCitizenGoal('Open a commercial bakery in Mumbai', {});
+    targetJourney = buildRoadmap(g, findRelevantProcedures(g));
+  } else {
+    targetJourney = await ensureDefaultJourney();
+  }
+
+  if (!targetJourney) {
+    return res.status(404).send('Civic Roadmap not found');
+  }
+
+  try {
+    const pdfBuffer = generateRoadmapPdfBuffer(targetJourney, citizenName);
+    const safeTitle = (targetJourney.title || 'roadmap').toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const filename = `dishasaathi-${safeTitle}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.end(pdfBuffer);
+  } catch (err: any) {
+    console.error('Error generating PDF download:', err);
+    return res.status(500).send('Error generating PDF roadmap');
+  }
+});
+
+app.get('/api/journey/download-pdf', async (req: Request, res: Response) => {
+  const journeyId = (req.query.journeyId as string) || 'current';
+  req.params.id = journeyId;
+  return (app as any)._router.handle(req, res);
 });
 
 // ============================================================

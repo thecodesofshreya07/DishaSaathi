@@ -15,11 +15,13 @@ import {
   Award,
   Sparkles,
   Sun,
-  Moon
+  Moon,
+  FileDown
 } from 'lucide-react';
 import { CivicJourney, GovernmentUpdate, ProcedureStep, CivicDocumentStatus } from '../types';
 import { getOfficialDocumentApplicationUrl, getDocumentProcurementInfo, OfflineOfficeDetails } from '../utils/documentSources';
 import { getHowToApplyGuide } from '../utils/documentApplicationGuide';
+import { generateRoadmapPdf } from '../utils/pdfGenerator';
 import { OfflineDocModal } from './OfflineDocModal';
 import { HowToApplyModal } from './HowToApplyModal';
 import { DigiLockerModal } from './DigiLockerModal';
@@ -974,62 +976,81 @@ export const DeadlinesView: React.FC<{ journey?: CivicJourney }> = ({ journey })
 };
 
 // ----------------------------------------------------
-// 5. CIVIC VERIFICATION QR & MULTI-JOURNEY PORTFOLIO
+// 5. CIVIC VERIFICATION QR & PROCEDURE PDF DOWNLOAD
 // ----------------------------------------------------
 export const PassportView: React.FC<{
   journey: CivicJourney;
   journeys?: CivicJourney[];
   onSelectJourney?: (id: string) => void;
 }> = ({ journey, journeys = [], onSelectJourney }) => {
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
-  const [selectedJourneyId, setSelectedJourneyId] = useState<string>(journey?.id || 'all');
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [networkHost, setNetworkHost] = useState<string>(() => {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return window.location.hostname;
+    }
+    return '10.85.100.122';
+  });
+
+  // Discover server network LAN IP so phone QR scanning accesses the host machine directly
+  useEffect(() => {
+    fetch('/api/network-info')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.ip && data.ip !== '127.0.0.1') {
+          setNetworkHost(data.ip);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const allJourneys = journeys.length > 0 ? journeys : (journey ? [journey] : []);
+  const [selectedJourneyId, setSelectedJourneyId] = useState<string>(() => journey?.id || allJourneys[0]?.id || '');
 
   // Sync when journey prop changes
   useEffect(() => {
-    if (journey?.id && selectedJourneyId !== 'all') {
+    if (journey?.id) {
       setSelectedJourneyId(journey.id);
     }
   }, [journey?.id]);
 
-  const allJourneys = journeys.length > 0 ? journeys : (journey ? [journey] : []);
-  const isMasterPortfolio = selectedJourneyId === 'all';
+  const currentJourney = allJourneys.find((j) => j.id === selectedJourneyId) || journey || allJourneys[0];
 
-  const currentJourney = isMasterPortfolio
-    ? null
-    : allJourneys.find((j) => j.id === selectedJourneyId) || journey || allJourneys[0];
+  // Direct Binary PDF download URL on the phone (avoids localhost)
+  const directPhonePdfUrl = `http://${networkHost}:5000/api/journey/${currentJourney?.id || 'current'}/download-pdf`;
+  const verifyWebUrl = `http://${networkHost}:5173/verify/${currentJourney?.id || ''}?download=pdf`;
 
-  const verifyUrl = isMasterPortfolio
-    ? `${window.location.origin}/verify`
-    : `${window.location.origin}/verify/${currentJourney?.id || ''}`;
-
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(verifyUrl)}&margin=10`;
-
-  // Stats calculation
-  const totalStagesAcrossAll = allJourneys.reduce((sum, j) => sum + (j.steps?.length || j.totalSteps || 5), 0);
-  const completedStagesAcrossAll = allJourneys.reduce(
-    (sum, j) => sum + (j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0),
-    0
-  );
+  // QR Code encodes direct binary PDF download for instant phone download
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(directPhonePdfUrl)}&margin=10`;
 
   const steps = currentJourney?.steps || [];
-  const completedSteps = isMasterPortfolio
-    ? completedStagesAcrossAll
-    : steps.filter((s) => s.status === 'Completed').length;
-  const inProgressSteps = isMasterPortfolio
-    ? allJourneys.reduce((sum, j) => sum + (j.steps?.filter((s) => s.status === 'In Progress').length || 0), 0)
-    : steps.filter((s) => s.status === 'In Progress').length;
-  const totalSteps = isMasterPortfolio ? totalStagesAcrossAll : steps.length || currentJourney?.totalSteps || 5;
+  const completedSteps = steps.filter((s) => s.status === 'Completed').length;
+  const inProgressSteps = steps.filter((s) => s.status === 'In Progress').length;
+  const totalSteps = steps.length || currentJourney?.totalSteps || 5;
   const progressPercent = Math.round((completedSteps / (totalSteps || 1)) * 100);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(verifyUrl);
+    navigator.clipboard.writeText(directPhonePdfUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleDownloadPdf = () => {
+    if (!currentJourney) return;
+    setPdfGenerating(true);
+    try {
+      generateRoadmapPdf(currentJourney, user?.name || 'Citizen');
+    } catch (e) {
+      console.error('Failed to generate PDF:', e);
+    } finally {
+      setTimeout(() => setPdfGenerating(false), 1200);
+    }
+  };
+
   const handleSelect = (id: string) => {
     setSelectedJourneyId(id);
-    if (id !== 'all' && onSelectJourney) {
+    if (onSelectJourney) {
       onSelectJourney(id);
     }
   };
@@ -1038,41 +1059,22 @@ export const PassportView: React.FC<{
     <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-black text-[#11261F] dark:text-white">
-            Journey Verification QR & Compliance Portfolio
+          <h3 className="text-xl font-black text-[#11261F] dark:text-white flex items-center gap-2">
+            <span>Direct Phone Download QR & Official PDF Roadmap</span>
           </h3>
           <p className="text-xs text-[#6C8075] dark:text-[#9FB7AC] mt-0.5">
-            Generate and scan verified QR codes for any individual goal or your complete citizen compliance portfolio.
+            Scan with any mobile phone camera to instantly download the complete Gazette-verified PDF roadmap onto your device.
           </p>
         </div>
       </div>
 
-      {/* Multi-Journey Switcher Pills */}
+      {/* Multi-Journey Switcher Pills - Individual journeys only */}
       {allJourneys.length > 1 && (
         <div className="bg-white dark:bg-[#0D1A16] p-3 rounded-2xl border border-[#DCE8E1] dark:border-[#1E3B32] shadow-2xs space-y-2">
           <div className="text-[11px] font-bold text-[#5C7066] dark:text-[#8C9B94] px-1">
-            Select Civic Procedure to Generate QR:
+            Select Civic Procedure to View & Download:
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {/* Master Portfolio Option */}
-            <button
-              type="button"
-              onClick={() => handleSelect('all')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 border ${
-                isMasterPortfolio
-                  ? 'bg-[#1B4D3E] text-white border-[#1B4D3E] shadow-xs'
-                  : 'bg-[#F2F7F4] dark:bg-[#142B23] text-[#4A5D54] dark:text-[#9FB7AC] border-[#DCE8E0] dark:border-[#1E3B32]'
-              }`}
-            >
-              <span>All Journeys (Master Portfolio)</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                isMasterPortfolio ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
-              }`}>
-                {allJourneys.length}
-              </span>
-            </button>
-
-            {/* Individual Journeys */}
             {allJourneys.map((j) => {
               const isSelected = selectedJourneyId === j.id;
               const jCompleted = j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0;
@@ -1089,7 +1091,7 @@ export const PassportView: React.FC<{
                       : 'bg-[#F2F7F4] dark:bg-[#142B23] text-[#4A5D54] dark:text-[#9FB7AC] border-[#DCE8E0] dark:border-[#1E3B32]'
                   }`}
                 >
-                  <span className="max-w-[160px] truncate">{j.title}</span>
+                  <span className="max-w-[180px] truncate">{j.title}</span>
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                     isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}>
@@ -1106,43 +1108,51 @@ export const PassportView: React.FC<{
         
         {/* Left: Scannable QR Code Card */}
         <div className="md:col-span-5 bg-white dark:bg-[#0D1A16] rounded-3xl border border-[#DCE8E1] dark:border-[#1E3B32] p-6 shadow-sm flex flex-col items-center text-center space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{isMasterPortfolio ? 'Master Portfolio QR' : 'Official Procedure QR'}</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-300 dark:border-amber-800">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Direct Phone Download QR</span>
           </div>
 
           {/* Real Scannable QR Code */}
           <div className="p-3 bg-white rounded-2xl border-2 border-[#1B4D3E]/20 shadow-md">
             <img
               src={qrCodeUrl}
-              alt="Scan to verify journey status"
-              className="w-48 h-48 rounded-lg object-contain"
+              alt={`Scan QR code to directly download ${currentJourney?.title} roadmap PDF`}
+              className="w-52 h-52 rounded-lg object-contain"
               loading="lazy"
             />
           </div>
 
           <p className="text-xs text-[#5C7066] dark:text-[#8C9B94] max-w-xs leading-relaxed">
-            {isMasterPortfolio
-              ? 'Point any mobile camera at this code to verify all active civic journeys for this citizen account.'
-              : `Point any phone camera to verify clearances for "${currentJourney?.title}".`}
+            Point any phone camera at this QR code to <strong className="text-[#11261F] dark:text-white font-bold">directly download the PDF file</strong> for <strong className="text-[#1B4D3E] dark:text-[#6EE7B7]">"{currentJourney?.title}"</strong> straight to your phone.
           </p>
 
           <div className="w-full pt-2 border-t border-[#EDF2EE] dark:border-[#1E3B32] flex flex-col gap-2">
             <button
               type="button"
+              onClick={handleDownloadPdf}
+              disabled={pdfGenerating}
+              className="w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            >
+              <FileDown className="w-4 h-4 text-slate-950" />
+              <span>{pdfGenerating ? 'Generating Official PDF...' : 'Download PDF on this Computer'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleCopy}
               className="w-full py-2 px-3 rounded-xl bg-[#1B4D3E] hover:bg-[#143B2F] text-white text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>{copied ? 'Verification Link Copied!' : 'Copy Shareable Link'}</span>
+              <span>{copied ? 'Phone Download Link Copied!' : 'Copy Direct Phone Link'}</span>
             </button>
 
             <a
-              href={verifyUrl}
+              href={verifyWebUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-2 px-3 rounded-xl border border-[#DCE8E1] dark:border-[#1E3B32] bg-[#F7FAF8] dark:bg-[#12241E] text-xs font-bold text-[#1B4D3E] dark:text-[#6EE7B7] hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5"
             >
-              <span>Open Scanned Preview</span>
+              <span>Open Scanned Verification Preview</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
@@ -1156,10 +1166,10 @@ export const PassportView: React.FC<{
             <div className="flex items-center justify-between border-b border-white/20 pb-3">
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-200 block">
-                  {isMasterPortfolio ? 'Unified Citizen Portfolio' : 'Public Compliance Status'}
+                  Public Compliance Status
                 </span>
                 <h4 className="text-base font-black text-white">
-                  {isMasterPortfolio ? 'Master Citizen Compliance Portfolio' : currentJourney?.title}
+                  {currentJourney?.title}
                 </h4>
               </div>
               <span className="text-xs font-bold text-amber-300 px-2.5 py-1 rounded-lg bg-white/10 border border-white/20">
@@ -1169,12 +1179,8 @@ export const PassportView: React.FC<{
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <span className="text-emerald-200 text-[11px] block">
-                  {isMasterPortfolio ? 'Active Civic Goals:' : 'Active Jurisdiction:'}
-                </span>
-                <span className="font-bold text-white mt-0.5 block">
-                  {isMasterPortfolio ? `${allJourneys.length} Procedures Tracked` : currentJourney?.location || 'Mumbai, Maharashtra'}
-                </span>
+                <span className="text-emerald-200 text-[11px] block">Active Jurisdiction:</span>
+                <span className="font-bold text-white mt-0.5 block">{currentJourney?.location || 'Mumbai, Maharashtra'}</span>
               </div>
               <div>
                 <span className="text-emerald-200 text-[11px] block">Stages Completed:</span>
@@ -1191,48 +1197,16 @@ export const PassportView: React.FC<{
             </div>
           </div>
 
-          {/* Step-by-Step Clearance List or Master Journey List */}
+          {/* Step-by-Step Clearance List for this Journey */}
           <div className="bg-white dark:bg-[#0D1A16] rounded-3xl border border-[#DCE8E1] dark:border-[#1E3B32] p-5 shadow-xs space-y-3">
             <h4 className="text-xs font-black uppercase tracking-wider text-[#11261F] dark:text-white">
-              {isMasterPortfolio ? 'All Active Civic Clearances in Portfolio:' : 'What Someone Sees When Scanning:'}
+              Official Procedure Stages in Downloaded PDF:
             </h4>
 
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-              {isMasterPortfolio ? (
-                allJourneys.map((j) => {
-                  const jCompleted = j.steps?.filter((s) => s.status === 'Completed').length || j.completedSteps || 0;
-                  const jTotal = j.steps?.length || j.totalSteps || 5;
-                  const jPct = Math.round((jCompleted / (jTotal || 1)) * 100);
-
-                  return (
-                    <div
-                      key={j.id}
-                      onClick={() => handleSelect(j.id)}
-                      className="p-3.5 rounded-2xl border border-[#E8ECE9] dark:border-[#1E3B32] hover:border-[#1B4D3E] transition-all cursor-pointer bg-[#FBFDFB] dark:bg-[#12241E] flex items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                            {j.category || 'Statutory'}
-                          </span>
-                          <span className="text-[10px] text-slate-400">{j.location}</span>
-                        </div>
-                        <h5 className="font-bold text-[#11261F] dark:text-white">{j.title}</h5>
-                      </div>
-
-                      <div className="flex flex-col items-end shrink-0">
-                        <span className="font-black text-[#1B4D3E] dark:text-[#6EE7B7] text-xs">
-                          {jCompleted} / {jTotal} Done
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-bold">{jPct}%</span>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                steps.map((step, idx) => {
-                  const isCompleted = step.status === 'Completed';
-                  const isInProgress = step.status === 'In Progress';
+              {steps.map((step, idx) => {
+                const isCompleted = step.status === 'Completed';
+                const isInProgress = step.status === 'In Progress';
 
                   return (
                     <div
@@ -1265,8 +1239,7 @@ export const PassportView: React.FC<{
                       </span>
                     </div>
                   );
-                })
-              )}
+                })}
             </div>
           </div>
 
