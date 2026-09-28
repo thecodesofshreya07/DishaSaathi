@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Search, Globe } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -120,17 +120,6 @@ export const LandingFooter: React.FC = () => {
               <button type="button" onClick={() => scrollTo('faq')} className="hover:text-white transition-colors cursor-pointer">
                 {t.navAbout}
               </button>
-              <span className="hover:text-white cursor-pointer">{t.footerAccessibility}</span>
-              <span className="hover:text-white cursor-pointer">{t.footerPrivacy}</span>
-              <span className="hover:text-white cursor-pointer">{t.footerTerms}</span>
-            </div>
-
-            {/* Social / Direct Channels */}
-            <div className="flex items-center gap-4 text-white/60 text-xs">
-              <span className="hover:text-white cursor-pointer font-semibold text-xs">LinkedIn</span>
-              <span className="hover:text-white cursor-pointer font-semibold text-xs">X</span>
-              <span className="hover:text-white cursor-pointer font-semibold text-xs">YouTube</span>
-              <Globe className="w-3.5 h-3.5 hover:text-white cursor-pointer" />
             </div>
           </div>
 
