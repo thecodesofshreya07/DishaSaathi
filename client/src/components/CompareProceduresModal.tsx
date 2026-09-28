@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { CivicJourney, ProcedureStep, CivicDocument, StepStatus } from '../types';
+import { getEstimatedFeeForStep } from '../utils/costCalculator';
 
 interface CompareProceduresModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ interface ProcedureOption {
     authority: string;
     status: 'mandatory' | 'optional' | 'waived';
     note?: string;
+    fee?: string;
   }>;
   keyDocuments: string[];
 }
@@ -786,40 +788,44 @@ function buildJourneyFromOption(option: ProcedureOption, originalJourney?: Civic
   const journeyId = originalJourney?.id || `journey_${Date.now()}`;
   const location = originalJourney?.location || 'Mumbai, Maharashtra';
 
-  const steps: ProcedureStep[] = option.steps.map((s, index) => ({
-    id: `step_${index + 1}_${option.id}`,
-    stepNumber: index + 1,
-    title: s.title,
-    category: 'Clearance & Verification',
-    department: s.authority,
-    authority: s.authority,
-    description: s.note || `Complete official ${s.title} through ${s.authority}`,
-    whyRequired: `Mandatory statutory requirement under municipal and state rules for ${option.title}`,
-    status: (index === 0 ? 'In Progress' : 'Pending') as StepStatus,
-    documents: option.keyDocuments.slice(0, 2).map((docName, docIdx) => ({
-      id: `doc_${index + 1}_${docIdx + 1}`,
-      name: docName,
-      isMandatory: true,
-      category: 'IDENTITY'
-    })),
-    prerequisites: index > 0 ? [`step_${index}_${option.id}`] : [],
-    fee: {
-      amount: index === 0 ? 'Standard Application Fee' : 'Statutory Verification Fee',
-      description: s.note
-    },
-    processingTime: `${Math.max(2, Math.round(14 / option.steps.length))} Days`,
-    applicationMode: 'Online',
-    applicationUrl: 'https://serviceonline.gov.in',
-    source: {
-      id: `src_${index + 1}`,
-      title: `${s.authority} Gazette Regulations`,
-      url: 'https://digitalindia.gov.in',
+  const steps: ProcedureStep[] = option.steps.map((s, index) => {
+    const stepFee = s.fee || (s.status === 'waived' ? '₹0 (Waived)' : getEstimatedFeeForStep({ title: s.title, authority: s.authority }));
+
+    return {
+      id: `step_${index + 1}_${option.id}`,
+      stepNumber: index + 1,
+      title: s.title,
+      category: 'Clearance & Verification',
       department: s.authority,
-      domain: 'Civic Compliance',
-      lastChecked: new Date().toISOString(),
-      verificationStatus: 'Verified'
-    }
-  }));
+      authority: s.authority,
+      description: s.note || `Complete official ${s.title} through ${s.authority}`,
+      whyRequired: `Mandatory statutory requirement under municipal and state rules for ${option.title}`,
+      status: (index === 0 ? 'In Progress' : 'Pending') as StepStatus,
+      documents: option.keyDocuments.slice(0, 2).map((docName, docIdx) => ({
+        id: `doc_${index + 1}_${docIdx + 1}`,
+        name: docName,
+        isMandatory: true,
+        category: 'IDENTITY'
+      })),
+      prerequisites: index > 0 ? [`step_${index}_${option.id}`] : [],
+      fee: {
+        amount: stepFee,
+        description: s.note || `Official statutory fee for ${s.title}`
+      },
+      processingTime: `${Math.max(2, Math.round(14 / option.steps.length))} Days`,
+      applicationMode: 'Online',
+      applicationUrl: 'https://serviceonline.gov.in',
+      source: {
+        id: `src_${index + 1}`,
+        title: `${s.authority} Gazette Regulations`,
+        url: 'https://digitalindia.gov.in',
+        department: s.authority,
+        domain: 'Civic Compliance',
+        lastChecked: new Date().toISOString(),
+        verificationStatus: 'Verified'
+      }
+    };
+  });
 
   return {
     id: journeyId,

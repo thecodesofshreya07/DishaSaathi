@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { CivicJourney, ProcedureStep } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { getEstimatedFeeForStep } from '../utils/costCalculator';
 
 interface RoadmapFlowchartProps {
   journey: CivicJourney;
@@ -168,7 +169,7 @@ export const RoadmapFlowchart: React.FC<RoadmapFlowchartProps> = ({
                         : 'text-[#1B4D3E] dark:text-[#6EE7B7] bg-white/70 dark:bg-[#0D1A16]/70 border-[#E5EBE7] dark:border-[#1F3E33]'
                     }`}>
                       <span className="text-[#4A5D54] dark:text-[#9FB7AC] font-medium">{step.processingTime || '1-2 weeks'}</span>
-                      <span>{step.fee?.amount || 'Free'}</span>
+                      <span className="font-bold text-[#1B4D3E] dark:text-[#6EE7B7]">{getEstimatedFeeForStep(step)}</span>
                     </div>
 
                   {/* Blocked dependency badge */}
